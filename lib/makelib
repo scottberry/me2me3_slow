@@ -1,0 +1,4 @@
+#!/bin/sh
+clang -c scottsmatrices.c -o scottsmatrices.o -O2 -I../include/
+ar -rcs libscottsmatrices.a scottsmatrices.o
+rm scottsmatrices.o
