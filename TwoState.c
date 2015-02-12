@@ -23,15 +23,21 @@ int main(int argc, char *argv[]) {
 
   /* parameters */
   c.sites = 60;
-  p.noisy_RepON = 4;
-  p.noisy_RepOFF = 12;
-  p.noisy_demethylate = 1;
-  p.U_demethylate = 2.5;
-  p.UR_methylate = 2;
-  p.MR_methylate = 25;
-  p.M_bindRep = 10;
+  p.noisy_RepON = 20;
+  p.noisy_RepOFF = 120;
+  p.noisy_demethylate = 0.1;
+  p.M_LHP1_ON = 100;
+  p.noisy_LHP1_OFF = 200;
+  p.stabilised_LHP1_OFF = 25;
+  p.U_demethylate = 3;
+  p.U_LHP1_OFF = 15;
 
-  p.maxReact = 500000;
+  p.UR_methylate = 0.5;
+  p.MR_methylate = 2.0;
+  p.M_bindRep = 200;
+  p.LHP1_bindRep = 100;
+
+  p.maxReact = 1000000;
   p.samples = 1000;
   p.sampleFreq = p.maxReact/p.samples;
 
@@ -49,11 +55,13 @@ int main(int argc, char *argv[]) {
   c.state = i_vec_get(c.sites);
   p.bindRep_index = i_vec_get(c.sites);
   p.unbindRep_index = i_vec_get(c.sites);
+  p.bindLHP1_index = i_vec_get(c.sites);
+  p.unbindLHP1_index = i_vec_get(c.sites);
   p.methylate_index = i_vec_get(c.sites);
   p.demethylate_index = i_vec_get(c.sites);
-  p.propensity = d_vec_get(4*c.sites);
-  p.doReaction = malloc(4*c.sites*sizeof( func_ptr_t ) );
-  p.doReactionParam = i_vec_get(4*c.sites);
+  p.propensity = d_vec_get(6*c.sites);
+  p.doReaction = malloc(6*c.sites*sizeof( func_ptr_t ) );
+  p.doReactionParam = i_vec_get(6*c.sites);
   p.update = malloc(sizeof( flags ) );
 
   if (p.results == TRUE) {
@@ -86,7 +94,15 @@ int main(int argc, char *argv[]) {
 
   /* free all arrays */
   i_vec_free(c.state);
+  free(p.bindRep_index);
+  free(p.unbindRep_index);
+  free(p.bindLHP1_index);
+  free(p.unbindLHP1_index);
+  free(p.methylate_index);
+  free(p.demethylate_index);
+  free(p.propensity);
   free(p.doReaction);
+  free(p.update);
 
   strcpy(fname,"t_\0"); strcat(fname,avgfile);
   fptr = fopen(fname,"w");
@@ -98,6 +114,9 @@ int main(int argc, char *argv[]) {
 
   strcpy(fname,"RepBound_t_\0"); strcat(fname,avgfile);
   fprint_nRepBound_t(fname,r.state);
+
+  strcpy(fname,"LHP1Bound_t_\0"); strcat(fname,avgfile);
+  fprint_nLHP1Bound_t(fname,r.state);
 
   if (p.results==TRUE) {
     i_mat_free(r.state);
