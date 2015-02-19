@@ -7,6 +7,7 @@ int main(int argc, char *argv[]) {
   chromatin c;
   parameters p;
   record r;
+  double new, old;
   int i, j;
 
   /* Code timing */
@@ -23,21 +24,21 @@ int main(int argc, char *argv[]) {
 
   /* parameters */
   c.sites = 60;
-  p.noisy_RepON = 20;
-  p.noisy_RepOFF = 120;
-  p.noisy_demethylate = 0.1;
-  p.M_LHP1_ON = 100;
-  p.noisy_LHP1_OFF = 200;
-  p.stabilised_LHP1_OFF = 25;
-  p.U_demethylate = 3;
-  p.U_LHP1_OFF = 15;
+  p.noisy_RepON = 0.02;
+  p.noisy_RepOFF = 0.12;
+  p.noisy_demethylate = 0.0001;
+  p.M_LHP1_ON = 0.1;
+  p.noisy_LHP1_OFF = 0.2;
+  p.stabilised_LHP1_OFF = 0.025;
+  p.U_demethylate = 0.003;
+  p.U_LHP1_OFF = 0.015;
 
-  p.UR_methylate = 0.5;
-  p.MR_methylate = 2.0;
-  p.M_bindRep = 200;
-  p.LHP1_bindRep = 100;
+  p.UR_methylate = 0.0005;
+  p.MR_methylate = 0.002;
+  p.M_bindRep = 0.2;
+  p.LHP1_bindRep = 0.1;
 
-  p.maxReact = 1000000;
+  p.maxReact = 10000000;
   p.samples = 1000;
   p.sampleFreq = p.maxReact/p.samples;
 
@@ -75,21 +76,30 @@ int main(int argc, char *argv[]) {
   initialiseRandom(&c,&p);
   p.reactCount = 0;
   p.sampleCount = 0;
+  old = 0;
 
   for (i=0;i<p.maxReact;i++) {
     if (p.results == TRUE) {
       if (p.reactCount % p.sampleFreq == 0) {
-	// fprintf(stderr,"sampleFreq = %ld, reactCount = %ld, ",p.sampleFreq, p.reactCount);
+
 	for (j=0;j<(c.sites);j++) {
 	  r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
 	  r.state->el[j][p.sampleCount] = c.state->el[j];
 	}
-	// fprintf(stderr,"sampleCount = %ld\n",p.sampleCount);
 	p.sampleCount++;
       }
     }
     p.reactCount++;
     gillespieStep(&c,&p,&r);
+
+    /* handle DNA replication deterministically, once per day */
+    new = fmod(r.t->el[p.reactCount],86400);
+
+    if (new < old) {
+      replicateDNA(&c,p.update,&p);
+      // fprintf(stderr,"old = %0.4f, new = %0.4f\n",old,new);
+    }
+    old = new;
   }
 
   /* free all arrays */

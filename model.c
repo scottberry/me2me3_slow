@@ -284,6 +284,18 @@ void gillespieStep(chromatin *c, parameters *p, record *r) {
   return;
 }
 
+void replicateDNA(chromatin *c, flags *update, parameters *p) {
+  unsigned long pos;
+  for (pos=0;pos<c->sites;pos++) {
+    if(runif(p->gsl_r)<=0.5) {
+      c->state->el[pos] = U;
+    }
+  }
+  update->protein = TRUE;
+  update->histone = TRUE;
+  return;
+}
+
 void fprint_nMethylated_t(char *fname, I_MAT *mat) {
   FILE *fptr;
   long unsigned methyl, i, j;

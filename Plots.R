@@ -9,7 +9,7 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 setwd("~/local/Modelling/TwoStateWithProtein/")
 
 s <- 60
-r <- format(1000000,scientific=FALSE)
+r <- format(10000000,scientific=FALSE)
 
 time_file <- paste("t_s",s,"r",r,".txt",sep="")
 tDep_methyl_file <- paste("Meth_t_s",s,"r",r,".txt",sep="")
@@ -22,9 +22,9 @@ LHP1 <- t(read.table(tDep_LHP1_file))
 Meth <- t(read.table(tDep_methyl_file))
 
 par(mfrow=c(3,1),mar=c(2,4,1,1)+0.1)
-plot(time,Prot,type="l",ylim=c(0,1),col="blue3")
-plot(time,LHP1,type="l",ylim=c(0,1),col="green3")
-plot(time,Meth,type="l",ylim=c(0,1),col="red3")
+plot(time/86400,Prot,type="l",ylim=c(0,1),col="blue3")
+plot(time/86400,LHP1,type="l",ylim=c(0,1),col="green3")
+plot(time/86400,Meth,type="l",ylim=c(0,1),col="red3")
 
 # s
 
