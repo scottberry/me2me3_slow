@@ -45,8 +45,10 @@ typedef struct {
   unsigned long reactCount, maxReact;
   double noisy_RepON, noisy_RepOFF, noisy_LHP1_OFF, noisy_demethylate;
   double stabilised_LHP1_OFF, M_LHP1_ON;
-  double U_demethylate, U_LHP1_OFF;
-  double UR_methylate, MR_methylate, M_bindRep, LHP1_bindRep;
+  double U_demethylate;
+  double UR_methylate, MR_methylate;
+  double M_bindRep, LHP1_bindRep;
+  double U_unbindRep;
   logical results, testProb;
   D_VEC *propensity;
   I_VEC *doReactionParam;

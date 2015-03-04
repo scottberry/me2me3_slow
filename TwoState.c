@@ -23,20 +23,36 @@ int main(int argc, char *argv[]) {
 #endif
 
   /* parameters */
-  c.sites = 60;
-  p.noisy_RepON = 0.02;
-  p.noisy_RepOFF = 0.12;
-  p.noisy_demethylate = 0.0001;
-  p.M_LHP1_ON = 0.1;
-  p.noisy_LHP1_OFF = 0.2;
-  p.stabilised_LHP1_OFF = 0.025;
-  p.U_demethylate = 0.003;
-  p.U_LHP1_OFF = 0.015;
 
-  p.UR_methylate = 0.0005;
-  p.MR_methylate = 0.002;
-  p.M_bindRep = 0.2;
-  p.LHP1_bindRep = 0.1;
+  c.sites = 60;
+
+  // Fast dynamics for protein binding/unbinding 
+  // ------------------------------------------------------------
+  p.noisy_RepON = 0.015; // 10-fold slower binding than unbinding
+  p.noisy_RepOFF = 0.15;
+
+  // Fast dynamics for LHP1
+  // ------------------------------------------------------------
+  p.M_LHP1_ON = 0.4; 
+  p.noisy_LHP1_OFF = 0.4;
+  p.stabilised_LHP1_OFF = 0.04; // 10-fold (nearest-neighbour) stabilisation
+
+  // Recruitment of Repressors by H3K27me3 and LHP1 (same value as noisy_OFF)
+  // ------------------------------------------------------------
+  p.M_bindRep = 0.4;
+  p.LHP1_bindRep = 0.4;
+
+  // Removal of repressors by transcription (U)
+  // ------------------------------------------------------------
+  p.U_unbindRep = 0.05;
+
+  // Relatively slow dynamics for methylation/demethylation
+  // ------------------------------------------------------------
+  p.noisy_demethylate = 0.0005;
+  p.U_demethylate = 0.005; // max. 10-fold change in nucleosome turnover between U and M states (global)
+
+  p.UR_methylate = 0.000125;
+  p.MR_methylate = 0.0025; // 20-fold allosteric activation of PHD-PRC2 (local)
 
   p.maxReact = 10000000;
   p.samples = 1000;
@@ -73,7 +89,12 @@ int main(int argc, char *argv[]) {
 
   /* Initialisation */
   initialiseGillespieFunctions(&c,&p);
-  initialiseRandom(&c,&p);
+  if (strcmp(argv[1],"M")==0)
+    initialiseRepressed(&c);
+  else if (strcmp(argv[1],"A")==0)
+    initialiseActive(&c);
+  else
+    initialiseRandom(&c,&p);
   p.reactCount = 0;
   p.sampleCount = 0;
   old = 0;
@@ -153,3 +174,48 @@ int main(int argc, char *argv[]) {
   
   return(1);
 }
+
+/*
+  c.sites = 60;
+  p.noisy_RepON = 0.02;
+  p.noisy_RepOFF = 0.12;
+  p.noisy_demethylate = 0.0001;
+  p.M_LHP1_ON = 0.1;
+  p.noisy_LHP1_OFF = 0.2;
+  p.stabilised_LHP1_OFF = 0.025;
+  p.U_demethylate = 0.003;
+  p.U_LHP1_OFF = 0.015;
+
+  p.UR_methylate = 0.0005;
+  p.MR_methylate = 0.002;
+  p.M_bindRep = 0.2;
+  p.LHP1_bindRep = 0.1;
+*/
+
+/*
+  // Before adding U-mediated protein unbinding
+
+  // Fast dynamics for protein binding/unbinding 
+  // ------------------------------------------------------------
+  p.noisy_RepON = 0.015; // 10-fold slower binding than unbinding
+  p.noisy_RepOFF = 0.15;
+
+  // Fast dynamics for LHP1
+  // ------------------------------------------------------------
+  p.M_LHP1_ON = 0.4; 
+  p.noisy_LHP1_OFF = 0.4;
+  p.stabilised_LHP1_OFF = 0.04; // 10-fold (nearest-neighbour) stabilisation
+
+  // Recruitment of Repressors by H3K27me3 and LHP1 (same value as noisy_OFF)
+  // ------------------------------------------------------------
+  p.M_bindRep = 0.4;
+  p.LHP1_bindRep = 0.4;
+
+  // Relatively slow dynamics for methylation/demethylation
+  // ------------------------------------------------------------
+  p.noisy_demethylate = 0.0005;
+  p.U_demethylate = 0.005; // max. 10-fold change in nucleosome turnover between U and M states (global)
+
+  p.UR_methylate = 0.000125;
+  p.MR_methylate = 0.0025; // 20-fold allosteric activation of PHD-PRC2 (local)
+*/

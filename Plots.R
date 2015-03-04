@@ -17,14 +17,14 @@ tDep_protein_file <- paste("RepBound_t_s",s,"r",r,".txt",sep="")
 tDep_LHP1_file <- paste("LHP1Bound_t_s",s,"r",r,".txt",sep="")
 
 time <- t(read.table(time_file))
-Prot <- t(read.table(tDep_protein_file))
+PHD_PRC2 <- t(read.table(tDep_protein_file))
 LHP1 <- t(read.table(tDep_LHP1_file))
-Meth <- t(read.table(tDep_methyl_file))
+K27me3 <- t(read.table(tDep_methyl_file))
 
 par(mfrow=c(3,1),mar=c(2,4,1,1)+0.1)
-plot(time/86400,Prot,type="l",ylim=c(0,1),col="blue3")
+plot(time/86400,PHD_PRC2,type="l",ylim=c(0,1),col="blue3")
 plot(time/86400,LHP1,type="l",ylim=c(0,1),col="green3")
-plot(time/86400,Meth,type="l",ylim=c(0,1),col="red3")
+plot(time/86400,K27me3,type="l",ylim=c(0,1),col="red3")
 
 # s
 

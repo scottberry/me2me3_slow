@@ -13,6 +13,24 @@ void rseed(parameters *p) {
 }
 
 /* initialise the protein binding randomly */
+void initialiseRepressed(chromatin *c) {
+  int i;
+  for (i=0;i<c->sites;i++) {
+    c->state->el[i] = M;
+  }
+  return;
+}
+
+/* initialise the protein binding randomly */
+void initialiseActive(chromatin *c) {
+  int i;
+  for (i=0;i<c->sites;i++) {
+    c->state->el[i] = U;
+  }
+  return;
+}
+
+/* initialise the protein binding randomly */
 void initialiseRandom(chromatin *c, parameters *p) {
   int i;
   double rand;
@@ -196,32 +214,29 @@ long unsigned right(chromatin *c, long unsigned i) {
     f_M = frac(c->state,M) + frac(c->state,M_LHP1);
     f_U = frac(c->state,U);
     f_LHP1 = frac(c->state,M_LHP1) + frac(c->state,MR_LHP1);
-    //fprintf(stderr,"fraction LHP1 %0.4f\n",f_LHP1);
 
     for (i=0;i<c->sites;i++) { // bindRep
       if (c->state->el[i]==U || c->state->el[i]==M || c->state->el[i]==M_LHP1) {
 	p->propensity->el[p->bindRep_index->el[i]] = p->noisy_RepON + (f_M + f_MR)*p->M_bindRep + f_LHP1*p->LHP1_bindRep;
-	//fprintf(stderr,"i = %d, c->state = %ld, bindRepIndex %ld, propensity %0.4f\n",i,c->state->el[i],p->bindRep_index->el[i],p->propensity->el[p->bindRep_index->el[i]]);
       } else {
 	p->propensity->el[p->bindRep_index->el[i]] = 0.0;
-	//fprintf(stderr,"i = %d, c->state = %ld, bindRepIndex %ld, propensity %0.4f\n",i,c->state->el[i],p->bindRep_index->el[i],p->propensity->el[p->bindRep_index->el[i]]);
       }
       if (c->state->el[i]==UR || c->state->el[i]==MR || c->state->el[i]==MR_LHP1) { // unbindRep
-	p->propensity->el[p->unbindRep_index->el[i]] = p->noisy_RepOFF;
+	p->propensity->el[p->unbindRep_index->el[i]] = p->noisy_RepOFF + (f_U + f_UR)*p->U_unbindRep;
       }	else {
 	p->propensity->el[p->unbindRep_index->el[i]]= 0.0;
       }
       if (c->state->el[i]==M || c->state->el[i]==MR) { // bindLHP1
 	p->propensity->el[p->bindLHP1_index->el[i]] = p->M_LHP1_ON;
       }	else {
-	p->propensity->el[p->bindLHP1_index->el[i]]= 0.0;
+	p->propensity->el[p->bindLHP1_index->el[i]] = 0.0;
       }
       if (c->state->el[i]==M_LHP1 || c->state->el[i]==MR_LHP1) { // unbindLHP1
 	if (c->state->el[left(c,i)]==M_LHP1 || c->state->el[left(c,i)]==MR_LHP1 ||
 	    c->state->el[right(c,i)]==M_LHP1 || c->state->el[right(c,i)]==MR_LHP1 ) { // nearest-neighbour
-	  p->propensity->el[p->unbindLHP1_index->el[i]] = p->stabilised_LHP1_OFF + (f_U + f_UR)*p->U_LHP1_OFF;
+	  p->propensity->el[p->unbindLHP1_index->el[i]] = p->stabilised_LHP1_OFF;
 	} else {
-	  p->propensity->el[p->unbindLHP1_index->el[i]] = p->noisy_LHP1_OFF + (f_U + f_UR)*p->U_LHP1_OFF;
+	  p->propensity->el[p->unbindLHP1_index->el[i]] = p->noisy_LHP1_OFF;
 	}
       }	else {
 	p->propensity->el[p->unbindLHP1_index->el[i]]= 0.0;
