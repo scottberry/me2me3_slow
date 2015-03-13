@@ -57,51 +57,27 @@ double d_vec_sum(D_VEC *d) {
 }
 
 /* Individual reactions */
-void bindRep(chromatin *c, flags *update, int pos) {
+void bindRep(chromatin *c, parameters *p, flags *update, int pos) {
   if (c->state->el[pos] == U) {
     c->state->el[pos] = UR;
   } else if (c->state->el[pos] == M) {
     c->state->el[pos] = MR;
-  } else if (c->state->el[pos] == M_LHP1) {
-    c->state->el[pos] = MR_LHP1;
   }
   update->protein = TRUE;
   return;
 }
 
-void unbindRep(chromatin *c, flags *update, int pos) {
+void unbindRep(chromatin *c, parameters *p, flags *update, int pos) {
   if (c->state->el[pos] == UR) {
     c->state->el[pos] = U;
   } else if (c->state->el[pos] == MR) {
     c->state->el[pos] = M;
-  } else if (c->state->el[pos] == MR_LHP1) {
-    c->state->el[pos] = M_LHP1;
   }
   update->protein = TRUE;
   return;
 }
 
-void bindLHP1(chromatin *c, flags *update, int pos) {
-  if (c->state->el[pos] == M) {
-    c->state->el[pos] = M_LHP1;
-  } else if (c->state->el[pos] == MR) {
-    c->state->el[pos] = MR_LHP1;
-  }
-  update->protein = TRUE;
-  return;
-}
-
-void unbindLHP1(chromatin *c, flags *update, int pos) {
-  if (c->state->el[pos] == M_LHP1) {
-    c->state->el[pos] = M;
-  } else if (c->state->el[pos] == MR_LHP1) {
-    c->state->el[pos] = MR;
-  }
-  update->protein = TRUE;
-  return;
-}
-
-void methylate(chromatin *c, flags *update, int pos) {
+void methylate(chromatin *c, parameters *p, flags *update, int pos) {
   if (c->state->el[pos] == U) {
     c->state->el[pos] = M;
   } else if (c->state->el[pos] == UR) {
@@ -111,7 +87,7 @@ void methylate(chromatin *c, flags *update, int pos) {
   return;
 }
 
-void demethylate(chromatin *c, flags *update, int pos) {
+void demethylate(chromatin *c, parameters *p, flags *update, int pos) {
   if (c->state->el[pos] == M) {
     c->state->el[pos] = U;
   } else if (c->state->el[pos] == MR) {
@@ -121,50 +97,69 @@ void demethylate(chromatin *c, flags *update, int pos) {
   return;
 }
 
+void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
+  unsigned long i;
+  for (i=0;i<c->sites;i++) {
+    if(runif(p->gsl_r) <= p->transcription_RepOFF) {
+      unbindRep(c,p,update,i);
+    }
+    if(runif(p->gsl_r) <= p->transcription_demethylate) {
+      demethylate(c,p,update,i);
+    }
+    update->transcribed = TRUE;
+  }
+  return;
+}
+
+void replicateDNA(chromatin *c, parameters *p, flags *update) {
+  unsigned long pos;
+  for (pos=0;pos<c->sites;pos++) {
+    if(runif(p->gsl_r)<=0.5) {
+      c->state->el[pos] = U;
+    }
+  }
+  update->protein = TRUE;
+  update->histone = TRUE;
+  return;
+}
+
 /* Called only once to initialise indices and function pointers */
-void initialiseGillespieFunctions(chromatin *c, parameters *p) {
+void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
   int i;
   
-  p->update->protein = TRUE;
-  p->update->histone = TRUE;
+  g->update->protein = TRUE;
+  g->update->histone = TRUE;
 
   for (i=0;i<c->sites;i++) { // Rep binding
-    p->doReaction[i] = bindRep; // point the function doReaction->el[i]
-    p->doReactionParam->el[i] = i; // store the site number in a corresponding vector
-    p->bindRep_index->el[i] = i; // index the address in the propensity/reaction array for this reaction
+    g->doReaction[i] = bindRep; // point the function doReaction->el[i]
+    g->doReactionParam->el[i] = i; // store the site number in a corresponding vector
+    g->bindRep_index->el[i] = i; // index the address in the propensity/reaction array for this reaction
   }
   for (i=c->sites;i<2*c->sites;i++) { // Rep unbinding
-    p->doReaction[i] = unbindRep;
-    p->doReactionParam->el[i] = i-c->sites;
-    p->unbindRep_index->el[i-c->sites] = i;
+    g->doReaction[i] = unbindRep;
+    g->doReactionParam->el[i] = i-c->sites;
+    g->unbindRep_index->el[i-c->sites] = i;
   }
-  for (i=2*c->sites;i<3*c->sites;i++) { // LHP1 binding
-    p->doReaction[i] = bindLHP1;
-    p->doReactionParam->el[i] = i-2*c->sites;
-    p->bindLHP1_index->el[i-2*c->sites] = i;
+  for (i=2*c->sites;i<3*c->sites;i++) { // methylate
+    g->doReaction[i] = methylate;
+    g->doReactionParam->el[i] = i-2*c->sites;
+    g->methylate_index->el[i-2*c->sites] = i;
   }
-  for (i=3*c->sites;i<4*c->sites;i++) { // LHP1 unbinding
-    p->doReaction[i] = unbindLHP1;
-    p->doReactionParam->el[i] = i-3*c->sites;
-    p->unbindLHP1_index->el[i-3*c->sites] = i;
+  for (i=3*c->sites;i<4*c->sites;i++) { // demethylate
+    g->doReaction[i] = demethylate;
+    g->doReactionParam->el[i] = i-3*c->sites;
+    g->demethylate_index->el[i-3*c->sites] = i;
   }
-  for (i=4*c->sites;i<5*c->sites;i++) { // methylate
-    p->doReaction[i] = methylate;
-    p->doReactionParam->el[i] = i-4*c->sites;
-    p->methylate_index->el[i-4*c->sites] = i;
-  }
-  for (i=5*c->sites;i<6*c->sites;i++) { // demethylate
-    p->doReaction[i] = demethylate;
-    p->doReactionParam->el[i] = i-5*c->sites;
-    p->demethylate_index->el[i-5*c->sites] = i;
-  }
-
-  /* i_vec_print(stderr,p->bindRep_index);
-  i_vec_print(stderr,p->unbindRep_index);
-  i_vec_print(stderr,p->bindLHP1_index);
-  i_vec_print(stderr,p->unbindLHP1_index);
-  i_vec_print(stderr,p->methylate_index);
-  i_vec_print(stderr,p->demethylate_index); */
+  g->doReaction[4*c->sites] = transcribeDNA; // transcribeDNA
+  g->doReactionParam->el[4*c->sites] = 0;
+  g->transcribeDNA_index->el[0] = 4*c->sites;
+  /*
+  i_vec_print(stderr,g->bindRep_index);
+  i_vec_print(stderr,g->unbindRep_index);
+  i_vec_print(stderr,g->methylate_index);
+  i_vec_print(stderr,g->demethylate_index); 
+  i_vec_print(stderr,g->transcribeDNA_index); 
+  */
   return;
 }
 
@@ -179,7 +174,183 @@ double frac(I_VEC *vec, int target) {
   f = (double)count/vec->len;
   return(f);
 }
- 
+  
+/* Called after each reaction to update the propensities based on the state */
+void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
+   int i;
+   double f_UR, f_MR, f_M, f_U;
+
+  if (g->update->protein==TRUE || g->update->histone==TRUE) {
+
+    f_UR = frac(c->state,UR);
+    f_MR = frac(c->state,MR);
+    f_M = frac(c->state,M);
+    f_U = frac(c->state,U);
+
+    for (i=0;i<c->sites;i++) { // bindRep
+      if (c->state->el[i]==U || c->state->el[i]==M) {
+	g->propensity->el[g->bindRep_index->el[i]] = p->noisy_Rep_ON;
+      } else {
+	g->propensity->el[g->bindRep_index->el[i]] = 0.0;
+      }
+      if (c->state->el[i]==UR) { // unbindRep
+	g->propensity->el[g->unbindRep_index->el[i]] = p->noisy_UR_Rep_OFF;
+      }	else if (c->state->el[i]==MR) {
+	g->propensity->el[g->unbindRep_index->el[i]] = p->noisy_MR_Rep_OFF;
+      }	else {
+	g->propensity->el[g->unbindRep_index->el[i]]= 0.0;
+      }
+      if (c->state->el[i]==UR || c->state->el[i]==U) { // methylate
+	g->propensity->el[g->methylate_index->el[i]] = f_UR*p->UR_methylate + f_MR*p->MR_methylate;
+      }	else {
+	g->propensity->el[g->methylate_index->el[i]] = 0.0;
+      }
+      if (c->state->el[i]==M || c->state->el[i]==MR) { // demethylate
+	g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
+      } else {
+	g->propensity->el[g->demethylate_index->el[i]] = 0.0;
+      } 
+    }
+    // transcribeDNA
+    g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingRateMax + (f_M + f_MR)*(p->firingRateMin - p->firingRateMax);
+    //fprintf(stderr,"f_M + f_MR = %0.4f, firing rate = %0.4f\n",f_M+f_MR,g->propensity->el[g->transcribeDNA_index->el[0]]);
+
+    g->update->protein = FALSE; // reset the flag
+    g->update->histone = FALSE; // reset the flag
+
+    /*i_vec_print(stderr,c->state);
+    fprintf(stderr,"i = 0, propensity %0.4f\n",g->propensity->el[0]);
+    fprintf(stderr,"i = 1, propensity %0.4f\n",g->propensity->el[1]);
+    d_vec_print(stderr,g->propensity);*/
+  }
+  return;
+}
+
+/* Single reaction for the Gillespie algorithm */
+void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
+  double delta_t, sum, p_s, r1, scaled_r2;
+  long m, step, i;
+
+  // update and sum propensities, call random numbers
+  updatePropensities(c,p,g);
+
+  p_s = d_vec_sum(g->propensity);
+  r1 = runif(p->gsl_r);
+  scaled_r2 = p_s*runif(p->gsl_r);
+
+  // calculate time step
+  delta_t = log(1.0/r1)/p_s;
+  step = p->reactCount;
+  r->t->el[step] = delta_t + r->t->el[step-1];
+
+  // choose reaction m from propensities based on scaled_r2
+  sum = 0;
+  m = 0;
+  /* 
+  for (i=0;i<g->propensity->len;i++) {
+    fprintf(stderr,"propensity = %0.4f\n",g->propensity->el[i]);  
+  }
+  */
+
+  while (scaled_r2 > sum) {
+    // fprintf(stderr,"m = %ld, scaled_r2 = %0.4f, sum = %0.4f, propensity = %0.4f\n", m, scaled_r2, sum, g->propensity->el[m]);  
+    sum += g->propensity->el[m];
+    m++;
+  }
+  m--;
+  g->doReaction[m](c,p,g->update,g->doReactionParam->el[m]);
+
+  // record each firing event
+  if (g->update->transcribed == TRUE) {
+    r->firing->el[p->reactCount] = TRUE;
+    g->update->transcribed = FALSE;
+  }
+
+  return;
+}
+
+void fprint_nMethylated_t(char *fname, I_MAT *mat) {
+  FILE *fptr;
+  long unsigned methyl, i, j;
+  
+  fptr = fopen(fname,"w");
+  for (i=0;i<mat->cols;i++) {
+    methyl = 0;
+    for (j=0;j<mat->rows;j++) {
+      if (mat->el[j][i] == M || mat->el[j][i] == MR) {
+	methyl++;
+      }
+    }
+    fprintf(fptr,"%0.4f\n",(double)methyl/mat->rows);
+  }
+  fclose(fptr);
+  return;
+}
+
+void fprint_nRepBound_t(char *fname, I_MAT *mat) {
+  FILE *fptr;
+  long unsigned bound, i, j;
+
+  fptr = fopen(fname,"w");
+  for (i=0;i<mat->cols;i++) {
+    bound = 0;
+    for (j=0;j<mat->rows;j++) {
+      if (mat->el[j][i] == UR || mat->el[j][i] == MR) {
+	bound++;
+      }
+    }
+    fprintf(fptr,"%0.4f\n",(double)bound/mat->rows);
+  }
+  fclose(fptr);
+  return;
+}
+
+void fprint_firing_t(char *fname, record *r) {
+  FILE *fptr;
+  long unsigned i;
+
+  fptr = fopen(fname,"w");
+  for (i=0;i<r->firing->len;i++) {
+    if (r->firing->el[i]==TRUE)
+      fprintf(fptr,"%0.4f\n",r->t->el[i]);
+  }
+  fclose(fptr);
+  return;
+}
+
+double tAverageGap(chromatin *c, parameters *p, record *r) {
+  unsigned long sumM, t, pos;
+  double gapSum = 0;
+
+  for (t=1;t<r->state->cols;t++) {
+    sumM = 0;
+    for (pos=0;pos<r->state->rows;pos++) {
+      if (r->state->el[pos][t]==M || r->state->el[pos][t]==MR)
+	sumM++;
+    }
+    gapSum += (double)labs(2*sumM-c->sites)*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
+  }
+  return(gapSum/r->t_out->el[p->samples-1]);
+}
+
+double tAverageM(chromatin *c, parameters *p, record *r) {
+  unsigned long sumM, t, pos;
+  double Mavg = 0;
+
+  for (t=1;t<r->state->cols;t++) {
+    sumM = 0;
+    for (pos=0;pos<r->state->rows;pos++) {
+      if (r->state->el[pos][t]==M || r->state->el[pos][t]==MR)
+	sumM++;
+    }
+    Mavg += (double)sumM*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
+  }
+  return(Mavg/r->t_out->el[p->samples-1]);
+}
+
+
+
+/* 
 long unsigned left(chromatin *c, long unsigned i) {
   long unsigned l;
 
@@ -201,151 +372,6 @@ long unsigned right(chromatin *c, long unsigned i) {
 
   return(r);  
 }
- 
-/* Called after each reaction to update the propensities based on the state */
- void updatePropensities(chromatin *c, parameters *p) {
-   int i;
-   double f_UR, f_MR, f_M, f_U, f_LHP1;
-
-  if (p->update->protein==TRUE || p->update->histone==TRUE) {
-
-    f_UR = frac(c->state,UR);
-    f_MR = frac(c->state,MR) + frac(c->state,MR_LHP1);
-    f_M = frac(c->state,M) + frac(c->state,M_LHP1);
-    f_U = frac(c->state,U);
-    f_LHP1 = frac(c->state,M_LHP1) + frac(c->state,MR_LHP1);
-
-    for (i=0;i<c->sites;i++) { // bindRep
-      if (c->state->el[i]==U || c->state->el[i]==M || c->state->el[i]==M_LHP1) {
-	p->propensity->el[p->bindRep_index->el[i]] = p->noisy_RepON + (f_M + f_MR)*p->M_bindRep + f_LHP1*p->LHP1_bindRep;
-      } else {
-	p->propensity->el[p->bindRep_index->el[i]] = 0.0;
-      }
-      if (c->state->el[i]==UR || c->state->el[i]==MR || c->state->el[i]==MR_LHP1) { // unbindRep
-	p->propensity->el[p->unbindRep_index->el[i]] = p->noisy_RepOFF + (f_U + f_UR)*p->U_unbindRep;
-      }	else {
-	p->propensity->el[p->unbindRep_index->el[i]]= 0.0;
-      }
-      if (c->state->el[i]==M || c->state->el[i]==MR) { // bindLHP1
-	p->propensity->el[p->bindLHP1_index->el[i]] = p->M_LHP1_ON;
-      }	else {
-	p->propensity->el[p->bindLHP1_index->el[i]] = 0.0;
-      }
-      if (c->state->el[i]==M_LHP1 || c->state->el[i]==MR_LHP1) { // unbindLHP1
-	if (c->state->el[left(c,i)]==M_LHP1 || c->state->el[left(c,i)]==MR_LHP1 ||
-	    c->state->el[right(c,i)]==M_LHP1 || c->state->el[right(c,i)]==MR_LHP1 ) { // nearest-neighbour
-	  p->propensity->el[p->unbindLHP1_index->el[i]] = p->stabilised_LHP1_OFF;
-	} else {
-	  p->propensity->el[p->unbindLHP1_index->el[i]] = p->noisy_LHP1_OFF;
-	}
-      }	else {
-	p->propensity->el[p->unbindLHP1_index->el[i]]= 0.0;
-      }
-      if (c->state->el[i]==UR || c->state->el[i]==U) { // methylate
-	p->propensity->el[p->methylate_index->el[i]] = f_UR*p->UR_methylate + f_MR*p->MR_methylate;
-      }	else {
-	p->propensity->el[p->methylate_index->el[i]] = 0.0;
-      }
-      if (c->state->el[i]==M || c->state->el[i]==MR) { // demethylate
-	p->propensity->el[p->demethylate_index->el[i]] = p->noisy_demethylate + (f_U + f_UR)*p->U_demethylate;
-      } else {
-	p->propensity->el[p->demethylate_index->el[i]] = 0.0;
-      } 
-    }
-    p->update->protein = FALSE; // reset the flag
-    p->update->histone = FALSE; // reset the flag
-
-    /*i_vec_print(stderr,c->state);
-    fprintf(stderr,"i = 0, propensity %0.4f\n",p->propensity->el[0]);
-    fprintf(stderr,"i = 1, propensity %0.4f\n",p->propensity->el[1]);
-    d_vec_print(stderr,p->propensity);*/
-  }
-  return;
-}
-
-/* Single reaction for the Gillespie algorithm */
-void gillespieStep(chromatin *c, parameters *p, record *r) {
-  double delta_t, sum, p_s, r1, scaled_r2;
-  long m, step, i;
-
-  // update and sum propensities, call random numbers
-  updatePropensities(c,p);
-
-  p_s = d_vec_sum(p->propensity);
-  r1 = runif(p->gsl_r);
-  scaled_r2 = p_s*runif(p->gsl_r);
-
-  // calculate time step
-  delta_t = log(1.0/r1)/p_s;
-  step = p->reactCount;
-  r->t->el[step] = delta_t + r->t->el[step-1];
-
-  // choose reaction m from propensities based on scaled_r2
-  sum = 0;
-  m = 0;
-  /* 
-  for (i=0;i<p->propensity->len;i++) {
-    fprintf(stderr,"propensity = %0.4f\n",p->propensity->el[i]);  
-  }
-  */
-
-  while (scaled_r2 > sum) {
-    // fprintf(stderr,"m = %ld, scaled_r2 = %0.4f, sum = %0.4f, propensity = %0.4f\n", m, scaled_r2, sum, p->propensity->el[m]);  
-    sum += p->propensity->el[m];
-    m++;
-  }
-  m--;
-  p->doReaction[m](c,p->update,p->doReactionParam->el[m]);
-  return;
-}
-
-void replicateDNA(chromatin *c, flags *update, parameters *p) {
-  unsigned long pos;
-  for (pos=0;pos<c->sites;pos++) {
-    if(runif(p->gsl_r)<=0.5) {
-      c->state->el[pos] = U;
-    }
-  }
-  update->protein = TRUE;
-  update->histone = TRUE;
-  return;
-}
-
-void fprint_nMethylated_t(char *fname, I_MAT *mat) {
-  FILE *fptr;
-  long unsigned methyl, i, j;
-  
-  fptr = fopen(fname,"w");
-  for (i=0;i<mat->cols;i++) {
-    methyl = 0;
-    for (j=0;j<mat->rows;j++) {
-      if (mat->el[j][i] == M || mat->el[j][i] == MR || mat->el[j][i] == M_LHP1 || mat->el[j][i] == MR_LHP1) {
-	methyl++;
-      }
-    }
-    fprintf(fptr,"%0.4f\n",(double)methyl/mat->rows);
-  }
-  fclose(fptr);
-  return;
-}
-
-void fprint_nRepBound_t(char *fname, I_MAT *mat) {
-  FILE *fptr;
-  long unsigned bound, i, j;
-
-  fptr = fopen(fname,"w");
-  for (i=0;i<mat->cols;i++) {
-    bound = 0;
-    for (j=0;j<mat->rows;j++) {
-      if (mat->el[j][i] == UR || mat->el[j][i] == MR || mat->el[j][i] == MR_LHP1) {
-	bound++;
-      }
-    }
-    fprintf(fptr,"%0.4f\n",(double)bound/mat->rows);
-  }
-  fclose(fptr);
-  return;
-}
 
 void fprint_nLHP1Bound_t(char *fname, I_MAT *mat) {
   FILE *fptr;
@@ -365,3 +391,4 @@ void fprint_nLHP1Bound_t(char *fname, I_MAT *mat) {
   return;
 }
 
+*/

@@ -6,25 +6,25 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 
 # Set the working directory
-setwd("~/local/Modelling/TwoStateWithProtein/")
+setwd("~/local/Modelling/TwoStateCoupled/")
 
 s <- 60
-r <- format(10000000,scientific=FALSE)
+r <- format(100000,scientific=FALSE)
 
 time_file <- paste("t_s",s,"r",r,".txt",sep="")
 tDep_methyl_file <- paste("Meth_t_s",s,"r",r,".txt",sep="")
 tDep_protein_file <- paste("RepBound_t_s",s,"r",r,".txt",sep="")
-tDep_LHP1_file <- paste("LHP1Bound_t_s",s,"r",r,".txt",sep="")
+tDep_firing_file <- paste("Firing_t_s",s,"r",r,".txt",sep="")
 
 time <- t(read.table(time_file))
-PHD_PRC2 <- t(read.table(tDep_protein_file))
-LHP1 <- t(read.table(tDep_LHP1_file))
+PRC2 <- t(read.table(tDep_protein_file))
 K27me3 <- t(read.table(tDep_methyl_file))
+Firing <- t(read.table(tDep_firing_file))/86400
 
 par(mfrow=c(3,1),mar=c(2,4,1,1)+0.1)
-plot(time/86400,PHD_PRC2,type="l",ylim=c(0,1),col="blue3")
-plot(time/86400,LHP1,type="l",ylim=c(0,1),col="green3")
+plot(time/86400,PRC2,type="l",ylim=c(0,1),col="blue3")
 plot(time/86400,K27me3,type="l",ylim=c(0,1),col="red3")
+plot(Firing,rep(1,length(Firing)),type="p",ylim=c(0,1),col="black")
 
 # s
 

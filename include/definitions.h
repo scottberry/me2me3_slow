@@ -17,13 +17,9 @@
 #define TRUE 1
 
 #define U 0
-#define M 1
-#define MR 2
-#define UR 3
-#define M_LHP1 4
-#define MR_LHP1 5
-
-#define PI 3.1415926535897932
+#define UR 1
+#define M 2
+#define MR 3
 
 typedef unsigned char logical;
 
@@ -33,35 +29,39 @@ typedef struct {
 } chromatin;
 
 typedef struct {
-  logical protein, histone;
+  logical protein, histone, transcribed;
 } flags;
-
-// specific function pointer typedef
-typedef void (*func_ptr_t)( chromatin *, flags *, int );
 
 typedef struct {
   const gsl_rng_type *gsl_T;
   gsl_rng *gsl_r;
   unsigned long reactCount, maxReact;
-  double noisy_RepON, noisy_RepOFF, noisy_LHP1_OFF, noisy_demethylate;
-  double stabilised_LHP1_OFF, M_LHP1_ON;
-  double U_demethylate;
+  unsigned long optimSteps;
+
+  unsigned long loci;
+  double noisy_Rep_ON, noisy_UR_Rep_OFF, noisy_MR_Rep_OFF, noisy_demethylate;
   double UR_methylate, MR_methylate;
-  double M_bindRep, LHP1_bindRep;
-  double U_unbindRep;
+  double firingRateMax, firingRateMin, transcription_RepOFF, transcription_demethylate;
+
   logical results, testProb;
+  unsigned long samples, sampleFreq, sampleCount;
+} parameters;
+ 
+// specific function pointer typedef
+typedef void (*func_ptr_t)( chromatin *, parameters *, flags *, int );
+
+typedef struct {
   D_VEC *propensity;
   I_VEC *doReactionParam;
   I_VEC *bindRep_index, *unbindRep_index, *methylate_index, *demethylate_index;
-  I_VEC *bindLHP1_index, *unbindLHP1_index;
+  I_VEC *transcribeDNA_index;
   func_ptr_t *doReaction;
   flags *update;
-  
-  unsigned long samples, sampleFreq, sampleCount;
-} parameters;
+} gillespie;
 
 typedef struct {
   I_MAT *state;
+  I_VEC *firing;
   I_VEC *events;
   D_VEC *t, *t_out;
 } record;
