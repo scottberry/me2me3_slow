@@ -79,10 +79,10 @@ int main(int argc, char *argv[]) {
       for (p3=1;p3<=p.optimSteps;p3++) {
 	for (p4=1;p4<=p.optimSteps;p4++) {
 	  
-	  R_OFF = p1*0.05;
-	  FIRING = p2*0.005;
-	  TRANSCRIPTION = p3*0.05;
-	  ENZYMATIC = p4*0.01;
+	  R_OFF = p1*0.1; // minimum R_OFF = Rep_ON
+	  FIRING = p2*0.1; // minimum 10-fold change
+	  TRANSCRIPTION = p3*0.03;
+	  ENZYMATIC = p4*0.001;
 
 	  // Protein binding 
 	  // ------------------------------------------------------------
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 	  // ------------------------------------------------------------
 	  p.firingRateMin = 0.0005; // Leave the repressed firing rate fixed at ~ every 30 min.
 	  p.firingRateMax = FIRING; // Optimise
-	  p.transcription_RepOFF = TRANSCRIPTION; // (rate per site per transcription event)
+	  p.transcription_RepOFF = 10*TRANSCRIPTION; // (rate per site per transcription event)
 	  p.transcription_demethylate = TRANSCRIPTION; // (rate per site per transcription event)
   
 	  // Methylation/demethylation

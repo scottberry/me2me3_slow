@@ -11,8 +11,8 @@ setwd("~/local/Modelling/TwoStateCoupled/")
 file <- "ParameterTable.txt"
 parameterSpace <- read.table(file,header = TRUE)
 
-p <- ggplot(parameterSpace,aes(x=TRANSCRIPTION,y=ENZYMATIC))
-p <- p + geom_tile(aes(fill=Mavg)) + 
-  scale_fill_gradient(low="white", high=cbPalette[7]) + 
+p <- ggplot(subset(parameterSpace,Mavg<0.6 & Mavg>0.4),aes(x=TRANSCRIPTION,y=ENZYMATIC))
+p <- p + geom_tile(aes(fill=gap)) + 
+  scale_fill_gradient() + 
   facet_wrap(R_OFF ~ FIRING)
 p
