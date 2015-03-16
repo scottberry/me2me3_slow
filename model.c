@@ -348,7 +348,43 @@ double tAverageM(chromatin *c, parameters *p, record *r) {
   return(Mavg/r->t_out->el[p->samples-1]);
 }
 
+/* write a log file */
+int writelog(char *fname, chromatin *c, parameters *p, record *r) {
+  char logfile[128], buffer[256];
+  FILE *fptr;
+  time_t curtime;
+  struct tm *loctime;
 
+  curtime = time (NULL);
+  loctime = localtime (&curtime);
+
+  fptr = fopen(fname,"w");
+  fputs (asctime (loctime), fptr);
+#ifdef __APPLE__
+  fprintf(fptr,"Operating system: Mac OS\n");
+#else
+  fprintf(fptr,"Operating system: Unix\n");
+#endif
+  fprintf(fptr,"sites: %ld\n", c->sites);
+  fprintf(fptr,"loci: %ld\n", p->loci);
+  fprintf(fptr,"maxReact: %ld\n", p->maxReact);
+  fprintf(fptr,"samples: %ld\n", p->samples);
+  fprintf(fptr,"max. time (final locus): %0.2f seconds\n\n",r->t->el[r->t->len-1]);
+
+  fprintf(fptr,"noisy_Rep_ON: %0.6f\n", p->noisy_Rep_ON);
+  fprintf(fptr,"noisy_UR_Rep_OFF: %0.6f\n", p->noisy_UR_Rep_OFF);
+  fprintf(fptr,"noisy_MR_Rep_OFF: %0.6f\n", p->noisy_MR_Rep_OFF);
+  fprintf(fptr,"noisy_demethylate: %0.6f\n", p->noisy_demethylate);
+  fprintf(fptr,"UR_methylate: %0.6f\n", p->UR_methylate);
+  fprintf(fptr,"MR_methylate: %0.6f\n", p->MR_methylate);
+  fprintf(fptr,"firingRateMax: %0.6f\n", p->firingRateMax);
+  fprintf(fptr,"firingRateMin: %0.6f\n", p->firingRateMin);
+  fprintf(fptr,"transcription_RepOFF: %0.6f\n", p->transcription_RepOFF);
+  fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
+
+  fclose(fptr);
+  return(1);
+}
 
 /* 
 long unsigned left(chromatin *c, long unsigned i) {

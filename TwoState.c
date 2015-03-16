@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
-  p.optimSteps = 2;
+  p.optimSteps = 1;
 
   P_OFF = 0.0;	  
 
@@ -121,12 +121,13 @@ int main(int argc, char *argv[]) {
 	  // Methylation/demethylation
 	  // ------------------------------------------------------------
 	  p.noisy_demethylate = 0.0;
-	  p.UR_methylate = ENZYMATIC; // Optimise
-	  p.MR_methylate = 10*ENZYMATIC; // Leave this fixed at a 10-fold activation of proteins by M marks 
+	  p.UR_methylate = ENZYMATIC/10; // Leave this fixed at a 10-fold reduction in activity on U marks
+	  p.MR_methylate = ENZYMATIC; // Optimise
   
 	  gap = 0;
 	  Mavg = 0;
 
+	  /* test */
 	  /* -------------------------------------------------------------------------------- */
 	  /* loop over loci */
 	  /* -------------------------------------------------------------------------------- */
@@ -215,6 +216,9 @@ int main(int argc, char *argv[]) {
 
   strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
   fprint_firing_t(fname,&r);
+
+  strcpy(fname,"Log_\0"); strcat(fname,avgfile);
+  writelog(fname,&c,&p,&r);
 
   if (p.results==TRUE) {
     i_vec_free(r.firing);
