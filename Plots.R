@@ -9,7 +9,7 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 setwd("~/local/Modelling/TwoStateCoupled/")
 
 s <- 60
-r <- format(100000,scientific=FALSE)
+r <- format(10000,scientific=FALSE)
 
 time_file <- paste("t_s",s,"r",r,".txt",sep="")
 tDep_methyl_file <- paste("Meth_t_s",s,"r",r,".txt",sep="")
