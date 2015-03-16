@@ -1,8 +1,0 @@
-#!/bin/sh
-cd lib
-./makelib
-cd ..
-
-clang TwoState.c -o TwoState -O2 -L./lib/ -L/usr/local/lib -lm -lgsl -lgslcblas -lscottsmatrices -I./include/ -I /usr/local/include
-
-
