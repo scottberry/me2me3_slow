@@ -35,13 +35,13 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
-  p.loci = 50;
-  p.maxReact = 100000;
-  p.samples = 2000;
+  p.loci = 1;
+  p.maxReact = 100;
+  p.samples = 20;
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
-  p.optimSteps = 2;
+  p.optimSteps = 1;
 
   P_OFF = 0.0;	  
 
@@ -75,8 +75,8 @@ int main(int argc, char *argv[]) {
   g.update = malloc(sizeof( flags ) );
 
   if (p.results == TRUE) {
-    r.t = d_vec_get(p.maxReact);
-    r.firing = i_vec_get(p.maxReact);
+    r.t = d_vec_get(p.maxReact + 1);
+    r.firing = i_vec_get(p.maxReact + 1);
     r.t_out = d_vec_get(p.samples);
     r.state = i_mat_get(c.sites,p.samples);
   }
@@ -258,17 +258,14 @@ int main(int argc, char *argv[]) {
   fprint_firing_t(fname,&r);
 
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);
-  writelog(fname,&c,&p,&r);
+  fptr = fopen(fname,"w");
+  writelog(fptr,&c,&p,&r);
 
   if (p.results==TRUE) {
     i_vec_free(r.firing);
     i_mat_free(r.state);
     d_vec_free(r.t);
     d_vec_free(r.t_out);
-  }
-
-  if (p.testProb == TRUE) {
-    free(r.events);
   }
 
 #ifdef __APPLE__
@@ -284,5 +281,6 @@ int main(int argc, char *argv[]) {
   fprintf(stdout,"Simulation time: %f seconds\n", (float)(timeElapsed));
 #endif
   
+  fclose(fptr);
   return(1);
 }

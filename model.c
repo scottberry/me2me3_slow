@@ -129,6 +129,7 @@ void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
   
   g->update->protein = TRUE;
   g->update->histone = TRUE;
+  g->update->transcribed = FALSE;
 
   for (i=0;i<c->sites;i++) { // Rep binding
     g->doReaction[i] = bindRep; // point the function doReaction->el[i]
@@ -241,6 +242,7 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   // calculate time step
   delta_t = log(1.0/r1)/p_s;
   step = p->reactCount;
+  //fprintf(stderr,"step = %ld\n",step);
   r->t->el[step] = delta_t + r->t->el[step-1];
 
   // choose reaction m from propensities based on scaled_r2
@@ -415,16 +417,13 @@ double firstPassageTime(record *r, signed char *initial) {
 }
 
 /* write a log file */
-int writelog(char *fname, chromatin *c, parameters *p, record *r) {
-  char logfile[128], buffer[256];
-  FILE *fptr;
+int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   time_t curtime;
   struct tm *loctime;
 
   curtime = time (NULL);
   loctime = localtime (&curtime);
 
-  fptr = fopen(fname,"w");
   fputs (asctime (loctime), fptr);
 #ifdef __APPLE__
   fprintf(fptr,"Operating system: Mac OS\n");
@@ -448,7 +447,6 @@ int writelog(char *fname, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"transcription_RepOFF: %0.6f\n", p->transcription_RepOFF);
   fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
 
-  fclose(fptr);
   return(1);
 }
 
