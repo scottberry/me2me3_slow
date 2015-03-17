@@ -9,22 +9,24 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 setwd("~/local/Modelling/TwoStateCoupled/")
 
 s <- 60
-r <- format(10000,scientific=FALSE)
+r <- format(50000,scientific=FALSE)
+tr <- "tr0_000" 
+st <- 1
 
-time_file <- paste("t_s",s,"r",r,".txt",sep="")
-tDep_methyl_file <- paste("Meth_t_s",s,"r",r,".txt",sep="")
-tDep_protein_file <- paste("RepBound_t_s",s,"r",r,".txt",sep="")
-tDep_firing_file <- paste("Firing_t_s",s,"r",r,".txt",sep="")
+time_file <- paste("t_s",s,"r",r,tr,"st",st,".txt",sep="")
+tDep_methyl_file <- paste("Meth_t_s",s,"r",r,tr,"st",st,".txt",sep="")
+tDep_protein_file <- paste("RepBound_t_s",s,"r",r,tr,"st",st,".txt",sep="")
+tDep_firing_file <- paste("Firing_t_s",s,"r",r,tr,"st",st,".txt",sep="")
 
 time <- t(read.table(time_file))
 PRC2 <- t(read.table(tDep_protein_file))
 K27me3 <- t(read.table(tDep_methyl_file))
-Firing <- t(read.table(tDep_firing_file))/86400
+Firing <- t(read.table(tDep_firing_file))
 
 par(mfrow=c(3,1),mar=c(2,4,1,1)+0.1)
-plot(time/86400,PRC2,type="l",ylim=c(0,1),col="blue3")
-plot(time/86400,K27me3,type="l",ylim=c(0,1),col="red3")
-plot(Firing,rep(1,length(Firing)),type="p",ylim=c(0,1),col="black")
+plot(time,PRC2,type="l",ylim=c(0,1),col="blue3")
+plot(time,K27me3,type="l",ylim=c(0,1),col="red3")
+plot(Firing,rep(1,length(Firing)),type="p",pch=2,cex=0.1,ylim=c(0,1),col="black")
 
 # s
 

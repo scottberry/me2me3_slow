@@ -9,8 +9,8 @@ int main(int argc, char *argv[]) {
   parameters p;
   gillespie g;
   record r;
-  double new, old, gap, Mavg;
-  long i, j, locus;
+  double new, old, gap, Mavg, tTot, lifetime;
+  long i, j, locus, fh;
   double R_OFF, FIRING, P_OFF, P_DEMETHYLATE, ENZYMATIC;
   int p1, p2, p3, p4;
 
@@ -26,14 +26,16 @@ int main(int argc, char *argv[]) {
   start = clock();
 #endif
 
+  /* NOTE: DNA REPLICATION OFF */
+
   /* -------------------------------------------------------------------------------- */
   /* Simulation setup  */
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
   p.loci = 100;
-  p.maxReact = 10000;
-  p.samples = 2000;
+  p.maxReact = 50000;
+  p.samples = 1000;
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
@@ -55,8 +57,8 @@ int main(int argc, char *argv[]) {
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
 
   parFile = fopen(parameterSpace,"w");
-  fprintf(parFile,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\n");
-  fprintf(stderr,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\n");
+  fprintf(parFile,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tLifetime\n");
+  fprintf(stderr,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tLifetime\n");
 
   /* Memory allocation */
   c.state = i_vec_get( c.sites );
@@ -94,13 +96,13 @@ int main(int argc, char *argv[]) {
 	  ENZYMATIC = pow(10,-0.25*p2); // log scaling
 
 	  // test parameters
-	  /*
-	  R_OFF = 1.0;
+	  
+	  R_OFF = 0.5623;
 	  FIRING = 1.0;
-	  P_DEMETHYLATE = 1.0;
+	  P_DEMETHYLATE = 0.3;
 	  P_OFF = 0.0;
-	  ENZYMATIC = 0.316;
-	  */
+	  ENZYMATIC = 0.5623;
+	  
 	  
 	  // Protein binding 
 	  // ------------------------------------------------------------
@@ -124,8 +126,10 @@ int main(int argc, char *argv[]) {
 	  p.UR_methylate = ENZYMATIC/10; // Leave this fixed at a 10-fold reduction in activity on U marks
 	  p.MR_methylate = ENZYMATIC; // Optimise
   
-	  gap = 0;
-	  Mavg = 0;
+	  gap = 0.0;
+	  Mavg = 0.0;
+	  fh = 0;
+	  tTot = 0.0;
 
 	  /* -------------------------------------------------------------------------------- */
 	  /* loop over loci */
@@ -163,7 +167,7 @@ int main(int argc, char *argv[]) {
 	      new = fmod(r.t->el[p.reactCount],86400);
       
 	      if (new < old) {
-		replicateDNA(&c,&p,g.update);
+		// replicateDNA(&c,&p,g.update);
 		//fprintf(stderr,"old = %0.4f, new = %0.4f\n",old,new);
 	      }
 	      old = new;
@@ -172,13 +176,21 @@ int main(int argc, char *argv[]) {
 	    /* calculate the "gap" for this locus */
 	    gap += tAverageGap(&c,&p,&r);
 	    Mavg += tAverageM(&c,&p,&r);
+	    fh += numberHistoneStateFlips(&r);
+	    tTot += r.t->el[p.reactCount];
 
+	    //fprintf(stderr,"fh = %ld, tTot = %0.6f\n",fh,tTot);
 	  } /* end loop over loci */
 
-	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci);
-	  fprintf(stderr,"%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci);
+	  if (fh != 0) 
+	    lifetime = tTot/fh;
+	  else
+	    lifetime = 0.0;
+
+	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.2f\n",R_OFF,
+		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime);
+	  fprintf(stderr,"%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.2f\n",R_OFF,
+		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime);
 	}
       }
     }
@@ -192,13 +204,14 @@ int main(int argc, char *argv[]) {
 
   /* free all arrays */
   i_vec_free(c.state);
-  free(g.bindRep_index);
-  free(g.unbindRep_index);
-  free(g.methylate_index);
-  free(g.demethylate_index);
-  free(g.transcribeDNA_index);
-  free(g.propensity);
+  i_vec_free(g.bindRep_index);
+  i_vec_free(g.unbindRep_index);
+  i_vec_free(g.methylate_index);
+  i_vec_free(g.demethylate_index);
+  i_vec_free(g.transcribeDNA_index);
+  d_vec_free(g.propensity);
   free(g.doReaction);
+  i_vec_free(g.doReactionParam);
   free(g.update);
 
   /* print results for final locus */

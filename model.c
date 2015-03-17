@@ -35,7 +35,7 @@ void initialiseRandom(chromatin *c, parameters *p) {
   int i;
   double rand;
   rand = runif(p->gsl_r);
-  if (rand < 1.0/2.0)  {
+  if (rand <= 0.5)  {
     for (i=0;i<c->sites;i++) {
       c->state->el[i] = U;
     }
@@ -264,6 +264,8 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   if (g->update->transcribed == TRUE) {
     r->firing->el[p->reactCount] = TRUE;
     g->update->transcribed = FALSE;
+  } else {
+    r->firing->el[p->reactCount] = FALSE;
   }
 
   return;
@@ -346,6 +348,42 @@ double tAverageM(chromatin *c, parameters *p, record *r) {
     Mavg += (double)sumM*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
   }
   return(Mavg/r->t_out->el[p->samples-1]);
+}
+
+/* Calculate the average lifetime of a state (max reported 1 flip per generation) */
+unsigned long numberHistoneStateFlips(record *r) {
+  signed char newState = 0, oldState = 0;
+  unsigned long t, pos, flips=0, m=0, u=0;;
+  
+  for (t=0;t<r->state->cols;t++) {
+    
+    oldState = newState;
+    
+    m = 0;
+    for (pos=0;pos<r->state->rows;pos++) {
+      if (r->state->el[pos][t]==M || r->state->el[pos][t]==MR) m++;
+    }
+    u = r->state->rows - m;
+
+    if (oldState == 1) { // if previously U
+      if (m >= 3*u) {
+	newState = -1;
+	flips++;
+      }
+    } else if (oldState == -1) { // if previously M
+      if (u >= 3*m) {
+	newState = 1;
+	flips++;
+      }
+    } else if (oldState == 0) { // first time-point
+      if (u >= 3*m)
+	newState = 1;
+      else
+	newState = -1;
+    }
+  }
+ 
+  return(flips);
 }
 
 /* write a log file */
