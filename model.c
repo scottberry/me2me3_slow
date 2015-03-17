@@ -12,6 +12,12 @@ void rseed(parameters *p) {
   return;
 }
 
+/* Free the GSL random number generator */
+void rfree(parameters *p) {
+  gsl_rng_free(p->gsl_r);
+  return;
+}
+
 /* initialise the protein binding randomly */
 void initialiseRepressed(chromatin *c) {
   int i;

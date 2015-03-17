@@ -146,6 +146,8 @@ int main(int argc, char *argv[]) {
 		initialiseRepressed(&c);
 	      else if (strcmp(argv[1],"U")==0)
 		initialiseActive(&c);
+	      /*else if (strcmp(argv[1],"-R_OFF")==0)
+		R_OFF = ;*/
 	    } else {
 	      initialiseRandom(&c,&p);
 	    }
@@ -241,6 +243,7 @@ int main(int argc, char *argv[]) {
   free(g.doReaction);
   i_vec_free(g.doReactionParam);
   free(g.update);
+  rfree(&p);
 
   /* print results for final locus */
   strcpy(fname,"t_\0"); strcat(fname,avgfile);
