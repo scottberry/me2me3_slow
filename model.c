@@ -41,6 +41,8 @@ void initialiseRandom(chromatin *c, parameters *p) {
   int i;
   double rand;
   rand = runif(p->gsl_r);
+  //fprintf(stderr,"rand = %0.4f\n",rand);
+
   if (rand <= 0.5)  {
     for (i=0;i<c->sites;i++) {
       c->state->el[i] = U;

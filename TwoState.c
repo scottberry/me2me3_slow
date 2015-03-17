@@ -3,7 +3,7 @@
 
 int main(int argc, char *argv[]) {
   FILE *fptr, *parFile;
-  char avgfile[128]="", fname[128]="", tmp[128]="";
+  char avgfile[128]="", fname[128]="", tmp[128]="", buffer[128]="";
   char parameterSpace[128]="", ptmp[128]="";
   chromatin c;
   parameters p;
@@ -35,15 +35,18 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
-  p.loci = 1;
-  p.maxReact = 100;
-  p.samples = 20;
+  p.loci = 50;
+  p.maxReact = 100000;
+  p.samples = 2000;
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
-  p.optimSteps = 1;
+  p.optimSteps = 2;
 
-  P_OFF = 0.0;	  
+  if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
+    P_OFF = atof(argv[2]);
+  else
+    P_OFF = 0.0;	  
 
   /* Seed RNG */
   rseed(&p);
@@ -142,11 +145,14 @@ int main(int argc, char *argv[]) {
 	  for (locus=0;locus<p.loci;locus++) {
 	    // fprintf(stderr,"locus %ld\n",locus);
 	    if (argc > 1) {
-	      if (strcmp(argv[1],"M")==0)
+	      if (strcmp(argv[1],"M")==0) {
 		initialiseRepressed(&c);
-	      else if (strcmp(argv[1],"U")==0)
+	      } else if (strcmp(argv[1],"U")==0) {
 		initialiseActive(&c);
-	    } else {
+	      } else { 
+		initialiseRandom(&c,&p);
+	      }
+	    } else { 
 	      initialiseRandom(&c,&p);
 	    }
 	    p.reactCount = 0;
