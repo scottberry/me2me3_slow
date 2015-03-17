@@ -92,10 +92,10 @@ int main(int argc, char *argv[]) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	for (p4=0;p4<p.optimSteps;p4++) {
 	  
-	  R_OFF = pow(10,-0.25*p1); // log scaling
-	  FIRING = pow(10,-0.25*p3); // log scaling
+	  R_OFF = pow(10,-0.3*p1); // log scaling
+	  FIRING = pow(10,-0.3*p3); // log scaling
 	  P_DEMETHYLATE = fabs(1.0-(double)(p4+1)/(p.optimSteps)); // between 0 and 1
-	  ENZYMATIC = pow(10,-0.25*p2); // log scaling
+	  ENZYMATIC = pow(10,-0.3*p2); // log scaling
 
 	  // test parameters
 	  /*
@@ -146,8 +146,6 @@ int main(int argc, char *argv[]) {
 		initialiseRepressed(&c);
 	      else if (strcmp(argv[1],"U")==0)
 		initialiseActive(&c);
-	      /*else if (strcmp(argv[1],"-R_OFF")==0)
-		R_OFF = ;*/
 	    } else {
 	      initialiseRandom(&c,&p);
 	    }
