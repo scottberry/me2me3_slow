@@ -386,6 +386,34 @@ unsigned long numberHistoneStateFlips(record *r) {
   return(flips);
 }
 
+double firstPassageTime(record *r, signed char *initial) {
+  long unsigned m=0, u=0, pos,t=0;
+  
+  /* find initial state */
+  for (pos=0;pos<r->state->rows;pos++) {
+    if (r->state->el[pos][0]==M || r->state->el[pos][0]==MR) m++;
+  }
+  u = r->state->rows - m;
+  
+  if (m > u)
+    *initial = -1;
+  else
+    *initial = 1;
+    
+  while ( t < r->state->cols &&
+	  ((*initial == -1 && 3*m > u) || (*initial == 1 && 3*u > m))) {
+    m = 0;
+    u = 0;
+    for (pos=0;pos<r->state->rows;pos++) {
+      if (r->state->el[pos][t]==M || r->state->el[pos][t]==MR) m++;
+    }
+    u = r->state->rows - m;
+    //fprintf(stderr,"t = %0.2f, m %ld u %ld \n",r->t_out->el[t],m,u);
+    t++;
+  }
+  return(r->t_out->el[t-1]);
+}
+
 /* write a log file */
 int writelog(char *fname, chromatin *c, parameters *p, record *r) {
   char logfile[128], buffer[256];

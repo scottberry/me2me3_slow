@@ -9,7 +9,7 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 setwd("~/local/Modelling/TwoStateCoupled/")
 
 s <- 60
-r <- format(50000,scientific=FALSE)
+r <- format(100000,scientific=FALSE)
 tr <- "tr0_000" 
 st <- 1
 

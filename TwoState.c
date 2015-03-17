@@ -9,8 +9,10 @@ int main(int argc, char *argv[]) {
   parameters p;
   gillespie g;
   record r;
-  double new, old, gap, Mavg, tTot, lifetime;
-  long i, j, locus, fh;
+  signed char initial;
+  double new, old, gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
+  double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
+  long i, j, locus, fh, initM, initU;
   double R_OFF, FIRING, P_OFF, P_DEMETHYLATE, ENZYMATIC;
   int p1, p2, p3, p4;
 
@@ -33,13 +35,13 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
-  p.loci = 100;
-  p.maxReact = 50000;
-  p.samples = 1000;
+  p.loci = 50;
+  p.maxReact = 100000;
+  p.samples = 2000;
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
-  p.optimSteps = 1;
+  p.optimSteps = 2;
 
   P_OFF = 0.0;	  
 
@@ -57,8 +59,8 @@ int main(int argc, char *argv[]) {
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
 
   parFile = fopen(parameterSpace,"w");
-  fprintf(parFile,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tLifetime\n");
-  fprintf(stderr,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tLifetime\n");
+  fprintf(parFile,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\n");
+  fprintf(stderr,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\n");
 
   /* Memory allocation */
   c.state = i_vec_get( c.sites );
@@ -96,13 +98,13 @@ int main(int argc, char *argv[]) {
 	  ENZYMATIC = pow(10,-0.25*p2); // log scaling
 
 	  // test parameters
-	  
+	  /*
 	  R_OFF = 0.5623;
 	  FIRING = 1.0;
 	  P_DEMETHYLATE = 0.3;
 	  P_OFF = 0.0;
 	  ENZYMATIC = 0.5623;
-	  
+	  */
 	  
 	  // Protein binding 
 	  // ------------------------------------------------------------
@@ -129,7 +131,9 @@ int main(int argc, char *argv[]) {
 	  gap = 0.0;
 	  Mavg = 0.0;
 	  fh = 0;
-	  tTot = 0.0;
+	  tTot = tTotM = tTotU = 0.0;
+	  initM = initU = 0;
+	  firstPassageM = firstPassageU = 0.0;
 
 	  /* -------------------------------------------------------------------------------- */
 	  /* loop over loci */
@@ -173,24 +177,48 @@ int main(int argc, char *argv[]) {
 	      old = new;
 	    }
     
-	    /* calculate the "gap" for this locus */
+	    /* calculate and accumulate results for this locus */
 	    gap += tAverageGap(&c,&p,&r);
 	    Mavg += tAverageM(&c,&p,&r);
 	    fh += numberHistoneStateFlips(&r);
 	    tTot += r.t->el[p.reactCount];
 
-	    //fprintf(stderr,"fh = %ld, tTot = %0.6f\n",fh,tTot);
+	    firstPassage = firstPassageTime(&r,&initial);
+	    if (initial==-1) {
+	      firstPassageM += firstPassage;
+	      initM++;
+	      tTotM += r.t->el[p.reactCount];
+	    } else {
+	      firstPassageU += firstPassage;
+	      initU++;
+	      tTotU += r.t->el[p.reactCount];
+	    }
 	  } /* end loop over loci */
 
-	  if (fh != 0) 
-	    lifetime = tTot/fh;
-	  else
-	    lifetime = 0.0;
+	  if (fh != 0) lifetime = tTot/fh;
+	  else lifetime = -1.0;
 
-	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.2f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime);
-	  fprintf(stderr,"%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.2f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime);
+	  if (initM != 0) {
+	    fpM = firstPassageM/initM;
+	    tM = tTotM/initM;
+	  } else {
+	    fpM = -1.0;
+	    tM = -1.0;
+	  }
+
+	  if (initU != 0) {
+	    fpU= firstPassageU/initU;
+	    tU = tTotU/initU;
+	  } else {
+	    fpU = -1.0;
+	    tU = -1.0;
+	  }
+
+	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%ld\t%0.2f\t%0.2f\n",R_OFF,
+		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU);
+
+	  fprintf(stderr,"%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.2f %ld %0.2f %0.2f %ld %0.2f %0.2f\n",R_OFF,
+		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU);
 	}
       }
     }
