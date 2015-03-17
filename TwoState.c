@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
-  p.optimSteps = 2;
+  p.optimSteps = 6;
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
