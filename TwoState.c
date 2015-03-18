@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
-  p.optimSteps = 6;
+  p.optimSteps = 4;
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -49,7 +49,8 @@ int main(int argc, char *argv[]) {
     P_OFF = 0.0;	  
 
   /* Seed RNG */
-  rseed(&p);
+  // rseed(&p);
+  setseed(&p);
 
   /* Handle filename */
   sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
@@ -159,10 +160,11 @@ int main(int argc, char *argv[]) {
 	    p.sampleCount = 0;
 	    old = 0;
     
+	    // fprintf(stderr,"Starting reaction loop\n");
 	    for (i=0;i<p.maxReact;i++) {
 	      if (p.results == TRUE) {
 		if (p.reactCount % p.sampleFreq == 0) {
-	  
+		  // fprintf(stderr,"Sample %ld\n",p.sampleCount);
 		  for (j=0;j<(c.sites);j++) {
 		    r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
 		    r.state->el[j][p.sampleCount] = c.state->el[j];
@@ -170,6 +172,7 @@ int main(int argc, char *argv[]) {
 		  p.sampleCount++;
 		}
 	      }
+	      // fprintf(stderr,"Reaction %ld\n",p.reactCount);
 	      p.reactCount++;
 	      gillespieStep(&c,&p,&g,&r);
       
@@ -182,6 +185,7 @@ int main(int argc, char *argv[]) {
 	      }
 	      old = new;
 	    }
+	    // fprintf(stderr,"Exiting reaction loop\n");
     
 	    /* calculate and accumulate results for this locus */
 	    gap += tAverageGap(&c,&p,&r);
