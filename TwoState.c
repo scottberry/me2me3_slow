@@ -41,7 +41,9 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
-  p.optimSteps = 1;
+
+  /* ensure that firing_max does not fall below firing_min */
+  p.optimSteps = 1; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -93,13 +95,13 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<p.optimSteps;p1++) {
     for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=0;p3<p.optimSteps;p3++) {
+      for (p3=0;p3<2*p.optimSteps;p3++) { /* double number of steps for firing rate */
 	for (p4=0;p4<p.optimSteps;p4++) {
 	  
-	  R_OFF = pow(10,-0.3*p1); // log scaling
-	  FIRING = pow(10,-0.3*p3); // log scaling
-	  P_DEMETHYLATE = fabs(1.0-(double)(p4+1)/(p.optimSteps)); // between 0 and 1
-	  ENZYMATIC = pow(10,-0.3*p2); // log scaling
+	  R_OFF = pow(10,-0.2*p1); // log scaling (8 steps max)
+	  FIRING = pow(10,-0.2*p3); // log scaling (7 steps max)
+	  P_DEMETHYLATE = fabs(0.5-(double)(p4+1)/(p.optimSteps)); // between 0 and 1
+	  ENZYMATIC = pow(10,-0.2*p2); // log scaling
 
 	  // test parameters
 	  /*
@@ -117,7 +119,7 @@ int main(int argc, char *argv[]) {
 	  // Stabilisation of Repressors by H3K27me3
 	  // ------------------------------------------------------------
 	  p.noisy_UR_Rep_OFF = R_OFF; // Optimise
-	  p.noisy_MR_Rep_OFF = R_OFF/30; // Leave this fixed at a 30-fold stabilisation of proteins by M marks 
+	  p.noisy_MR_Rep_OFF = R_OFF/20; // Leave this fixed at a 20-fold stabilisation of proteins by M marks 
   
 	  // Transcription
 	  // ------------------------------------------------------------
@@ -125,7 +127,11 @@ int main(int argc, char *argv[]) {
 	  p.firingRateMax = FIRING; // Optimise
 	  p.transcription_RepOFF = P_OFF; // (rate per site per transcription event)
 	  p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
-  
+	  if (p.firingRateMax < p.firingRateMin) {
+	    fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
+	    p.firingRateMin = p.firingRateMax;
+	  }
+
 	  // Methylation/demethylation
 	  // ------------------------------------------------------------
 	  p.noisy_demethylate = 0.0;
