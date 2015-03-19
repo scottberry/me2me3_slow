@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
-  p.optimSteps = 4;
+  p.optimSteps = 1;
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
     P_OFF = 0.0;	  
 
   /* Seed RNG */
-  // rseed(&p);
-  setseed(&p);
+  rseed(&p);
+  // setseed(&p);
 
   /* Handle filename */
   sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
@@ -103,11 +103,11 @@ int main(int argc, char *argv[]) {
 
 	  // test parameters
 	  /*
-	  R_OFF = 0.5623;
-	  FIRING = 1.0;
-	  P_DEMETHYLATE = 0.3;
-	  P_OFF = 0.0;
-	  ENZYMATIC = 0.5623;
+	  R_OFF = 1.0;
+	  FIRING = 0.251189;
+	  P_DEMETHYLATE = 0.5;
+	  P_OFF = 0.025;
+	  ENZYMATIC = 0.063096;
 	  */
 	  
 	  // Protein binding 

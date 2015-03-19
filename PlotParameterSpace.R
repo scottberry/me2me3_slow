@@ -24,6 +24,8 @@ p <- p + geom_tile(aes(fill=gap)) + scale_y_log10() +
   theme(plot.title = element_text(lineheight=.8, face="bold"),
         panel.margin=unit(0,"lines")) + theme_bw(8)
 p
+ggsave(plot=p,file="AvgGap.pdf",width=8,height=8)
+
 
 ## avgM
 p <- ggplot(parameterSpace,aes(x=P_DEMETHYLATE,y=ENZYMATIC))
@@ -34,6 +36,7 @@ p <- p + geom_tile(aes(fill=Mavg)) + scale_y_log10() +
   theme(plot.title = element_text(lineheight=.8, face="bold"),
         panel.margin=unit(0,"lines")) + theme_bw(8)
 p
+ggsave(plot=p,file="AvgM.pdf",width=8,height=8)
 
 ## first passage M
 p <- ggplot(parameterSpace,aes(x=P_DEMETHYLATE,y=ENZYMATIC))
@@ -44,6 +47,18 @@ p <- p + geom_tile(aes(fill=firstPassageM)) + scale_y_log10() +
   theme(plot.title = element_text(lineheight=.8, face="bold"),
         panel.margin=unit(0,"lines")) + theme_bw(8)
 p
+ggsave(plot=p,file="FirstPassageM.pdf",width=8,height=8)
+
+## first passage M
+p <- ggplot(subset(parameterSpace,Mavg < 0.65),aes(x=P_DEMETHYLATE,y=ENZYMATIC))
+p <- p + geom_tile(aes(fill=firstPassageM)) + scale_y_log10() + 
+  scale_fill_gradientn(colours=rev(rainbow(3)),trans="log") + 
+  facet_grid(R_OFF ~ FIRING,labeller=label_both) + 
+  ggtitle("First passage time (initial M) (P_OFF = 0.6)") + 
+  theme(plot.title = element_text(lineheight=.8, face="bold"),
+        panel.margin=unit(0,"lines")) + theme_bw(8)
+p
+ggsave(plot=p,file="FirstPassageM_subset.pdf",width=8,height=8)
 
 ## first passage U
 p <- ggplot(parameterSpace,aes(x=P_DEMETHYLATE,y=ENZYMATIC))
@@ -54,3 +69,4 @@ p <- p + geom_tile(aes(fill=firstPassageU)) + scale_y_log10() +
   theme(plot.title = element_text(lineheight=.8, face="bold"),
         panel.margin=unit(0,"lines")) + theme_bw(8)
 p
+ggsave(plot=p,file="FirstPassageU.pdf",width=8,height=8)
