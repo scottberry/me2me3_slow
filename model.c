@@ -246,27 +246,20 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
 
 /* Single reaction for the Gillespie algorithm */
 void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
-  double delta_t, sum, p_s, r1, r2, scaled_r2;
+  double delta_t, sum, p_s, r1=0.0, r2=0.0, scaled_r2;
   long m, step, i;
-  // logical zero1, zero2;
 
   // update and sum propensities, call random numbers
   updatePropensities(c,p,g);
-  // if (write==TRUE) fprintf(stderr,"end propensity update\n");
 
   p_s = d_vec_sum(g->propensity);
-  r1 = runif(p->gsl_r);
+  while (r1 == 0.0) { // ensure r1 > 0.0
+    r1 = runif(p->gsl_r);
+  }
   r2 = runif(p->gsl_r);
   scaled_r2 = p_s*r2;
-  /*
-  if (r1 == 0.0) zero1=TRUE;
-    else zero1=FALSE;
-  if (r2 == 0.0) zero2=TRUE;
-    else zero2=FALSE;
-  */
-  //if (write==TRUE && zero2==TRUE) fprintf(stderr,"p_s = %0.8f, r1 = %0.8f (%d), r2 = %0.8f (%d), scaled_r2 = %0.8f\n",p_s,r1,zero1,r2,zero2,scaled_r2);
 
-  // calculate time step
+  // calculate time step  
   delta_t = log(1.0/r1)/p_s;
   step = p->reactCount;
   //fprintf(stderr,"step = %ld\n",step);
@@ -281,7 +274,7 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   }
   */
 
-  if (scaled_r2 > g->propensity->el[0]) {
+  if (scaled_r2 > g->propensity->el[0]) { // need this "if" to protect against r2=0
     while (scaled_r2 > sum) {
       // fprintf(stderr,"m = %ld, scaled_r2 = %0.4f, sum = %0.4f, propensity = %0.4f\n", m, scaled_r2, sum, g->propensity->el[m]);  
       sum += g->propensity->el[m];

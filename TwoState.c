@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 1; 
+  p.optimSteps = 6; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -65,8 +65,8 @@ int main(int argc, char *argv[]) {
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
 
   parFile = fopen(parameterSpace,"w");
-  fprintf(parFile,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\n");
-  fprintf(stderr,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\n");
+  fprintf(parFile,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\n");
+  fprintf(stderr,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\n");
 
   /* Memory allocation */
   c.state = i_vec_get( c.sites );
@@ -95,13 +95,17 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<p.optimSteps;p1++) {
     for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=0;p3<2*p.optimSteps;p3++) { /* double number of steps for firing rate */
+      for (p3=0;p3<12;p3++) {
+	setseed(&p);
 	for (p4=0;p4<p.optimSteps;p4++) {
 	  
-	  R_OFF = pow(10,-0.2*p1); // log scaling (8 steps max)
-	  FIRING = pow(10,-0.2*p3); // log scaling (7 steps max)
-	  P_DEMETHYLATE = fabs(0.5-(double)(p4+1)/(p.optimSteps)); // between 0 and 1
-	  ENZYMATIC = pow(10,-0.2*p2); // log scaling
+	  // !!! Set seed for debugging - remove for simulations
+	  // setseed(&p); note: this version running on n099763a/b
+
+	  R_OFF = pow(10,-0.2*(p1)); // log scaling (8 steps max)
+	  FIRING = pow(10,-0.2*(p3+1)); 
+	  P_DEMETHYLATE = pow(10,-0.3*(p2));
+	  ENZYMATIC = pow(10,-0.2*(p4)); // log scaling
 
 	  // test parameters
 	  /*
@@ -199,6 +203,20 @@ int main(int argc, char *argv[]) {
 	    fh += numberHistoneStateFlips(&r);
 	    tTot += r.t->el[p.reactCount];
 
+	    if (isnan(gap)) {
+	      fprintf(stderr,"Error: gap is nan. Locus %ld\n",locus);
+	      fprintf(stderr,"R_OFF     ENZYMATIC FIRING    P_OFF     P_DEMETHYLATE\n");
+	      fprintf(stderr,"5(%0.6f  )\n",R_OFF,ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE);
+	      exit(-1);
+	    }
+
+	    if (isinf(tTot)) {
+	      fprintf(stderr,"Error: gap is nan. Locus %ld\n",locus);
+	      fprintf(stderr,"R_OFF     ENZYMATIC FIRING    P_OFF     P_DEMETHYLATE\n");
+	      fprintf(stderr,"5(%0.6f  )\n",R_OFF,ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE);
+	      exit(-1);
+	    }
+
 	    firstPassage = firstPassageTime(&r,&initial);
 	    if (initial==-1) {
 	      firstPassageM += firstPassage;
@@ -230,11 +248,11 @@ int main(int argc, char *argv[]) {
 	    tU = -1.0;
 	  }
 
-	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%ld\t%0.2f\t%0.2f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU);
+	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%0.2f\n",R_OFF,
+		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci);
 
-	  fprintf(stderr,"%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.2f %ld %0.2f %0.2f %ld %0.2f %0.2f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU);
+	  fprintf(stderr,"%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.2f %ld %0.2f %0.2f %ld %0.2f %0.2f %0.2f\n",R_OFF,
+		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci);
 	}
       }
     }
