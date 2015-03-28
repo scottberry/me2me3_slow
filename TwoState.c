@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 6; 
+  p.optimSteps = 7; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -94,28 +94,26 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<p.optimSteps;p1++) {
-    for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=0;p3<12;p3++) {
-	setseed(&p);
+    for (p2=0;p2<16;p2++) {
+      for (p3=0;p3<11;p3++) {
 	for (p4=0;p4<p.optimSteps;p4++) {
 	  
 	  // !!! Set seed for debugging - remove for simulations
 	  // setseed(&p); note: this version running on n099763a/b
-
-	  R_OFF = pow(10,-0.2*(p1)); // log scaling (8 steps max)
-	  FIRING = pow(10,-0.2*(p3+1)); 
-	  P_DEMETHYLATE = pow(10,-0.3*(p2));
-	  ENZYMATIC = pow(10,-0.2*(p4)); // log scaling
-
+	  
+	  R_OFF = pow(10,-0.2*(p1+1)); // log scaling (8 steps max)
+	  FIRING = pow(10,-0.3*(p3+2)); 
+	  P_DEMETHYLATE = pow(10,-0.1*(p2+1));
+	  ENZYMATIC = pow(10,-0.4*(p4+8)); // log scaling
+	  
 	  // test parameters
 	  /*
-	  R_OFF = 1.0;
-	  FIRING = 0.251189;
-	  P_DEMETHYLATE = 0.5;
-	  P_OFF = 0.025;
-	  ENZYMATIC = 0.063096;
+	  R_OFF = 0.039811;
+	  FIRING = 0.063096;
+	  P_DEMETHYLATE = 0.025119;
+	  P_OFF = 0.1;
+	  ENZYMATIC = 0.001585;
 	  */
-	  
 	  // Protein binding 
 	  // ------------------------------------------------------------
 	  p.noisy_Rep_ON = 0.0333; // Leave this fixed at ~ PRC2 tries to bind each site every 30 seconds
@@ -211,7 +209,7 @@ int main(int argc, char *argv[]) {
 	    }
 
 	    if (isinf(tTot)) {
-	      fprintf(stderr,"Error: gap is nan. Locus %ld\n",locus);
+	      fprintf(stderr,"Error: tTot is inf. Locus %ld\n",locus);
 	      fprintf(stderr,"R_OFF     ENZYMATIC FIRING    P_OFF     P_DEMETHYLATE\n");
 	      fprintf(stderr,"5(%0.6f  )\n",R_OFF,ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE);
 	      exit(-1);
