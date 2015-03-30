@@ -35,9 +35,9 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
-  p.loci = 50;
-  p.maxReact = 100000;
-  p.samples = 2000;
+  p.loci = 40;
+  p.maxReact = 800000;
+  p.samples = 4000;
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 	  R_OFF = pow(10,-0.2*(p1+1)); // log scaling (8 steps max)
 	  FIRING = pow(10,-0.3*(p3+2)); 
 	  P_DEMETHYLATE = pow(10,-0.1*(p2+1));
-	  ENZYMATIC = pow(10,-0.4*(p4+8)); // log scaling
+	  ENZYMATIC = pow(10,-0.6*(p4+1)); // log scaling
 	  
 	  // test parameters
 	  /*
