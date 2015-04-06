@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 1; 
+  p.optimSteps = 7; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -102,14 +102,12 @@ int main(int argc, char *argv[]) {
 	  // !!! Set seed for debugging - remove for simulations
 	  // setseed(&p); note: this version running on n099763a/b
 	  
-	  // R_OFF = pow(10,-0.2*(p1+1)); // log scaling (8 steps max)
+	  R_OFF = pow(10,-0.2*(p1+1)); // log scaling (8 steps max)
 	  FIRING = pow(10,-0.3*(p3+2)); 
 	  P_DEMETHYLATE = pow(10,-0.1*(p2+1));
-	  // ENZYMATIC = pow(10,-0.6*(p4+1)); // log scaling
+	  ENZYMATIC = pow(10,-0.6*(p4+1)); // log scaling
 
     	  // test parameters
-	  R_OFF = pow(10,-0.2*(4)); // log scaling (8 steps max)
-	  ENZYMATIC = pow(10,-0.6*(4)); // log scaling
 	  /*
 	  R_OFF = 0.039811;
 	  FIRING = 0.063096;
