@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
   double new, old, gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
   long i, j, locus, fh, initM, initU;
+  double probM, probU, bistability;
   double R_OFF, FIRING, P_OFF, P_DEMETHYLATE, ENZYMATIC;
   int p1, p2, p3, p4;
 
@@ -43,7 +44,7 @@ int main(int argc, char *argv[]) {
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 7; 
+  p.optimSteps = 1; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -65,8 +66,8 @@ int main(int argc, char *argv[]) {
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
 
   parFile = fopen(parameterSpace,"w");
-  fprintf(parFile,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\n");
-  fprintf(stderr,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\n");
+  fprintf(parFile,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
+  fprintf(stderr,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
 
   /* Memory allocation */
   c.state = i_vec_get( c.sites );
@@ -101,12 +102,14 @@ int main(int argc, char *argv[]) {
 	  // !!! Set seed for debugging - remove for simulations
 	  // setseed(&p); note: this version running on n099763a/b
 	  
-	  R_OFF = pow(10,-0.2*(p1+1)); // log scaling (8 steps max)
+	  // R_OFF = pow(10,-0.2*(p1+1)); // log scaling (8 steps max)
 	  FIRING = pow(10,-0.3*(p3+2)); 
 	  P_DEMETHYLATE = pow(10,-0.1*(p2+1));
-	  ENZYMATIC = pow(10,-0.6*(p4+1)); // log scaling
-	  
-	  // test parameters
+	  // ENZYMATIC = pow(10,-0.6*(p4+1)); // log scaling
+
+    	  // test parameters
+	  R_OFF = pow(10,-0.2*(4)); // log scaling (8 steps max)
+	  ENZYMATIC = pow(10,-0.6*(4)); // log scaling
 	  /*
 	  R_OFF = 0.039811;
 	  FIRING = 0.063096;
@@ -142,6 +145,8 @@ int main(int argc, char *argv[]) {
   
 	  gap = 0.0;
 	  Mavg = 0.0;
+	  probM = 0.0;
+	  probU = 0.0;
 	  fh = 0;
 	  tTot = tTotM = tTotU = 0.0;
 	  initM = initU = 0;
@@ -198,6 +203,8 @@ int main(int argc, char *argv[]) {
 	    /* calculate and accumulate results for this locus */
 	    gap += tAverageGap(&c,&p,&r);
 	    Mavg += tAverageM(&c,&p,&r);
+	    probM += pM(&c,&p,&r);
+	    probU += pU(&c,&p,&r);
 	    fh += numberHistoneStateFlips(&r);
 	    tTot += r.t->el[p.reactCount];
 
@@ -230,6 +237,8 @@ int main(int argc, char *argv[]) {
 	  if (fh != 0) lifetime = tTot/fh;
 	  else lifetime = -1.0;
 
+	  bistability = 4*probM*probU/(p.loci*p.loci);
+
 	  if (initM != 0) {
 	    fpM = firstPassageM/initM;
 	    tM = tTotM/initM;
@@ -246,11 +255,11 @@ int main(int argc, char *argv[]) {
 	    tU = -1.0;
 	  }
 
-	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%0.2f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci);
+	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%0.2f\t%0.6f\t%0.6f\t%0.6f\n",R_OFF,
+		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
 
-	  fprintf(stderr,"%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.2f %ld %0.2f %0.2f %ld %0.2f %0.2f %0.2f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci);
+	  fprintf(stderr,"%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.2f %ld %0.2f %0.2f %ld %0.2f %0.2f %0.2f %0.6f %0.6f %0.6f\n",R_OFF,
+		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
 	}
       }
     }

@@ -361,6 +361,42 @@ double tAverageGap(chromatin *c, parameters *p, record *r) {
   return(gapSum/r->t_out->el[p->samples-1]);
 }
 
+double pM(chromatin *c, parameters *p, record *r) {
+  unsigned long sumM, t, pos;
+  double time_in_M = 0;
+  
+  for (t=1;t<r->state->cols;t++) {
+    sumM = 0;
+    for (pos=0;pos<r->state->rows;pos++) {
+      if (r->state->el[pos][t]==M || r->state->el[pos][t]==MR)
+	sumM++;
+    }
+    // fprintf(stderr,"sumM = %ld\t",sumM);
+    if (4*sumM > 3*c->sites)
+      time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+  }
+
+  // fprintf(stderr,"final time_in_M = %0.4f, total time = %0.4f\n",time_in_M,r->t_out->el[p->samples-1]);
+  return(time_in_M/r->t_out->el[p->samples-1]);
+}
+
+double pU(chromatin *c, parameters *p, record *r) {
+  unsigned long sumU, t, pos;
+  double time_in_U = 0;
+  
+  for (t=1;t<r->state->cols;t++) {
+    sumU = 0;
+    for (pos=0;pos<r->state->rows;pos++) {
+      if (r->state->el[pos][t]==U || r->state->el[pos][t]==UR)
+	sumU++;
+    }
+    if (4*sumU > 3*c->sites)
+      time_in_U += r->t_out->el[t] - r->t_out->el[t-1];
+  }
+
+  return(time_in_U/r->t_out->el[p->samples-1]);
+}
+
 double tAverageM(chromatin *c, parameters *p, record *r) {
   unsigned long sumM, t, pos;
   double Mavg = 0;
