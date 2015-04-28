@@ -37,14 +37,14 @@ int main(int argc, char *argv[]) {
   c.sites = 60;
 
   p.loci = 40;
-  p.maxReact = 800000;
-  p.samples = 4000;
+  p.maxReact = 100000;
+  p.samples = 2000;
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 7; 
+  p.optimSteps = 1; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -66,17 +66,14 @@ int main(int argc, char *argv[]) {
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
 
   parFile = fopen(parameterSpace,"w");
-  fprintf(parFile,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
-  fprintf(stderr,"R_OFF\tENZYMATIC\tFIRING\tP_OFF\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
+  fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
+  fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
 
   /* Memory allocation */
   c.state = i_vec_get( c.sites );
-  g.bindRep_index = i_vec_get( c.sites );
-  g.unbindRep_index = i_vec_get( c.sites );
   g.methylate_index = i_vec_get( c.sites );
-  g.demethylate_index = i_vec_get( c.sites );
   g.transcribeDNA_index = i_vec_get( 1 );
-  g.propensity = d_vec_get( 4*c.sites + 1 );
+  g.propensity = d_vec_get( c.sites + 1 );
   g.doReaction = malloc(g.propensity->len*sizeof( func_ptr_t ) );
   g.doReactionParam = i_vec_get( g.propensity->len );
   g.update = malloc(sizeof( flags ) );
@@ -95,40 +92,23 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<p.optimSteps;p1++) {
-    for (p2=0;p2<16;p2++) {
-      for (p3=0;p3<11;p3++) {
+    for (p2=0;p2<p.optimSteps;p2++) {
+      for (p3=0;p3<p.optimSteps;p3++) {
 	for (p4=0;p4<p.optimSteps;p4++) {
 	  
 	  // !!! Set seed for debugging - remove for simulations
 	  // setseed(&p); note: this version running on n099763a/b
-	  
-	  R_OFF = pow(10,-0.2*(p1+1)); // log scaling (8 steps max)
-	  FIRING = pow(10,-0.3*(p3+2)); 
-	  P_DEMETHYLATE = pow(10,-0.1*(p2+1));
-	  ENZYMATIC = pow(10,-0.6*(p4+1)); // log scaling
 
     	  // test parameters
-	  /*
-	  R_OFF = 0.039811;
-	  FIRING = 0.063096;
-	  P_DEMETHYLATE = 0.025119;
-	  P_OFF = 0.1;
-	  ENZYMATIC = 0.001585;
-	  */
-	  // Protein binding 
-	  // ------------------------------------------------------------
-	  p.noisy_Rep_ON = 0.0333; // Leave this fixed at ~ PRC2 tries to bind each site every 30 seconds
-  
-	  // Stabilisation of Repressors by H3K27me3
-	  // ------------------------------------------------------------
-	  p.noisy_UR_Rep_OFF = R_OFF; // Optimise
-	  p.noisy_MR_Rep_OFF = R_OFF/20; // Leave this fixed at a 20-fold stabilisation of proteins by M marks 
+
+	  FIRING = 0.01;
+	  P_DEMETHYLATE = 0.001;
+
   
 	  // Transcription
 	  // ------------------------------------------------------------
 	  p.firingRateMin = 0.000833; // Leave the repressed firing rate fixed at ~ every 20 min.
 	  p.firingRateMax = FIRING; // Optimise
-	  p.transcription_RepOFF = P_OFF; // (rate per site per transcription event)
 	  p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
 	  if (p.firingRateMax < p.firingRateMin) {
 	    fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
@@ -137,9 +117,11 @@ int main(int argc, char *argv[]) {
 
 	  // Methylation/demethylation
 	  // ------------------------------------------------------------
-	  p.noisy_demethylate = 0.0;
-	  p.UR_methylate = ENZYMATIC/10; // Leave this fixed at a 10-fold reduction in activity on U marks
-	  p.MR_methylate = ENZYMATIC; // Optimise
+	  p.me0_me1 = 0.01;
+	  p.me1_me2 = 0.0001;
+	  p.me2_me3 = 0.0001;
+	  p.me2factor = 0.1;
+	  p.me3factor = 1;
   
 	  gap = 0.0;
 	  Mavg = 0.0;
@@ -200,23 +182,17 @@ int main(int argc, char *argv[]) {
     
 	    /* calculate and accumulate results for this locus */
 	    gap += tAverageGap(&c,&p,&r);
-	    Mavg += tAverageM(&c,&p,&r);
-	    probM += pM(&c,&p,&r);
-	    probU += pU(&c,&p,&r);
+	    Mavg += tAverage_me2_me3(&c,&p,&r);
+	    probM += prob_me2_me3(&c,&p,&r);
+	    probU += prob_me0_me1(&c,&p,&r);
 	    fh += numberHistoneStateFlips(&r);
 	    tTot += r.t->el[p.reactCount];
 
 	    if (isnan(gap)) {
 	      fprintf(stderr,"Error: gap is nan. Locus %ld\n",locus);
-	      fprintf(stderr,"R_OFF     ENZYMATIC FIRING    P_OFF     P_DEMETHYLATE\n");
-	      fprintf(stderr,"5(%0.6f  )\n",R_OFF,ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE);
-	      exit(-1);
-	    }
-
-	    if (isinf(tTot)) {
-	      fprintf(stderr,"Error: tTot is inf. Locus %ld\n",locus);
-	      fprintf(stderr,"R_OFF     ENZYMATIC FIRING    P_OFF     P_DEMETHYLATE\n");
-	      fprintf(stderr,"5(%0.6f  )\n",R_OFF,ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE);
+	      fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\n");
+	      fprintf(stderr,"%0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f\n",
+		      p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE);
 	      exit(-1);
 	    }
 
@@ -253,11 +229,12 @@ int main(int argc, char *argv[]) {
 	    tU = -1.0;
 	  }
 
-	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%ld\t%0.2f\t%0.2f\t%0.2f\t%0.6f\t%0.6f\t%0.6f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
-
-	  fprintf(stderr,"%0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.6f %0.2f %ld %0.2f %0.2f %ld %0.2f %0.2f %0.2f %0.6f %0.6f %0.6f\n",R_OFF,
-		  ENZYMATIC,FIRING,P_OFF,P_DEMETHYLATE,gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
+	  fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
+		  p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,
+		  gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
+	  fprintf(stderr,"%0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f\n",
+		  p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,
+		  gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
 	}
       }
     }
@@ -271,10 +248,7 @@ int main(int argc, char *argv[]) {
 
   /* free all arrays */
   i_vec_free(c.state);
-  i_vec_free(g.bindRep_index);
-  i_vec_free(g.unbindRep_index);
   i_vec_free(g.methylate_index);
-  i_vec_free(g.demethylate_index);
   i_vec_free(g.transcribeDNA_index);
   d_vec_free(g.propensity);
   free(g.doReaction);
@@ -288,12 +262,14 @@ int main(int argc, char *argv[]) {
   d_vec_print(fptr,r.t_out);
   fclose(fptr);
 
-  strcpy(fname,"Meth_t_\0"); strcat(fname,avgfile);
-  fprint_nMethylated_t(fname,r.state);
-
-  strcpy(fname,"RepBound_t_\0"); strcat(fname,avgfile);
-  fprint_nRepBound_t(fname,r.state);
-
+  strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
+  fprint_t(fname,r.state,me0);
+  strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
+  fprint_t(fname,r.state,me1);
+  strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
+  fprint_t(fname,r.state,me2);
+  strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
+  fprint_t(fname,r.state,me3);
   strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
   fprint_firing_t(fname,&r);
 

@@ -16,10 +16,10 @@
 #define FALSE 0
 #define TRUE 1
 
-#define U 0
-#define UR 1
-#define M 2
-#define MR 3
+#define me0 0
+#define me1 1
+#define me2 2
+#define me3 3
 
 typedef unsigned char logical;
 
@@ -37,11 +37,10 @@ typedef struct {
   gsl_rng *gsl_r;
   unsigned long reactCount, maxReact;
   unsigned long optimSteps;
-
   unsigned long loci;
-  double noisy_Rep_ON, noisy_UR_Rep_OFF, noisy_MR_Rep_OFF, noisy_demethylate;
-  double UR_methylate, MR_methylate;
-  double firingRateMax, firingRateMin, transcription_RepOFF, transcription_demethylate;
+  double me0_me1, me1_me2, me2_me3;
+  double me2factor, me3factor;
+  double firingRateMax, firingRateMin, transcription_demethylate;
 
   logical results, testProb;
   unsigned long samples, sampleFreq, sampleCount;
@@ -53,7 +52,7 @@ typedef void (*func_ptr_t)( chromatin *, parameters *, flags *, int );
 typedef struct {
   D_VEC *propensity;
   I_VEC *doReactionParam;
-  I_VEC *bindRep_index, *unbindRep_index, *methylate_index, *demethylate_index;
+  I_VEC *methylate_index;
   I_VEC *transcribeDNA_index;
   func_ptr_t *doReaction;
   flags *update;
