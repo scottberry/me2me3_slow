@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 2; 
+  p.optimSteps = 7; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -66,8 +66,10 @@ int main(int argc, char *argv[]) {
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
 
   parFile = fopen(parameterSpace,"w");
-  fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
-  fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\tgap\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
+  fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\tgap\
+\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
+  fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\tgap\
+\tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
 
   /* Memory allocation */
   c.state = i_vec_get( c.sites );
@@ -99,8 +101,8 @@ int main(int argc, char *argv[]) {
         // setseed(&p);
         
         FIRING = pow(10,-0.3*(p1+4));
-        P_DEMETHYLATE = pow(10,-0.3*(p2+2));
-        P_METHYLATE = pow(10,-0.3*(p3+5));
+        P_DEMETHYLATE = pow(10,-0.25*(p2+9));
+        P_METHYLATE = pow(10,-0.25*(p3+9));
         
         /*
         FIRING = 0.63;

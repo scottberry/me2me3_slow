@@ -177,7 +177,7 @@ double left(chromatin *c, parameters *p, int pos) {
 /* Calculate nearest neighbours */
 double right(chromatin *c, parameters *p, int pos) {
   double s;
-  if (pos<c->sites) {
+  if (pos<c->sites-1) {
     if (c->state->el[pos+1] == me2)
       s = p->me2factor;
     else if (c->state->el[pos+1] == me3)
@@ -205,7 +205,7 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
 	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me1_me2*(left(c,p,i)+right(c,p,i));
        } else if (c->state->el[i] == me2) {
 	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me2_me3*(left(c,p,i)+right(c,p,i));
-       } else if (c->state->el[i] == me3) {
+       } else {
          g->propensity->el[g->methylate_index->el[i]] = 0.0;
        }
      }
@@ -227,7 +227,7 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
 
 /* Single reaction for the Gillespie algorithm */
 void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
-  double delta_t, sum, p_s, r1=0.0, r2=0.0, scaled_r2;
+  double delta_t, sum, p_s, r1=0.0, r2=0.0, scaled_r2=0.0;
   long m, step, i;
 
   // update and sum propensities, call random numbers
