@@ -161,8 +161,8 @@ double frac(I_VEC *vec, int target) {
 }
 
 /* Calculate nearest neighbours */
-int left(chromatin *c, parameters *p, int pos) {
-  int s;
+double left(chromatin *c, parameters *p, int pos) {
+  double s;
   if (pos>1) {
     if (c->state->el[pos-1] == me2)
       s = p->me2factor;
@@ -175,9 +175,9 @@ int left(chromatin *c, parameters *p, int pos) {
 }
 
 /* Calculate nearest neighbours */
-int right(chromatin *c, parameters *p, int pos) {
-  int s;
-  if (pos>c->sites) {
+double right(chromatin *c, parameters *p, int pos) {
+  double s;
+  if (pos<c->sites) {
     if (c->state->el[pos+1] == me2)
       s = p->me2factor;
     else if (c->state->el[pos+1] == me3)
@@ -195,14 +195,18 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
    
    if (g->update->histone==TRUE) {
      f_me2_me3 = frac(c->state,me2) + frac(c->state,me3);
+     //fprintf(stderr,"updatePropensities: update->histone = TRUE, f_me2_me3 = %0.4f\n",f_me2_me3);
+     //fprintf(stderr,"left = %0.4f, right = %0.4f\n",left(c,p,3),right(c,p,3));
      
      for (i=0;i<c->sites;i++) {
        if (c->state->el[i] == me0) { // methylate
-	 g->propensity->el[g->methylate_index->el[i]] = p->me0_me1*(left(c,p,i)+right(c,p,i));
+	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me0_me1*(left(c,p,i)+right(c,p,i));
        } else if (c->state->el[i] == me1) {
-	 g->propensity->el[g->methylate_index->el[i]] = p->me1_me2*(left(c,p,i)+right(c,p,i));
+	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me1_me2*(left(c,p,i)+right(c,p,i));
        } else if (c->state->el[i] == me2) {
-	 g->propensity->el[g->methylate_index->el[i]] = p->me2_me3*(left(c,p,i)+right(c,p,i));
+	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me2_me3*(left(c,p,i)+right(c,p,i));
+       } else if (c->state->el[i] == me3) {
+         g->propensity->el[g->methylate_index->el[i]] = 0.0;
        }
      }
    
@@ -212,11 +216,12 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
      g->update->protein = FALSE; // reset the flag
      g->update->histone = FALSE; // reset the flag
      
-     /*i_vec_print(stderr,c->state);
-       fprintf(stderr,"i = 0, propensity %0.4f\n",g->propensity->el[0]);
-       fprintf(stderr,"i = 1, propensity %0.4f\n",g->propensity->el[1]);
-       d_vec_print(stderr,g->propensity);*/
    }
+   /*
+     for (i=0;i<g->propensity->len;i++) {
+     fprintf(stderr,"i = %d, propensity %0.4f\n",i,g->propensity->el[i]);
+     }
+   */
    return;
 }
 
@@ -305,7 +310,7 @@ void fprint_firing_t(char *fname, record *r) {
 }
 
 double tAverageGap(chromatin *c, parameters *p, record *r) {
-  unsigned long sumM, t, pos;
+  long sumM, t, pos;
   double gapSum = 0;
 
   for (t=1;t<r->state->cols;t++) {
@@ -320,7 +325,7 @@ double tAverageGap(chromatin *c, parameters *p, record *r) {
 }
 
 double prob_me2_me3(chromatin *c, parameters *p, record *r) {
-  unsigned long sumM, t, pos;
+  long sumM, t, pos;
   double time_in_M = 0;
   
   for (t=1;t<r->state->cols;t++) {
@@ -339,7 +344,7 @@ double prob_me2_me3(chromatin *c, parameters *p, record *r) {
 }
 
 double prob_me0_me1(chromatin *c, parameters *p, record *r) {
-  unsigned long sumU, t, pos;
+  long sumU, t, pos;
   double time_in_U = 0;
   
   for (t=1;t<r->state->cols;t++) {
@@ -356,7 +361,7 @@ double prob_me0_me1(chromatin *c, parameters *p, record *r) {
 }
 
 double tAverage_me2_me3(chromatin *c, parameters *p, record *r) {
-  unsigned long sumM, t, pos;
+  long sumM, t, pos;
   double Mavg = 0;
 
   for (t=1;t<r->state->cols;t++) {

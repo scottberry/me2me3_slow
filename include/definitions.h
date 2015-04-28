@@ -38,6 +38,7 @@ typedef struct {
   unsigned long reactCount, maxReact;
   unsigned long optimSteps;
   unsigned long loci;
+  double noisy_methylate;
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate;

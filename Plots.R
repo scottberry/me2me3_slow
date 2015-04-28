@@ -6,27 +6,35 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 
 # Set the working directory
-setwd("~/local/Modelling/TwoStateCoupled/")
+setwd("~/local/Modelling/me2me3_slow/")
 
 s <- 60
-r <- format(100000,scientific=FALSE)
+r <- format(500000,scientific=FALSE)
 tr <- "tr0_000" 
 st <- 1
 
 time_file <- paste("t_s",s,"r",r,tr,"st",st,".txt",sep="")
-tDep_methyl_file <- paste("Meth_t_s",s,"r",r,tr,"st",st,".txt",sep="")
-tDep_protein_file <- paste("RepBound_t_s",s,"r",r,tr,"st",st,".txt",sep="")
+tDep_me0_file <- paste("me0_t_s",s,"r",r,tr,"st",st,".txt",sep="")
+tDep_me1_file <- paste("me1_t_s",s,"r",r,tr,"st",st,".txt",sep="")
+tDep_me2_file <- paste("me2_t_s",s,"r",r,tr,"st",st,".txt",sep="")
+tDep_me3_file <- paste("me3_t_s",s,"r",r,tr,"st",st,".txt",sep="")
 tDep_firing_file <- paste("Firing_t_s",s,"r",r,tr,"st",st,".txt",sep="")
 
 time <- t(read.table(time_file))
-PRC2 <- t(read.table(tDep_protein_file))
-K27me3 <- t(read.table(tDep_methyl_file))
+me0 <- t(read.table(tDep_me0_file))
+me1 <- t(read.table(tDep_me1_file))
+me2 <- t(read.table(tDep_me2_file))
+me3 <- t(read.table(tDep_me3_file))
 Firing <- t(read.table(tDep_firing_file))
 
-par(mfrow=c(3,1),mar=c(2,4,1,1)+0.1)
-plot(time,PRC2,type="l",ylim=c(0,1),col="blue3")
-plot(time,K27me3,type="l",ylim=c(0,1),col="red3")
-plot(Firing,rep(1,length(Firing)),type="p",pch=2,cex=0.1,ylim=c(0,1),col="black")
+par(mfrow=c(5,1),mar=c(2,4,0,0)+0.5,oma=c(3,3,0,0))
+plot(time/3600,me0,type="l",ylim=c(0,1),col="blue3")
+plot(time/3600,me1,type="l",ylim=c(0,1),col="blue3")
+plot(time/3600,me2,type="l",ylim=c(0,1),col="red3")
+plot(time/3600,me3,type="l",ylim=c(0,1),col="red3")
+plot(Firing/3600,rep(1,length(Firing)),type="p",pch=2,cex=0.1,ylim=c(0,1),col="black",ylab="Firing")
+mtext("time (hours)",side=1,line=0,outer=TRUE)
+mtext("modification level",side=2,line=0,outer=TRUE)
 
 # s
 
