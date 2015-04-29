@@ -6,10 +6,10 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 
 # Set the working directory
-setwd("~/local/Modelling/me2me3_slow/")
+setwd("~/Network/group-share/berrys/me2me3_slow/")
 
 s <- 60
-r <- format(500000,scientific=FALSE)
+r <- format(50000,scientific=FALSE)
 tr <- "tr0_000" 
 st <- 1
 

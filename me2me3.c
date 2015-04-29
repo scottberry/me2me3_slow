@@ -29,22 +29,20 @@ int main(int argc, char *argv[]) {
   start = clock();
 #endif
 
-  /* NOTE: DNA REPLICATION OFF */
-
   /* -------------------------------------------------------------------------------- */
   /* Simulation setup  */
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
-  p.loci = 50;
-  p.maxReact = 500000;
+  p.loci = 1;
+  p.maxReact = 50000;
   p.samples = 2000;
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 7; 
+  p.optimSteps = 1; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -99,17 +97,16 @@ int main(int argc, char *argv[]) {
 	  
         // !!! Set seed for debugging - remove for simulations
         // setseed(&p);
-        
+        /* 
         FIRING = pow(10,-0.3*(p1+4));
         P_DEMETHYLATE = pow(10,-0.25*(p2+9));
-        P_METHYLATE = pow(10,-0.25*(p3+9));
-        
-        /*
-        FIRING = 0.63;
-        P_DEMETHYLATE = 0.25;
-        P_METHYLATE = 0.15;
+        P_METHYLATE = pow(10,-0.25*(p3+14));
         */
         
+        FIRING = 0.02;
+        P_DEMETHYLATE = 0.005623;
+        P_METHYLATE = 0.000178;
+                
         // Transcription
         // ------------------------------------------------------------
         p.firingRateMin = 0.0005; // Leave the repressed firing rate fixed at ~ every 20 min.
@@ -185,8 +182,8 @@ int main(int argc, char *argv[]) {
             new = fmod(r.t->el[p.reactCount],86400);
       
             if (new < old) {
-              // replicateDNA(&c,&p,g.update);
-              //fprintf(stderr,"old = %0.4f, new = %0.4f\n",old,new);
+              replicateDNA(&c,&p,g.update);
+              // fprintf(stderr,"old = %0.4f, new = %0.4f\n",old,new);
             }
             old = new;
           }
