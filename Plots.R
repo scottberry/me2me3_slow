@@ -9,7 +9,7 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 setwd("~/Network/group-share/berrys/me2me3_slow/")
 
 s <- 60
-r <- format(50000,scientific=FALSE)
+r <- format(200000,scientific=FALSE)
 tr <- "tr0_000" 
 st <- 1
 

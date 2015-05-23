@@ -34,15 +34,15 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
-  p.loci = 50;
-  p.maxReact = 500000;
-  p.samples = 2000;
+  p.loci = 50; // 50
+  p.maxReact = 500000; // 500000
+  p.samples = 2000; // 2000
   p.sampleFreq = p.maxReact/p.samples;
 
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 7; 
+  p.optimSteps = 1; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -91,22 +91,22 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<p.optimSteps-1;p1++) {
+  for (p1=0;p1<p.optimSteps;p1++) { // -1
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         // setseed(&p);
-        
+        /*
         FIRING = pow(10,-0.3*(p1+4));
         P_DEMETHYLATE = pow(10,-0.25*(p2+9));
         P_METHYLATE = pow(10,-0.25*(p3+15));
-        
-        /*  
-        FIRING = 0.02;
-        P_DEMETHYLATE = 0.005623;
-        P_METHYLATE = 0.000178;
-        */      
+        */
+          
+        FIRING = 0.031623;
+        P_DEMETHYLATE = 0.001778;
+        P_METHYLATE = 0.0001;
+              
         // Transcription
         // ------------------------------------------------------------
         p.firingRateMin = 0.0005; // Leave the repressed firing rate fixed at ~ every 20 min.
@@ -192,8 +192,8 @@ int main(int argc, char *argv[]) {
           /* calculate and accumulate results for this locus */
           gap += tAverageGap(&c,&p,&r);
           Mavg += tAverage_me2_me3(&c,&p,&r);
-          probM += prob_me2_me3(&c,&p,&r);
-          probU += prob_me0_me1(&c,&p,&r);
+          probM += prob_me2_me3_lastHour(&c,&p,&r);
+          probU += prob_me0_me1_lastHour(&c,&p,&r);
           fh += numberHistoneStateFlips(&r);
           tTot += r.t->el[p.reactCount];
 

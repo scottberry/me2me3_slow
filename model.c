@@ -343,6 +343,31 @@ double prob_me2_me3(chromatin *c, parameters *p, record *r) {
   return(time_in_M/r->t_out->el[p->samples-1]);
 }
 
+/* Calculate probability for the last hour of each cell cycle only */
+double prob_me2_me3_lastHour(chromatin *c, parameters *p, record *r) {
+  long sumM, t, pos;
+  double time_in_M = 0;
+  double time_total = 0;
+  
+  for (t=1;t<r->state->cols;t++) {
+    if (fmod(r->t_out->el[t],86400) >= 82800) { // if within last hour before replication
+      sumM = 0;
+      for (pos=0;pos<r->state->rows;pos++) {
+        if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
+          sumM++;
+      }
+      // fprintf(stderr,"sumM = %ld\t",sumM);
+      if (4*sumM > 3*c->sites) {
+        time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+        // fprintf(stderr,"M state: t = %0.2f, sumM = %ld \n",r->t_out->el[t],sumM);
+      }
+      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+    }
+  }
+  // fprintf(stderr,"final time_in_M = %0.4f, total time = %0.4f\n",time_in_M,r->t_out->el[p->samples-1]);
+  return(time_in_M/time_total);
+}
+
 double prob_me0_me1(chromatin *c, parameters *p, record *r) {
   long sumU, t, pos;
   double time_in_U = 0;
@@ -358,6 +383,30 @@ double prob_me0_me1(chromatin *c, parameters *p, record *r) {
   }
 
   return(time_in_U/r->t_out->el[p->samples-1]);
+}
+
+/* Calculate probability for the last hour of each cell cycle only */
+double prob_me0_me1_lastHour(chromatin *c, parameters *p, record *r) {
+  long sumU, t, pos;
+  double time_in_U = 0;
+  double time_total = 0;
+  
+  for (t=1;t<r->state->cols;t++) {
+    if (fmod(r->t_out->el[t],86400) >= 82800) { // if within last hour before replication
+      sumU = 0;
+      for (pos=0;pos<r->state->rows;pos++) {
+        if (r->state->el[pos][t]==me0 || r->state->el[pos][t]==me1)
+          sumU++;
+      }
+      if (4*sumU > 3*c->sites) {
+        time_in_U += r->t_out->el[t] - r->t_out->el[t-1];
+        // fprintf(stderr,"U state: t = %0.2f, sumU = %ld \n",r->t_out->el[t],sumU);
+      }
+      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+    }
+  }
+  
+  return(time_in_U/time_total);
 }
 
 double tAverage_me2_me3(chromatin *c, parameters *p, record *r) {
