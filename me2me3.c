@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 1; 
+  p.optimSteps = 7; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -91,22 +91,23 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<p.optimSteps;p1++) { // -1
+  for (p1=0;p1<p.optimSteps-1;p1++) {
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         // setseed(&p);
-        /*
+        
         FIRING = pow(10,-0.3*(p1+4));
         P_DEMETHYLATE = pow(10,-0.25*(p2+9));
         P_METHYLATE = pow(10,-0.25*(p3+15));
-        */
-          
+        
+        /*  
         FIRING = 0.031623;
         P_DEMETHYLATE = 0.001778;
         P_METHYLATE = 0.0001;
-              
+        */
+        
         // Transcription
         // ------------------------------------------------------------
         p.firingRateMin = 0.0005; // Leave the repressed firing rate fixed at ~ every 20 min.
