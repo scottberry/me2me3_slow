@@ -211,7 +211,7 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
      }
    
      // transcribeDNA
-     g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingRateMax + (f_me2_me3)*(p->firingRateMin - p->firingRateMax);
+     g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor*(p->firingRateMax + f_me2_me3*(p->firingRateMin - p->firingRateMax));
      
      g->update->protein = FALSE; // reset the flag
      g->update->histone = FALSE; // reset the flag
@@ -350,7 +350,7 @@ double prob_me2_me3_lastHour(chromatin *c, parameters *p, record *r) {
   double time_total = 0;
   
   for (t=1;t<r->state->cols;t++) {
-    if (fmod(r->t_out->el[t],86400) >= 82800) { // if within last hour before replication
+    if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour before replication
       sumM = 0;
       for (pos=0;pos<r->state->rows;pos++) {
         if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
@@ -392,7 +392,7 @@ double prob_me0_me1_lastHour(chromatin *c, parameters *p, record *r) {
   double time_total = 0;
   
   for (t=1;t<r->state->cols;t++) {
-    if (fmod(r->t_out->el[t],86400) >= 82800) { // if within last hour before replication
+    if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour before replication
       sumU = 0;
       for (pos=0;pos<r->state->rows;pos++) {
         if (r->state->el[pos][t]==me0 || r->state->el[pos][t]==me1)

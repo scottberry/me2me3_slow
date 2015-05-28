@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
   gillespie g;
   record r;
   signed char initial;
-  double new, old, gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
+  double new, old, t_lastRep, gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
   long i, j, locus, fh, initM, initU;
   double probM, probU, bistability;
@@ -34,15 +34,18 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
-  p.loci = 50; // 50
-  p.maxReact = 500000; // 500000
+  p.loci = 2; // 50
+  p.maxReact = 50000; // 500000
   p.samples = 2000; // 2000
   p.sampleFreq = p.maxReact/p.samples;
 
+  p.cellCycleDuration = 17.0; // (hours)
+  p.G2duration = 5.5; // (hours)
+  
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 7; 
+  p.optimSteps = 10; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -91,18 +94,18 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<p.optimSteps-1;p1++) {
+  for (p1=0;p1<5;p1++) {
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         // setseed(&p);
-        
-        FIRING = pow(10,-0.3*(p1+4));
-        P_DEMETHYLATE = pow(10,-0.25*(p2+9));
-        P_METHYLATE = pow(10,-0.25*(p3+15));
-        
-        /*  
+              
+        FIRING = pow(10,-0.4*(p1+4));
+        P_DEMETHYLATE = pow(10,-0.15*(p2+13));
+        P_METHYLATE = pow(10,-0.15*(p3+24));
+                
+        /*
         FIRING = 0.031623;
         P_DEMETHYLATE = 0.001778;
         P_METHYLATE = 0.0001;
@@ -117,7 +120,7 @@ int main(int argc, char *argv[]) {
           fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
           p.firingRateMin = p.firingRateMax;
         }
-
+        
         // Methylation/demethylation
         // ------------------------------------------------------------
         p.noisy_methylate = P_METHYLATE/20.0; // 5% noise
@@ -162,6 +165,7 @@ int main(int argc, char *argv[]) {
           p.reactCount = 0;
           p.sampleCount = 0;
           old = 0;
+          p.firingFactor = 1.0;
     
           // fprintf(stderr,"Starting reaction loop\n");
           for (i=0;i<p.maxReact;i++) {
@@ -179,11 +183,18 @@ int main(int argc, char *argv[]) {
             p.reactCount++;
             gillespieStep(&c,&p,&g,&r);
       
-            /* handle DNA replication deterministically, once per day */
-            new = fmod(r.t->el[p.reactCount],86400);
-      
+            /* handle DNA replication deterministically, once per 17h */
+            new = fmod(r.t->el[p.reactCount],3600*p.cellCycleDuration);
+            
+            /* inhibit transcription globally by 1/2 during G2 cell cycle
+               phase */
+            if (r.t->el[p.reactCount] > 3600*p.cellCycleDuration && (r.t->el[p.reactCount] - t_lastRep) > (3600*p.G2duration))
+              p.firingFactor = 1.0;
+              
             if (new < old) {
               replicateDNA(&c,&p,g.update);
+              t_lastRep = r.t->el[p.reactCount];
+              p.firingFactor = 0.5;
               // fprintf(stderr,"old = %0.4f, new = %0.4f\n",old,new);
             }
             old = new;

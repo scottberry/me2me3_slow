@@ -42,7 +42,10 @@ typedef struct {
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate;
+  double firingFactor;
 
+  double cellCycleDuration, G2duration;
+  
   logical results, testProb;
   unsigned long samples, sampleFreq, sampleCount;
 } parameters;
