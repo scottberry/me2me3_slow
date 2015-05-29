@@ -32,16 +32,17 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Simulation setup  */
   /* -------------------------------------------------------------------------------- */
+  
   c.sites = 60;
 
-  p.loci = 2; // 50
-  p.maxReact = 100000; // 500000
-  p.samples = 25000; // 2000
+  p.loci = 100; // 50
+  p.maxReact = 200000; // 500000
+  p.samples = 50000; // 2000
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 50;
+  p.cellCycles = 100;
   p.cellCycleDuration = 17.0; // (hours)
-  p.G2duration = 0.0; // (hours)
+  p.G2duration = 5.5; // (hours)
   
   p.results = TRUE;
 
