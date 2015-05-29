@@ -9,7 +9,7 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 # Set the working directory
 setwd("~/Network/group-share/berrys/me2me3_slow/")
 
-file= "ParamOptimRes_s60r50000tr0_000st10.txt"
+file= "ParamOptimRes_s60r2000tr0_000st10.txt"
 parameterSpace <- read.table(file,header = TRUE)
 
 parameterSpace$firstPassageM[parameterSpace$firstPassageM == -1] <- max(parameterSpace$firstPassageM)

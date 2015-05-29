@@ -34,18 +34,18 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
-  p.loci = 2; // 50
-  p.maxReact = 50000; // 500000
+  p.loci = 50; // 50
+  p.maxReact = 2000; // 500000
   p.samples = 2000; // 2000
   p.sampleFreq = p.maxReact/p.samples;
 
   p.cellCycleDuration = 17.0; // (hours)
-  p.G2duration = 5.5; // (hours)
+  p.G2duration = 0.0; // (hours)
   
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 10; 
+  p.optimSteps = 14; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -102,8 +102,8 @@ int main(int argc, char *argv[]) {
         // setseed(&p);
               
         FIRING = pow(10,-0.4*(p1+4));
-        P_DEMETHYLATE = pow(10,-0.15*(p2+13));
-        P_METHYLATE = pow(10,-0.15*(p3+24));
+        P_DEMETHYLATE = pow(10,-0.2*(p2+5));
+        P_METHYLATE = pow(10,-0.15*(p3+20));
                 
         /*
         FIRING = 0.031623;
@@ -166,6 +166,7 @@ int main(int argc, char *argv[]) {
           p.sampleCount = 0;
           old = 0;
           p.firingFactor = 1.0;
+          t_lastRep = 0.0;
     
           // fprintf(stderr,"Starting reaction loop\n");
           for (i=0;i<p.maxReact;i++) {
@@ -188,7 +189,9 @@ int main(int argc, char *argv[]) {
             
             /* inhibit transcription globally by 1/2 during G2 cell cycle
                phase */
-            if (r.t->el[p.reactCount] > 3600*p.cellCycleDuration && (r.t->el[p.reactCount] - t_lastRep) > (3600*p.G2duration))
+            if (p.G2duration > 0.0 &&
+                r.t->el[p.reactCount] > 3600*p.cellCycleDuration &&
+                (r.t->el[p.reactCount] - t_lastRep) > (3600*p.G2duration))
               p.firingFactor = 1.0;
               
             if (new < old) {
