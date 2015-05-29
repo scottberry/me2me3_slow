@@ -9,7 +9,7 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 # Set the working directory
 setwd("~/Network/group-share/berrys/me2me3_slow/")
 
-file= "ParamOptimRes_s60r2000tr0_000st10.txt"
+file= "ParamOptimRes_s60r100000tr0_000st16.txt"
 parameterSpace <- read.table(file,header = TRUE)
 
 parameterSpace$firstPassageM[parameterSpace$firstPassageM == -1] <- max(parameterSpace$firstPassageM)
@@ -80,12 +80,16 @@ p
 sub <- subset(parameterSpace,firstPassageU > 3600*min_sim_time & firstPassageM > 3600*min_sim_time)
 
 ## Bistability
-m_b <- round(rev(unique(parameterSpace$P_METHYLATE))[c(1,3,5,7)],digits=5)
-dem_b <- round(rev(unique(parameterSpace$P_DEMETHYLATE))[c(1,3,5,7)],digits=4)
+m_b <- round(rev(unique(parameterSpace$P_METHYLATE))[seq(1,length(unique(parameterSpace$P_METHYLATE)),by=3)],digits=6)
+dem_b <- round(rev(unique(parameterSpace$P_DEMETHYLATE))[seq(1,length(unique(parameterSpace$P_DEMETHYLATE)),by=3)],digits=4)
 p1 <- ggplot(parameterSpace,aes(x=P_DEMETHYLATE,y=P_METHYLATE))
-p1 <- p1 + geom_tile(aes(fill=bistability)) + scale_y_log10(breaks=m_b) + scale_x_log10(breaks=dem_b) +
-  scale_fill_gradientn(name="Hours",colours=rev(rainbow(3)),limits=c(0,1)) + 
-  facet_grid(FIRING ~ .,labeller=label_both) + theme_bw(7) +
+p1 <- p1 + geom_raster(aes(fill=bistability)) + 
+  scale_y_log10(breaks=m_b) + 
+  scale_x_log10(breaks=dem_b) +
+  coord_fixed(ratio=1) +
+  scale_fill_gradientn(name="Bistability",colours=rev(rainbow(3)),limits=c(0,1)) + 
+  facet_grid(FIRING ~ .,labeller=label_both) + 
+  theme_bw(7) + 
   theme(plot.title = element_text(lineheight=.8, face="bold"),
         panel.margin=unit(0,"lines"),
         plot.margin = unit(c(0,0,0,0), "cm"),

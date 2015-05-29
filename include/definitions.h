@@ -24,7 +24,7 @@
 typedef unsigned char logical;
 
 typedef struct {
-  unsigned long sites;
+  long sites;
   I_VEC *state;
 } chromatin;
 
@@ -38,6 +38,7 @@ typedef struct {
   unsigned long reactCount, maxReact;
   unsigned long optimSteps;
   unsigned long loci;
+  
   double noisy_methylate;
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
@@ -45,6 +46,7 @@ typedef struct {
   double firingFactor;
 
   double cellCycleDuration, G2duration;
+  int cellCycles, cellCycleCount;
   
   logical results, testProb;
   unsigned long samples, sampleFreq, sampleCount;
@@ -67,5 +69,7 @@ typedef struct {
   I_VEC *firing;
   I_VEC *events;
   D_VEC *t, *t_out;
+  double tMax;
+  unsigned long t_outLastSample;
 } record;
 

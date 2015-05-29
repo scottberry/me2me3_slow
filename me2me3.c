@@ -34,18 +34,19 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   c.sites = 60;
 
-  p.loci = 50; // 50
-  p.maxReact = 2000; // 500000
-  p.samples = 2000; // 2000
+  p.loci = 2; // 50
+  p.maxReact = 100000; // 500000
+  p.samples = 25000; // 2000
   p.sampleFreq = p.maxReact/p.samples;
 
+  p.cellCycles = 50;
   p.cellCycleDuration = 17.0; // (hours)
   p.G2duration = 0.0; // (hours)
   
   p.results = TRUE;
 
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 14; 
+  p.optimSteps = 16; 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -102,7 +103,7 @@ int main(int argc, char *argv[]) {
         // setseed(&p);
               
         FIRING = pow(10,-0.4*(p1+4));
-        P_DEMETHYLATE = pow(10,-0.2*(p2+5));
+        P_DEMETHYLATE = pow(10,-0.2*(p2+3));
         P_METHYLATE = pow(10,-0.15*(p3+20));
                 
         /*
@@ -164,23 +165,28 @@ int main(int argc, char *argv[]) {
           }
           p.reactCount = 0;
           p.sampleCount = 0;
+          p.cellCycleCount = 0;
           old = 0;
           p.firingFactor = 1.0;
           t_lastRep = 0.0;
     
-          // fprintf(stderr,"Starting reaction loop\n");
-          for (i=0;i<p.maxReact;i++) {
+
+          for (i=0;i<p.maxReact && p.cellCycleCount < p.cellCycles;i++) {
+            //fprintf(stderr,"Starting reaction loop\n");
             if (p.results == TRUE) {
               if (p.reactCount % p.sampleFreq == 0) {
                 // fprintf(stderr,"Sample %ld\n",p.sampleCount);
                 for (j=0;j<(c.sites);j++) {
                   r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
                   r.state->el[j][p.sampleCount] = c.state->el[j];
+                  // keep track of last sample point stored in record
+                  r.t_outLastSample = p.sampleCount;
                 }
                 p.sampleCount++;
               }
             }
             // fprintf(stderr,"Reaction %ld\n",p.reactCount);
+            r.tMax = r.t->el[p.reactCount];
             p.reactCount++;
             gillespieStep(&c,&p,&g,&r);
       
@@ -198,6 +204,7 @@ int main(int argc, char *argv[]) {
               replicateDNA(&c,&p,g.update);
               t_lastRep = r.t->el[p.reactCount];
               p.firingFactor = 0.5;
+              p.cellCycleCount++;
               // fprintf(stderr,"old = %0.4f, new = %0.4f\n",old,new);
             }
             old = new;
@@ -205,17 +212,20 @@ int main(int argc, char *argv[]) {
           // fprintf(stderr,"Exiting reaction loop\n");
     
           /* calculate and accumulate results for this locus */
-          gap += tAverageGap(&c,&p,&r);
-          Mavg += tAverage_me2_me3(&c,&p,&r);
-          probM += prob_me2_me3_lastHour(&c,&p,&r);
-          probU += prob_me0_me1_lastHour(&c,&p,&r);
+          // fprintf(stderr,"r.t_outLastSample = %ld\n",r.t_outLastSample);
+          // fprintf(stderr,"r.tMax = %0.4f\n",r.tMax);
+          // fprintf(stderr,"p.cellCycleCount = %d\n",p.cellCycleCount);
+          gap += tAverageGap_nCycles(&c,&p,&r);
+          Mavg += tAverage_me2_me3_nCycles(&c,&p,&r);
+          probM += prob_me2_me3_lastHour_nCycles(&c,&p,&r);
+          probU += prob_me0_me1_lastHour_nCycles(&c,&p,&r);
           fh += numberHistoneStateFlips(&r);
           tTot += r.t->el[p.reactCount];
 
           if (isnan(gap)) {
             fprintf(stderr,"Error: gap is nan. Locus %ld\n",locus);
             fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\n");
-            fprintf(stderr,"%0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f\n",
+            fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f\n",
                     p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE);
             exit(-1);
           }
@@ -253,10 +263,10 @@ int main(int argc, char *argv[]) {
           tU = -1.0;
         }
 
-        fprintf(parFile,"%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.6f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
+        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
-        fprintf(stderr,"%0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.6f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f\n",
+        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
       }
@@ -279,7 +289,7 @@ int main(int argc, char *argv[]) {
   i_vec_free(g.doReactionParam);
   free(g.update);
   rfree(&p);
-
+  
   /* print results for final locus */
   strcpy(fname,"t_\0"); strcat(fname,avgfile);
   fptr = fopen(fname,"w");
@@ -287,16 +297,17 @@ int main(int argc, char *argv[]) {
   fclose(fptr);
 
   strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
-  fprint_t(fname,r.state,me0);
+  fprint_t_nCycles(fname,r.state,me0,&r);
   strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
-  fprint_t(fname,r.state,me1);
+  fprint_t_nCycles(fname,r.state,me1,&r);
   strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
-  fprint_t(fname,r.state,me2);
+  fprint_t_nCycles(fname,r.state,me2,&r);
   strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
-  fprint_t(fname,r.state,me3);
+  fprint_t_nCycles(fname,r.state,me3,&r);
   strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
-  fprint_firing_t(fname,&r);
-
+  fprint_firing_t_nCycles(fname,&r);
+  
+  
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);
   fptr = fopen(fname,"w");
   writelog(fptr,&c,&p,&r);

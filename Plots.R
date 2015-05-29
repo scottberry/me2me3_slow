@@ -9,7 +9,7 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 setwd("~/Network/group-share/berrys/me2me3_slow/")
 
 s <- 60
-r <- format(50000,scientific=FALSE)
+r <- format(100000,scientific=FALSE)
 tr <- "tr0_000" 
 st <- 1
 
@@ -25,7 +25,7 @@ me0 <- t(read.table(tDep_me0_file))
 me1 <- t(read.table(tDep_me1_file))
 me2 <- t(read.table(tDep_me2_file))
 me3 <- t(read.table(tDep_me3_file))
-#Firing <- t(read.table(tDep_firing_file))
+Firing <- t(read.table(tDep_firing_file))
 
 par(mfrow=c(5,1),mar=c(2,4,0,0)+0.5,oma=c(3,3,0,0))
 plot(time/3600,me0,type="l",ylim=c(0,1),col="blue3")
