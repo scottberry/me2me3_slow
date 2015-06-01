@@ -366,7 +366,6 @@ double firstPassageTime(record *r, signed char *initial) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3) m++;
     }
     u = r->K27->rows - m;
-    //fprintf(stderr,"t = %0.2f, m %ld u %ld \n",r->t_out->el[t],m,u);
     t++;
   }
   return(r->t_out->el[t-1]);

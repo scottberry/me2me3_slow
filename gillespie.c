@@ -90,36 +90,49 @@ double frac(I_VEC *vec, int target) {
   return(f);
 }
 
-/* Calculate nearest neighbours (left)*/
-
-double left(chromatin *c, parameters *p, int pos) {
+double enzymaticFactor(chromatin *c, int pos) {
   double s;
-  if (pos>1) {
-    if (c->K27->el[pos-1] == me2)
-      s = p->me2factor;
-    else if (c->K27->el[pos-1] == me3)
-      s = p->me3factor;
-  } else {
-    s = 0;
-  }
-  return(s);
-}
-
-/* Calculate nearest neighbours (right) */
-
-double right(chromatin *c, parameters *p, int pos) {
-  double s;
-  if (pos<c->sites-1) {
-    if (c->K27->el[pos+1] == me2)
-      s = p->me2factor;
-    else if (c->K27->el[pos+1] == me3)
-      s = p->me3factor;
-  } else {
-    s = 0;
-  }
-  return(s);
-}
   
+  if (c->K27->el[pos] == me2)
+    s = p->me2factor;
+  else if (c->K27->el[pos] == me3)
+    s = p->me3factor;
+  else
+    s = 0.0;
+
+  return(s);
+}
+
+
+/* Find histone mods on neighbouring nucleosome (left) */
+
+double neighboursK27factor(chromatin *c, parameters *p, int pos) {
+  double n = 0;
+
+  if (pos % 2 == 0) { // (even) top histone tail
+    n += enzymaticFactor(c,pos+1); // other tail on same nucleosome
+    if (pos != 0) {
+      n += enzymaticFactor(c,pos-1); // top tail on left neighbour nucleosome
+      n += enzymaticFactor(c,pos-2); // bottom tail on left neighbour nucleosome
+    }
+    if (pos < c->sites - 3 ) {
+      n += enzymaticFactor(c,pos+2); // top tail on right neighbour nucleosome
+      n += enzymaticFactor(c,pos+3); // bottom tail on right neighbour nucleosome    
+    }
+  } else { // (odd) bottom histone tail
+    n += enzymaticFactor(c,pos-1); // other tail on same nucleosome
+    if (pos != 1) {
+      n += enzymaticFactor(c,pos-2); // top tail on left neighbour nucleosome
+      n += enzymaticFactor(c,pos-3); // bottom tail on left neighbour nucleosome
+    }
+    if (pos < c->sites - 2) {
+      n += enzymaticFactor(c,pos+1); // top tail on right neighbour nucleosome
+      n += enzymaticFactor(c,pos+2); // bottom tail on right neighbour nucleosome    
+    }
+  }
+  return(n);
+}
+
 /* Update the propensities based on change in system K27. */
 
 void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
@@ -131,11 +144,11 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
      
      for (i=0;i<c->sites;i++) {
        if (c->K27->el[i] == me0) { // methylate
-	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me0_me1*(left(c,p,i)+right(c,p,i));
+	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me0_me1*(neighboursK27factor(c,p,i));
        } else if (c->K27->el[i] == me1) {
-	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me1_me2*(left(c,p,i)+right(c,p,i));
+	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me1_me2*(neighboursK27factor(c,p,i));
        } else if (c->K27->el[i] == me2) {
-	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me2_me3*(left(c,p,i)+right(c,p,i));
+	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me2_me3*(neighboursK27factor(c,p,i));
        } else {
          g->propensity->el[g->methylate_index->el[i]] = 0.0;
        }
