@@ -38,19 +38,18 @@ int main(int argc, char *argv[]) {
   
   c.sites = 60;
 
-  p.loci = 100; // 50
+  p.loci = 2; // 50
   p.maxReact = 200000; // 500000
   p.samples = 50000; // 2000
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 100;
+  p.cellCycles = 2;
   p.cellCycleDuration = 17.0; // (hours)
   p.G2duration = 5.5; // (hours)
+  p.DNAreplication = TRUE;
   
-  p.results = TRUE;
-
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 16; 
+  p.optimSteps = 1; // 16 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -86,13 +85,11 @@ int main(int argc, char *argv[]) {
   g.doReactionParam = i_vec_get( g.propensity->len );
   g.update = malloc(sizeof( flags ) );
 
-  if (p.results == TRUE) {
-    r.t = d_vec_get(p.maxReact + 1);
-    r.firing = i_vec_get(p.maxReact + 1);
-    r.t_out = d_vec_get(p.samples);
-    r.K27 = i_mat_get(c.sites,p.samples);
-  }
-
+  r.t = d_vec_get(p.maxReact + 1);
+  r.firing = i_vec_get(p.maxReact + 1);
+  r.t_out = d_vec_get(p.samples);
+  r.K27 = i_mat_get(c.sites,p.samples);
+  
   /* Initialisation */
   initialiseGillespieFunctions(&c,&g);
 
@@ -177,17 +174,15 @@ int main(int argc, char *argv[]) {
 
           for (i=0;i<p.maxReact && p.cellCycleCount < p.cellCycles;i++) {
             //fprintf(stderr,"Starting reaction loop\n");
-            if (p.results == TRUE) {
-              if (p.reactCount % p.sampleFreq == 0) {
-                // fprintf(stderr,"Sample %ld\n",p.sampleCount);
-                for (j=0;j<(c.sites);j++) {
-                  r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
-                  r.K27->el[j][p.sampleCount] = c.K27->el[j];
-                  // keep track of last sample point stored in record
-                  r.t_outLastSample = p.sampleCount;
-                }
-                p.sampleCount++;
+            if (p.reactCount % p.sampleFreq == 0) {
+              // fprintf(stderr,"Sample %ld\n",p.sampleCount);
+              for (j=0;j<(c.sites);j++) {
+                r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
+                r.K27->el[j][p.sampleCount] = c.K27->el[j];
+                // keep track of last sample point stored in record
+                r.t_outLastSample = p.sampleCount;
               }
+              p.sampleCount++;
             }
             // fprintf(stderr,"Reaction %ld\n",p.reactCount);
             r.tMax = r.t->el[p.reactCount];
@@ -205,9 +200,11 @@ int main(int argc, char *argv[]) {
               p.firingFactor = 1.0;
               
             if (new < old) {
-              replicateDNA(&c,&p,g.update);
+              if (p.DNAreplication == TRUE)  {
+                replicateDNA(&c,&p,g.update);
+                p.firingFactor = 0.5;
+              }
               t_lastRep = r.t->el[p.reactCount];
-              p.firingFactor = 0.5;
               p.cellCycleCount++;
               // fprintf(stderr,"old = %0.4f, new = %0.4f\n",old,new);
             }
@@ -316,12 +313,10 @@ int main(int argc, char *argv[]) {
   fptr = fopen(fname,"w");
   writelog(fptr,&c,&p,&r);
 
-  if (p.results==TRUE) {
-    i_vec_free(r.firing);
-    i_mat_free(r.K27);
-    d_vec_free(r.t);
-    d_vec_free(r.t_out);
-  }
+  i_vec_free(r.firing);
+  i_mat_free(r.K27);
+  d_vec_free(r.t);
+  d_vec_free(r.t_out);
 
 #ifdef __APPLE__
   timeElapsed = mach_absolute_time() - start;

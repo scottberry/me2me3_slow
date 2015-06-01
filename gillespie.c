@@ -90,7 +90,7 @@ double frac(I_VEC *vec, int target) {
   return(f);
 }
 
-double enzymaticFactor(chromatin *c, int pos) {
+double enzymaticFactor(chromatin *c, parameters *p, int pos) {
   double s;
   
   if (c->K27->el[pos] == me2)
@@ -110,24 +110,24 @@ double neighboursK27factor(chromatin *c, parameters *p, int pos) {
   double n = 0;
 
   if (pos % 2 == 0) { // (even) top histone tail
-    n += enzymaticFactor(c,pos+1); // other tail on same nucleosome
-    if (pos != 0) {
-      n += enzymaticFactor(c,pos-1); // top tail on left neighbour nucleosome
-      n += enzymaticFactor(c,pos-2); // bottom tail on left neighbour nucleosome
+    n += enzymaticFactor(c,p,pos+1); // other tail on same nucleosome
+    if (pos != 0) { // check not left-most nucleosome
+      n += enzymaticFactor(c,p,pos-1); // top tail on left neighbour nucleosome
+      n += enzymaticFactor(c,p,pos-2); // bottom tail on left neighbour nucleosome
     }
-    if (pos < c->sites - 3 ) {
-      n += enzymaticFactor(c,pos+2); // top tail on right neighbour nucleosome
-      n += enzymaticFactor(c,pos+3); // bottom tail on right neighbour nucleosome    
+    if (pos < c->sites - 3 ) { // check not right-most nucleosome
+      n += enzymaticFactor(c,p,pos+2); // top tail on right neighbour nucleosome
+      n += enzymaticFactor(c,p,pos+3); // bottom tail on right neighbour nucleosome    
     }
   } else { // (odd) bottom histone tail
-    n += enzymaticFactor(c,pos-1); // other tail on same nucleosome
-    if (pos != 1) {
-      n += enzymaticFactor(c,pos-2); // top tail on left neighbour nucleosome
-      n += enzymaticFactor(c,pos-3); // bottom tail on left neighbour nucleosome
+    n += enzymaticFactor(c,p,pos-1); // other tail on same nucleosome
+    if (pos != 1) { // check not left-most nucleosome
+      n += enzymaticFactor(c,p,pos-2); // top tail on left neighbour nucleosome
+      n += enzymaticFactor(c,p,pos-3); // bottom tail on left neighbour nucleosome
     }
-    if (pos < c->sites - 2) {
-      n += enzymaticFactor(c,pos+1); // top tail on right neighbour nucleosome
-      n += enzymaticFactor(c,pos+2); // bottom tail on right neighbour nucleosome    
+    if (pos < c->sites - 2) { // check not right-most nucleosome
+      n += enzymaticFactor(c,p,pos+1); // top tail on right neighbour nucleosome
+      n += enzymaticFactor(c,p,pos+2); // bottom tail on right neighbour nucleosome    
     }
   }
   return(n);

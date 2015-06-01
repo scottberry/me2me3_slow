@@ -57,7 +57,7 @@ typedef struct {
   double cellCycleDuration, G2duration;
   int cellCycles, cellCycleCount;
   
-  logical results, testProb;
+  logical testProb, DNAreplication;
   unsigned long samples, sampleFreq, sampleCount;
 } parameters;
  

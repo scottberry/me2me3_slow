@@ -43,12 +43,12 @@ void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
 
 void replicateDNA(chromatin *c, parameters *p, flags *update) {
   unsigned long pos;
-  for (pos=0;pos<c->sites;pos++) {
+  for (pos=0;pos<c->sites;pos+=2) {
     if(runif(p->gsl_r)<=0.5) {
       c->K27->el[pos] = me0;
+      c->K27->el[pos+1] = me0;
     }
   }
-  update->protein = TRUE;
   update->histone = TRUE;
   return;
 }
