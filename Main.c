@@ -96,14 +96,14 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<5;p1++) {
+  for (p1=0;p1<7;p1++) {
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         // setseed(&p);
               
-        FIRING = pow(10,-0.4*(p1+4));
+        FIRING = 0.0004*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.2*(p2+3));
         P_METHYLATE = pow(10,-0.15*(p3+20));
                 
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
         
         // Transcription
         // ------------------------------------------------------------
-        p.firingRateMin = 0.0005; // Leave the repressed firing rate fixed at ~ every 20 min.
+        p.firingRateMin = 0.0004; // Leave the repressed firing rate fixed at ~ every 40 min.
         p.firingRateMax = FIRING; // Optimise
         p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
         if (p.firingRateMax < p.firingRateMin) {
@@ -125,13 +125,25 @@ int main(int argc, char *argv[]) {
         
         // Methylation/demethylation
         // ------------------------------------------------------------
-        p.noisy_methylate = P_METHYLATE/20.0; // 5% noise
-        p.me0_me1 = 10*P_METHYLATE;
-        p.me1_me2 = P_METHYLATE;
+        /* 5% noise. Represents basal activity of unstimulated PRC2 */
+        p.noisy_methylate = P_METHYLATE/20.0;
+        
+        /* ratio of 9:6:1 in "specificity constant" k_cat/K_M
+           \cite{McCabe:2012kk} \cite{Sneeringer:2010dj} */
+        p.me0_me1 = 9*P_METHYLATE; 
+        p.me1_me2 = 6*P_METHYLATE; 
         p.me2_me3 = P_METHYLATE;
-        p.me2factor = 0.1;
+        
+        /* 2 - 2.5 fold lower Kd for K27me3 than K27me2, together with
+           4 - 5 fold allosteric activation give a me2/me3 "factor"
+           of 10. That is, me3 is 10-times more likely to stimulate a
+           methyl addition on a nearby nucleosome.
+           \cite{Margueron:2009el} */
+        p.me2factor = 0.1; 
         p.me3factor = 1;
-  
+
+        // Set results to zero for accumulation over each parameter set
+        // ------------------------------------------------------------        
         gap = 0.0;
         Mavg = 0.0;
         probM = 0.0;

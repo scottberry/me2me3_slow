@@ -38,27 +38,30 @@ typedef struct {
 } chromatin;
 
 typedef struct {
-  logical protein, histone, transcribed;
+  logical histone, transcribed;
 } flags;
 
 typedef struct {
+  // random number parameters
   const gsl_rng_type *gsl_T;
   gsl_rng *gsl_r;
-  unsigned long reactCount, maxReact;
-  unsigned long optimSteps;
-  unsigned long loci;
-  
+
+  // PRC2 / transcription parameters
   double noisy_methylate;
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate;
-  double firingFactor;
 
+  // cell cycle parameters
+  double firingFactor;
   double cellCycleDuration, G2duration;
   int cellCycles, cellCycleCount;
-  
-  logical testProb, DNAreplication;
+
+  // run parameters
+  unsigned long loci, reactCount, maxReact;
   unsigned long samples, sampleFreq, sampleCount;
+  unsigned long optimSteps;
+  logical DNAreplication;
 } parameters;
  
 // specific function pointer typedef
@@ -76,7 +79,6 @@ typedef struct {
 typedef struct {
   I_MAT *K27;
   I_VEC *firing;
-  I_VEC *events;
   D_VEC *t, *t_out;
   double tMax;
   unsigned long t_outLastSample;

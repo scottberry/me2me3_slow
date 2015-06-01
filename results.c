@@ -390,6 +390,11 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"loci: %ld\n", p->loci);
   fprintf(fptr,"maxReact: %ld\n", p->maxReact);
   fprintf(fptr,"samples: %ld\n", p->samples);
+  fprintf(fptr,"DNAreplication:");
+  if (p->DNAreplication == TRUE)
+    fprintf(fptr," TRUE\n");
+  else
+    fprintf(fptr," FALSE\n");
   fprintf(fptr,"cellCycleDuration: %0.2f hours\n", p->cellCycleDuration);
   fprintf(fptr,"G2duration: %0.2f hours\n", p->G2duration);
   fprintf(fptr,"cellCycles: %d\n", p->cellCycles);
@@ -400,7 +405,6 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"me3factor: %0.6f\n", p->me3factor);
   fprintf(fptr,"firingRateMax: %0.6f\n", p->firingRateMax);
   fprintf(fptr,"firingRateMin: %0.6f\n", p->firingRateMin);
-
   fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
 
   return(1);

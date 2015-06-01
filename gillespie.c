@@ -54,7 +54,6 @@ double d_vec_sum(D_VEC *d) {
 void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
  int i;
   
-  g->update->protein = TRUE;
   g->update->histone = TRUE;
   g->update->transcribed = FALSE;
 
@@ -158,7 +157,6 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
      g->propensity->el[g->transcribeDNA_index->el[0]] =
        p->firingFactor*(p->firingRateMax + f_me2_me3*(p->firingRateMin - p->firingRateMax));
      
-     g->update->protein = FALSE; // reset the flag
      g->update->histone = FALSE; // reset the flag
      
    }
