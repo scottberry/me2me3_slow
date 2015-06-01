@@ -1,5 +1,12 @@
+/* 
+   Implementation of the direct Gillespie algorithm for simulation
+   of models of chromatin-based epigenetics.
+   ============================================================
+   Author: Scott Berry
+   Institute: John Innes Centre
+   ============================================================
+ */
 
-/* initialise the protein binding randomly */
 void initialiseRepressed(chromatin *c) {
   int i;
   for (i=0;i<c->sites;i++) {
@@ -8,7 +15,6 @@ void initialiseRepressed(chromatin *c) {
   return;
 }
 
-/* initialise the protein binding randomly */
 void initialiseActive(chromatin *c) {
   int i;
   for (i=0;i<c->sites;i++) {
@@ -17,12 +23,10 @@ void initialiseActive(chromatin *c) {
   return;
 }
 
-/* initialise the protein binding randomly */
 void initialiseRandom(chromatin *c, parameters *p) {
   int i;
   double rand;
   rand = runif(p->gsl_r);
-  //fprintf(stderr,"rand = %0.4f\n",rand);
 
   if (rand <= 0.5)  {
     for (i=0;i<c->sites;i++) {
@@ -46,6 +50,7 @@ double d_vec_sum(D_VEC *d) {
 }
 
 /* Called only once to initialise indices and function pointers */
+
 void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
  int i;
   
@@ -73,6 +78,7 @@ void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
 }
 
 /* Calculate the fraction of "target" reactants */
+
 double frac(I_VEC *vec, int target) {
   unsigned long int count = 0;
   double f;
@@ -84,7 +90,8 @@ double frac(I_VEC *vec, int target) {
   return(f);
 }
 
-/* Calculate nearest neighbours */
+/* Calculate nearest neighbours (left)*/
+
 double left(chromatin *c, parameters *p, int pos) {
   double s;
   if (pos>1) {
@@ -98,7 +105,8 @@ double left(chromatin *c, parameters *p, int pos) {
   return(s);
 }
 
-/* Calculate nearest neighbours */
+/* Calculate nearest neighbours (right) */
+
 double right(chromatin *c, parameters *p, int pos) {
   double s;
   if (pos<c->sites-1) {
@@ -112,15 +120,14 @@ double right(chromatin *c, parameters *p, int pos) {
   return(s);
 }
   
-/* Called after each reaction to update the propensities based on the state */
+/* Update the propensities based on change in system state. */
+
 void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
    int i;
    double f_me2_me3;
    
    if (g->update->histone==TRUE) {
      f_me2_me3 = frac(c->state,me2) + frac(c->state,me3);
-     //fprintf(stderr,"updatePropensities: update->histone = TRUE, f_me2_me3 = %0.4f\n",f_me2_me3);
-     //fprintf(stderr,"left = %0.4f, right = %0.4f\n",left(c,p,3),right(c,p,3));
      
      for (i=0;i<c->sites;i++) {
        if (c->state->el[i] == me0) { // methylate
@@ -135,30 +142,31 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
      }
    
      // transcribeDNA
-     g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor*(p->firingRateMax + f_me2_me3*(p->firingRateMin - p->firingRateMax));
+     g->propensity->el[g->transcribeDNA_index->el[0]] =
+       p->firingFactor*(p->firingRateMax + f_me2_me3*(p->firingRateMin - p->firingRateMax));
      
      g->update->protein = FALSE; // reset the flag
      g->update->histone = FALSE; // reset the flag
      
    }
-   /*
-     for (i=0;i<g->propensity->len;i++) {
-     fprintf(stderr,"i = %d, propensity %0.4f\n",i,g->propensity->el[i]);
-     }
-   */
+
    return;
 }
 
-/* Single reaction for the Gillespie algorithm */
+/* Single iteration of the "direct" Gillespie algorithm. */
+
 void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   double delta_t, sum, p_s, r1=0.0, r2=0.0, scaled_r2=0.0;
   long m, step, i;
 
-  // update and sum propensities, call random numbers
+  // update and sum propensities, call random numbers.
   updatePropensities(c,p,g);
 
+  // Note: runif sometimes calls exactly 0.0, ensure that code is
+  // robust to this value.
+  
   p_s = d_vec_sum(g->propensity);
-  while (r1 == 0.0) { // ensure r1 > 0.0
+  while (r1 == 0.0) { // protect against r1==0.0
     r1 = runif(p->gsl_r);
   }
   r2 = runif(p->gsl_r);
@@ -167,21 +175,14 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   // calculate time step  
   delta_t = log(1.0/r1)/p_s;
   step = p->reactCount;
-  //fprintf(stderr,"step = %ld\n",step);
   r->t->el[step] = delta_t + r->t->el[step-1];
 
   // choose reaction m from propensities based on scaled_r2
   sum = 0;
   m = 0;
-  /* 
-  for (i=0;i<g->propensity->len;i++) {
-    fprintf(stderr,"propensity = %0.4f\n",g->propensity->el[i]);  
-  }
-  */
 
-  if (scaled_r2 > g->propensity->el[0]) { // need this "if" to protect against r2=0
+  if (scaled_r2 > g->propensity->el[0]) { // protect against r2==0.0
     while (scaled_r2 > sum) {
-      // fprintf(stderr,"m = %ld, scaled_r2 = %0.4f, sum = %0.4f, propensity = %0.4f\n", m, scaled_r2, sum, g->propensity->el[m]);  
       sum += g->propensity->el[m];
       m++;
     }

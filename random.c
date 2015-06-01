@@ -1,3 +1,12 @@
+/* 
+   Functions to interface the Gnu Scientific Library pseudo-random
+   number generator.
+   ============================================================
+   Author: Scott Berry
+   Institute: John Innes Centre
+   ============================================================
+ */
+
 /* Choose a random number in the range [0,1) */
 double runif(gsl_rng *r) {
   return((double)gsl_rng_uniform(r));

@@ -1,3 +1,12 @@
+/* 
+   Definitions file for gillespie algorithm simulations of models
+   in chromatin-based epigenetics. 
+   ============================================================
+   Author: Scott Berry
+   Institute: John Innes Centre
+   ============================================================
+ */
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>

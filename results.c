@@ -1,3 +1,13 @@
+/* 
+   Output functions for calulating results and writing to file.
+   ============================================================
+   Author: Scott Berry
+   Institute: John Innes Centre
+   ============================================================
+ */
+
+/* Average results over time and print a time-dependent results 
+   vector. Length depends on length of size of input matrix. */
 
 void fprint_t(char *fname, I_MAT *mat, int target) {
   FILE *fptr;
@@ -16,6 +26,10 @@ void fprint_t(char *fname, I_MAT *mat, int target) {
   fclose(fptr);
   return;
 }
+
+/* Average results over time and print a time-dependent results 
+   vector. Length depends directly on r.tMax, which is 
+   determined by p.cellCycles. */
 
 void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r) {
   FILE *fptr;
@@ -37,6 +51,9 @@ void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r) {
   return;
 }
 
+/* Print absolute time of each firing event. Length depends 
+   on length of firing vector, which is determined by p.maxReact. */
+
 void fprint_firing_t(char *fname, record *r) {
   FILE *fptr;
   long unsigned i;
@@ -50,6 +67,10 @@ void fprint_firing_t(char *fname, record *r) {
   return;
 }
 
+/* Print absolute time of each firing event.
+   Length depends directly on r.tMax, which is 
+   determined by p.cellCycles. */
+
 void fprint_firing_t_nCycles(char *fname, record *r) {
   FILE *fptr;
   long unsigned i;
@@ -62,6 +83,11 @@ void fprint_firing_t_nCycles(char *fname, record *r) {
   fclose(fptr);
   return;
 }
+
+/* Calculate the "Gap" parameter, as defined in Dodd et al. 2007:
+   |M-A|/(M+A). Average over time for a single locus. Note that
+   function evaluation accounts for non-constant time-step using 
+   a discrete "rectangular" integration approach. */
 
 double tAverageGap(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
@@ -78,7 +104,15 @@ double tAverageGap(chromatin *c, parameters *p, record *r) {
   return(gapSum/r->t_out->el[p->samples-1]);
 }
 
-// average Gap only over the number of cell cycles simulated
+
+/* Calculate the "Gap" parameter, as defined in Dodd et al. 2007:
+   |M-A|/(M+A). Average over time for a single locus. Note that
+   function evaluation accounts for non-constant time-step using 
+   a discrete "rectangular" integration approach. Average between
+   samples 1 and r.t_outLastSample. Determined by whether 
+   p.maxReact or steps required to simulate p.cellCycles is 
+   greater. */
+
 double tAverageGap_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double gapSum = 0;
@@ -94,6 +128,9 @@ double tAverageGap_nCycles(chromatin *c, parameters *p, record *r) {
   return(gapSum/r->t_out->el[r->t_outLastSample]);
 }
 
+/* Calculate the probability over time of being in the me2/me3 
+   state. */
+
 double prob_me2_me3(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0;
@@ -104,65 +141,64 @@ double prob_me2_me3(chromatin *c, parameters *p, record *r) {
       if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
 	sumM++;
     }
-    // fprintf(stderr,"sumM = %ld\t",sumM);
     if (4*sumM > 3*c->sites)
       time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
   }
 
-  // fprintf(stderr,"final time_in_M = %0.4f, total time = %0.4f\n",time_in_M,r->t_out->el[p->samples-1]);
   return(time_in_M/r->t_out->el[p->samples-1]);
 }
 
-/* Calculate probability for the last hour of each cell cycle only */
+/* Calculate the probability over time of being in the me2/me3 
+   state (for the last hour of each cell cycle only). */
+
 double prob_me2_me3_lastHour(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0;
   double time_total = 0;
   
   for (t=1;t<r->state->cols;t++) {
-    if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour before replication
+    if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
       for (pos=0;pos<r->state->rows;pos++) {
         if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
           sumM++;
       }
-      // fprintf(stderr,"sumM = %ld\t",sumM);
       if (4*sumM > 3*c->sites) {
         time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
-        // fprintf(stderr,"M state: t = %0.2f, sumM = %ld \n",r->t_out->el[t],sumM);
       }
       time_total += r->t_out->el[t] - r->t_out->el[t-1];
     }
   }
-  // fprintf(stderr,"final time_in_M = %0.4f, total time = %0.4f\n",time_in_M,r->t_out->el[p->samples-1]);
   return(time_in_M/time_total);
 }
 
-/* Calculate probability for the last hour of each cell cycle only
-   (with cycles capped) */
+/* Calculate the probability over time of being in the me2/me3 
+   state (for the last hour of each cell cycle only). Do not 
+   try to include results beyond p.cellCycles. */
+
 double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0;
   double time_total = 0;
 
   for (t=1;t<r->state->cols && t<r->t_outLastSample-1;t++) {
-    if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour before replication
+    if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
       for (pos=0;pos<r->state->rows;pos++) {
         if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
           sumM++;
       }
-      // fprintf(stderr,"sumM = %ld\t",sumM);
       if (4*sumM > 3*c->sites) {
         time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
-        // fprintf(stderr,"M state: t = %0.2f, sumM = %ld \n",r->t_out->el[t],sumM);
       }
       time_total += r->t_out->el[t] - r->t_out->el[t-1];
     }
   }
-  // fprintf(stderr,"final time_in_M = %0.4f, total time = %0.4f\n",time_in_M,r->t_out->el[p->samples-1]);
   return(time_in_M/time_total);
 }
+
+/* Calculate the probability over time of being in the me0/me1 
+   state. */
 
 double prob_me0_me1(chromatin *c, parameters *p, record *r) {
   long sumU, t, pos;
@@ -181,14 +217,16 @@ double prob_me0_me1(chromatin *c, parameters *p, record *r) {
   return(time_in_U/r->t_out->el[p->samples-1]);
 }
 
-/* Calculate probability for the last hour of each cell cycle only */
+/* Calculate the probability over time of being in the me0/me1 
+   state (for the last hour of each cell cycle only). */
+
 double prob_me0_me1_lastHour(chromatin *c, parameters *p, record *r) {
   long sumU, t, pos;
   double time_in_U = 0;
   double time_total = 0;
   
   for (t=1;t<r->state->cols;t++) {
-    if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour before replication
+    if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumU = 0;
       for (pos=0;pos<r->state->rows;pos++) {
         if (r->state->el[pos][t]==me0 || r->state->el[pos][t]==me1)
@@ -196,7 +234,6 @@ double prob_me0_me1_lastHour(chromatin *c, parameters *p, record *r) {
       }
       if (4*sumU > 3*c->sites) {
         time_in_U += r->t_out->el[t] - r->t_out->el[t-1];
-        // fprintf(stderr,"U state: t = %0.2f, sumU = %ld \n",r->t_out->el[t],sumU);
       }
       time_total += r->t_out->el[t] - r->t_out->el[t-1];
     }
@@ -205,15 +242,17 @@ double prob_me0_me1_lastHour(chromatin *c, parameters *p, record *r) {
   return(time_in_U/time_total);
 }
 
-/* Calculate probability for the last hour of each cell cycle only
-   (with cycles capped) */
+/* Calculate the probability over time of being in the me2/me3 
+   state (for the last hour of each cell cycle only). Do not 
+   try to include results beyond p.cellCycles. */
+
 double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   long sumU, t, pos;
   double time_in_U = 0;
   double time_total = 0;
 
   for (t=1;t<r->state->cols && t<r->t_outLastSample-1;t++) {
-    if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour before replication
+    if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumU = 0;
       for (pos=0;pos<r->state->rows;pos++) {
         if (r->state->el[pos][t]==me0 || r->state->el[pos][t]==me1)
@@ -221,7 +260,6 @@ double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
       }
       if (4*sumU > 3*c->sites) {
         time_in_U += r->t_out->el[t] - r->t_out->el[t-1];
-        // fprintf(stderr,"U state: t = %0.2f, sumU = %ld \n",r->t_out->el[t],sumU);
       }
       time_total += r->t_out->el[t] - r->t_out->el[t-1];
     }
@@ -229,6 +267,8 @@ double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   
   return(time_in_U/time_total);
 }
+
+/* Calculate the average number of histones in me2/me3 over time. */
 
 double tAverage_me2_me3(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
@@ -245,6 +285,9 @@ double tAverage_me2_me3(chromatin *c, parameters *p, record *r) {
   return(Mavg/r->t_out->el[p->samples-1]);
 }
 
+/* Calculate the average number of histones in me2/me3 over time do
+   not try to include results beyond p.cellCycles. */
+
 double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double Mavg = 0;
@@ -260,7 +303,9 @@ double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   return(Mavg/r->t_out->el[r->t_outLastSample-1]);
 }
 
-/* Calculate the average lifetime of a state */
+/* Calculate the number of times the state switches from high me0/me1
+   to high me2/me3. */
+
 unsigned long numberHistoneStateFlips(record *r) {
   signed char newState = 0, oldState = 0;
   unsigned long t, pos, flips=0, m=0, u=0;;
@@ -296,6 +341,9 @@ unsigned long numberHistoneStateFlips(record *r) {
   return(flips);
 }
 
+/* Calculate the first passage time (taking care not to exceed
+   p.t_outLastSample. */
+
 double firstPassageTime(record *r, signed char *initial) {
   long unsigned m=0, u=0, pos,t=0;
   
@@ -324,7 +372,8 @@ double firstPassageTime(record *r, signed char *initial) {
   return(r->t_out->el[t-1]);
 }
 
-/* write a log file */
+/* Write the log file. */
+
 int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   time_t curtime;
   struct tm *loctime;

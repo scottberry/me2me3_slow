@@ -1,3 +1,11 @@
+/* 
+   Individual state modifications for Gillsepie algorithm simulations.
+   ============================================================
+   Author: Scott Berry
+   Institute: John Innes Centre
+   ============================================================
+ */
+
 /* Individual reactions */
 void methylate(chromatin *c, parameters *p, flags *update, int pos) {
   if (c->state->el[pos] == me0) {
