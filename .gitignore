@@ -3,3 +3,5 @@ lib/makelib
 lib/libscottsmatrices.a
 me2me3
 *.txt
+.Rhistory
+*.pdf

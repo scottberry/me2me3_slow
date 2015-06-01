@@ -1,5 +1,8 @@
 #include "definitions.h"
+#include "random.c"
+#include "modifications.c"
 #include "model.c"
+#include "results.c"
 
 int main(int argc, char *argv[]) {
   FILE *fptr, *parFile;
