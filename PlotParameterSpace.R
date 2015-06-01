@@ -6,7 +6,7 @@ source("~/local/Thesis/R/ThesisTheme.R")
 # Set the working directory
 setwd("~/Network/group-share/berrys/me2me3_slow/")
 
-file= "ParamOptimRes_s60r200000tr0_000st16.txt"
+file= "ParamOptimRes_s60r200000tr0_   st16.txt"
 parameterSpace <- read.table(file,header = TRUE)
 
 parameterSpace$firstPassageM[parameterSpace$firstPassageM == -1] <- max(parameterSpace$firstPassageM)

@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
   long i, j, locus, fh, initM, initU;
   double probM, probU, bistability;
-  double R_OFF, FIRING, P_OFF, P_DEMETHYLATE, P_METHYLATE, ENZYMATIC;
+  double FIRING, P_DEMETHYLATE, P_METHYLATE;
   int p1, p2, p3, p4;
 
   /* Code timing */
@@ -37,9 +37,8 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   
   c.sites = 60;
-  c.controlSites = 60;
   
-  p.loci = 2; // 50
+  p.loci = 1; // 50
   p.maxReact = 200000; // 500000
   p.samples = 50000; // 2000
   p.sampleFreq = p.maxReact/p.samples;
@@ -53,12 +52,12 @@ int main(int argc, char *argv[]) {
   p.SILAC = FALSE;
   
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 16; // 16 
+  p.optimSteps = 1; // 16 
 
-  if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
-    P_OFF = atof(argv[2]);
+  if (argc > 1 && strcmp(argv[1],"C")==0)
+    c.controlSites = atoi(argv[2]);
   else
-    P_OFF = 0.0;	  
+    c.controlSites = c.sites;
 
   /* Seed RNG */
   rseed(&p);
@@ -66,9 +65,8 @@ int main(int argc, char *argv[]) {
 
   /* Handle filename */
   sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
-  sprintf(tmp,"r%ldtr0_",p.maxReact); strcat(avgfile,tmp);
-  sprintf(ptmp,"%5.3f",P_OFF); 
-  sprintf(tmp,"%*s",3,ptmp+2); strcat(avgfile,tmp);
+  sprintf(tmp,"ctrl%ld",c.controlSites); strcat(avgfile,tmp);
+  sprintf(tmp,"cc%ld",p.cellCycles); strcat(avgfile,tmp);
   sprintf(tmp,"st%ld",p.optimSteps); strcat(avgfile,tmp); 
   strcat(avgfile,".txt\0");
 
