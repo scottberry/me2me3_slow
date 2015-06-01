@@ -16,7 +16,7 @@ min_sim_time <- min(parameterSpace$avgInitM,parameterSpace$avgInitU)/3600
 
 labeller_FIRING <- function(variable,value) {
   val <- round(value,digits=5)
-  fold <- round(value/0.0005,digits=1)
+  fold <- round(value/0.0004,digits=1)
   return(paste("f = ",val," (",fold,"-fold)",sep=""))
 }
 m_b <- round(rev(unique(parameterSpace$P_METHYLATE))[seq(1,length(unique(parameterSpace$P_METHYLATE)),by=3)],digits=6)

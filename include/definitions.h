@@ -34,6 +34,7 @@ typedef unsigned char logical;
 
 typedef struct {
   long sites;
+  long controlSites;
   I_VEC *K27;
 } chromatin;
 
@@ -61,7 +62,7 @@ typedef struct {
   unsigned long loci, reactCount, maxReact;
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
-  logical DNAreplication;
+  logical DNAreplication, resultsLastHourOnly, SILAC;
 } parameters;
  
 // specific function pointer typedef

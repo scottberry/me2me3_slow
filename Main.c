@@ -37,19 +37,23 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   
   c.sites = 60;
-
+  c.controlSites = 60;
+  
   p.loci = 2; // 50
   p.maxReact = 200000; // 500000
   p.samples = 50000; // 2000
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 2;
-  p.cellCycleDuration = 17.0; // (hours)
-  p.G2duration = 5.5; // (hours)
+  p.cellCycles = 50;
+  p.cellCycleDuration = 16.0; // (hours)
+  p.G2duration = 4; // (hours)
+
   p.DNAreplication = TRUE;
+  p.resultsLastHourOnly = TRUE;
+  p.SILAC = FALSE;
   
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 1; // 16 
+  p.optimSteps = 16; // 16 
 
   if (argc > 1 && strcmp(argv[1],"P_OFF")==0)
     P_OFF = atof(argv[2]);
@@ -96,12 +100,12 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<7;p1++) {
+  for (p1=0;p1<7;p1++) {// 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
-        // setseed(&p);
+        //setseed(&p);
               
         FIRING = 0.0004*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.2*(p2+3));
@@ -228,10 +232,17 @@ int main(int argc, char *argv[]) {
           // fprintf(stderr,"r.t_outLastSample = %ld\n",r.t_outLastSample);
           // fprintf(stderr,"r.tMax = %0.4f\n",r.tMax);
           // fprintf(stderr,"p.cellCycleCount = %d\n",p.cellCycleCount);
-          gap += tAverageGap_nCycles(&c,&p,&r);
-          Mavg += tAverage_me2_me3_nCycles(&c,&p,&r);
-          probM += prob_me2_me3_lastHour_nCycles(&c,&p,&r);
-          probU += prob_me0_me1_lastHour_nCycles(&c,&p,&r);
+          if (p.resultsLastHourOnly == TRUE) {
+            gap += tAverageGap_lastHour_nCycles(&c,&p,&r);
+            Mavg += tAverage_me2_me3_lastHour_nCycles(&c,&p,&r);
+            probM += prob_me2_me3_lastHour_nCycles(&c,&p,&r);
+            probU += prob_me0_me1_lastHour_nCycles(&c,&p,&r);
+          } else {
+            gap += tAverageGap_nCycles(&c,&p,&r);
+            Mavg += tAverage_me2_me3_nCycles(&c,&p,&r);
+            probM += prob_me2_me3_nCycles(&c,&p,&r);
+            probU += prob_me0_me1_nCycles(&c,&p,&r);
+          }
           fh += numberHistoneStateFlips(&r);
           tTot += r.t->el[p.reactCount];
 

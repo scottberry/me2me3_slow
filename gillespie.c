@@ -89,6 +89,17 @@ double frac(I_VEC *vec, int target) {
   return(f);
 }
 
+double fracControlRegion_me2me3(chromatin *c) {
+  unsigned long int count = 0;
+  double f;
+  int i;
+  for (i=0;i<c->controlSites;i++) {
+    if (c->K27->el[i]==me2 || c->K27->el[i]==me3) count++;
+  }
+  f = (double)count/c->controlSites;
+  return(f);
+}
+
 double enzymaticFactor(chromatin *c, parameters *p, int pos) {
   double s;
   
@@ -103,8 +114,7 @@ double enzymaticFactor(chromatin *c, parameters *p, int pos) {
 }
 
 
-/* Find histone mods on neighbouring nucleosome (left) */
-
+/* Find histone mods on neighbouring nucleosome */
 double neighboursK27factor(chromatin *c, parameters *p, int pos) {
   double n = 0;
 
@@ -139,9 +149,11 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
    double f_me2_me3;
    
    if (g->update->histone==TRUE) {
-     f_me2_me3 = frac(c->K27,me2) + frac(c->K27,me3);
+     f_me2_me3 = fracControlRegion_me2me3(c);
+     //f_me2_me3 = frac(c->K27,me2) + frac(c->K27,me3);
      
      for (i=0;i<c->sites;i++) {
+       // fprintf(stderr,"i = %d, neighboursK27factor = %0.2f\n",i,neighboursK27factor(c,p,i));
        if (c->K27->el[i] == me0) { // methylate
 	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me0_me1*(neighboursK27factor(c,p,i));
        } else if (c->K27->el[i] == me1) {
