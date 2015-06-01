@@ -45,14 +45,14 @@ int main(int argc, char *argv[]) {
 
   p.cellCycles = 50;
   p.cellCycleDuration = 16.0; // (hours)
-  p.G2duration = 4; // (hours)
+  p.G2duration = 0.0; // (hours)
 
-  p.DNAreplication = TRUE;
-  p.resultsLastHourOnly = TRUE;
+  p.DNAreplication = FALSE;
+  p.resultsLastHourOnly = FALSE;
   p.SILAC = FALSE;
   
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 1; // 16 
+  p.optimSteps = 16; 
 
   if (argc > 1 && strcmp(argv[1],"C")==0)
     c.controlSites = atoi(argv[2]);
@@ -66,16 +66,16 @@ int main(int argc, char *argv[]) {
   /* Handle filename */
   sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
   sprintf(tmp,"ctrl%ld",c.controlSites); strcat(avgfile,tmp);
-  sprintf(tmp,"cc%ld",p.cellCycles); strcat(avgfile,tmp);
+  sprintf(tmp,"cc%d",p.cellCycles); strcat(avgfile,tmp);
   sprintf(tmp,"st%ld",p.optimSteps); strcat(avgfile,tmp); 
   strcat(avgfile,".txt\0");
 
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
 
   parFile = fopen(parameterSpace,"w");
-  fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\tgap\
+  fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tgap\
 \tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
-  fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\tgap\
+  fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tgap\
 \tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
 
   /* Memory allocation */
@@ -285,11 +285,11 @@ int main(int argc, char *argv[]) {
           tU = -1.0;
         }
 
-        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
-                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE,
+        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
+                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE,c.controlSites,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
-        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f\n",
-                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE,
+        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %ld  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f\n",
+                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE,c.controlSites,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,probM/p.loci,probU/p.loci,bistability);
       }
     }

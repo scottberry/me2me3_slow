@@ -304,6 +304,7 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"Operating system: Unix\n");
 #endif
   fprintf(fptr,"sites: %ld\n", c->sites);
+  fprintf(fptr,"controlSites: %ld\n", c->controlSites);
   fprintf(fptr,"loci: %ld\n", p->loci);
   fprintf(fptr,"maxReact: %ld\n", p->maxReact);
   fprintf(fptr,"samples: %ld\n", p->samples);
