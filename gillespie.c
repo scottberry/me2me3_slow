@@ -10,7 +10,7 @@
 void initialiseRepressed(chromatin *c) {
   int i;
   for (i=0;i<c->sites;i++) {
-    c->state->el[i] = me3;
+    c->K27->el[i] = me3;
   }
   return;
 }
@@ -18,7 +18,7 @@ void initialiseRepressed(chromatin *c) {
 void initialiseActive(chromatin *c) {
   int i;
   for (i=0;i<c->sites;i++) {
-    c->state->el[i] = me0;
+    c->K27->el[i] = me0;
   }
   return;
 }
@@ -30,11 +30,11 @@ void initialiseRandom(chromatin *c, parameters *p) {
 
   if (rand <= 0.5)  {
     for (i=0;i<c->sites;i++) {
-      c->state->el[i] = me0;
+      c->K27->el[i] = me0;
     }
   } else {
     for (i=0;i<c->sites;i++) {
-      c->state->el[i] = me3;
+      c->K27->el[i] = me3;
     }
   }
   return;
@@ -95,9 +95,9 @@ double frac(I_VEC *vec, int target) {
 double left(chromatin *c, parameters *p, int pos) {
   double s;
   if (pos>1) {
-    if (c->state->el[pos-1] == me2)
+    if (c->K27->el[pos-1] == me2)
       s = p->me2factor;
-    else if (c->state->el[pos-1] == me3)
+    else if (c->K27->el[pos-1] == me3)
       s = p->me3factor;
   } else {
     s = 0;
@@ -110,9 +110,9 @@ double left(chromatin *c, parameters *p, int pos) {
 double right(chromatin *c, parameters *p, int pos) {
   double s;
   if (pos<c->sites-1) {
-    if (c->state->el[pos+1] == me2)
+    if (c->K27->el[pos+1] == me2)
       s = p->me2factor;
-    else if (c->state->el[pos+1] == me3)
+    else if (c->K27->el[pos+1] == me3)
       s = p->me3factor;
   } else {
     s = 0;
@@ -120,21 +120,21 @@ double right(chromatin *c, parameters *p, int pos) {
   return(s);
 }
   
-/* Update the propensities based on change in system state. */
+/* Update the propensities based on change in system K27. */
 
 void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
    int i;
    double f_me2_me3;
    
    if (g->update->histone==TRUE) {
-     f_me2_me3 = frac(c->state,me2) + frac(c->state,me3);
+     f_me2_me3 = frac(c->K27,me2) + frac(c->K27,me3);
      
      for (i=0;i<c->sites;i++) {
-       if (c->state->el[i] == me0) { // methylate
+       if (c->K27->el[i] == me0) { // methylate
 	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me0_me1*(left(c,p,i)+right(c,p,i));
-       } else if (c->state->el[i] == me1) {
+       } else if (c->K27->el[i] == me1) {
 	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me1_me2*(left(c,p,i)+right(c,p,i));
-       } else if (c->state->el[i] == me2) {
+       } else if (c->K27->el[i] == me2) {
 	 g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me2_me3*(left(c,p,i)+right(c,p,i));
        } else {
          g->propensity->el[g->methylate_index->el[i]] = 0.0;

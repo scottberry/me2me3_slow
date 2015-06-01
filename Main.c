@@ -1,7 +1,7 @@
 #include "definitions.h"
 #include "random.c"
 #include "modifications.c"
-#include "model.c"
+#include "gillespie.c"
 #include "results.c"
 
 int main(int argc, char *argv[]) {
@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 \tMavg\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
 
   /* Memory allocation */
-  c.state = i_vec_get( c.sites );
+  c.K27 = i_vec_get( c.sites );
   g.methylate_index = i_vec_get( c.sites );
   g.transcribeDNA_index = i_vec_get( 1 );
   g.propensity = d_vec_get( c.sites + 1 );
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
     r.t = d_vec_get(p.maxReact + 1);
     r.firing = i_vec_get(p.maxReact + 1);
     r.t_out = d_vec_get(p.samples);
-    r.state = i_mat_get(c.sites,p.samples);
+    r.K27 = i_mat_get(c.sites,p.samples);
   }
 
   /* Initialisation */
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
                 // fprintf(stderr,"Sample %ld\n",p.sampleCount);
                 for (j=0;j<(c.sites);j++) {
                   r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
-                  r.state->el[j][p.sampleCount] = c.state->el[j];
+                  r.K27->el[j][p.sampleCount] = c.K27->el[j];
                   // keep track of last sample point stored in record
                   r.t_outLastSample = p.sampleCount;
                 }
@@ -285,7 +285,7 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
 
   /* free all arrays */
-  i_vec_free(c.state);
+  i_vec_free(c.K27);
   i_vec_free(g.methylate_index);
   i_vec_free(g.transcribeDNA_index);
   d_vec_free(g.propensity);
@@ -301,13 +301,13 @@ int main(int argc, char *argv[]) {
   fclose(fptr);
 
   strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
-  fprint_t_nCycles(fname,r.state,me0,&r);
+  fprint_t_nCycles(fname,r.K27,me0,&r);
   strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
-  fprint_t_nCycles(fname,r.state,me1,&r);
+  fprint_t_nCycles(fname,r.K27,me1,&r);
   strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
-  fprint_t_nCycles(fname,r.state,me2,&r);
+  fprint_t_nCycles(fname,r.K27,me2,&r);
   strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
-  fprint_t_nCycles(fname,r.state,me3,&r);
+  fprint_t_nCycles(fname,r.K27,me3,&r);
   strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
   fprint_firing_t_nCycles(fname,&r);
   
@@ -318,7 +318,7 @@ int main(int argc, char *argv[]) {
 
   if (p.results==TRUE) {
     i_vec_free(r.firing);
-    i_mat_free(r.state);
+    i_mat_free(r.K27);
     d_vec_free(r.t);
     d_vec_free(r.t_out);
   }

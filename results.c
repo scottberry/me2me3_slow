@@ -93,10 +93,10 @@ double tAverageGap(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double gapSum = 0;
 
-  for (t=1;t<r->state->cols;t++) {
+  for (t=1;t<r->K27->cols;t++) {
     sumM = 0;
-    for (pos=0;pos<r->state->rows;pos++) {
-      if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
 	sumM++;
     }
     gapSum += (double)labs(2*sumM-c->sites)*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
@@ -117,10 +117,10 @@ double tAverageGap_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double gapSum = 0;
 
-  for (t=1;t<r->state->cols && t<r->t_outLastSample;t++) {
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
     sumM = 0;
-    for (pos=0;pos<r->state->rows;pos++) {
-      if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
 	sumM++;
     }
     gapSum += (double)labs(2*sumM-c->sites)*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
@@ -129,16 +129,16 @@ double tAverageGap_nCycles(chromatin *c, parameters *p, record *r) {
 }
 
 /* Calculate the probability over time of being in the me2/me3 
-   state. */
+   K27. */
 
 double prob_me2_me3(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0;
   
-  for (t=1;t<r->state->cols;t++) {
+  for (t=1;t<r->K27->cols;t++) {
     sumM = 0;
-    for (pos=0;pos<r->state->rows;pos++) {
-      if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
 	sumM++;
     }
     if (4*sumM > 3*c->sites)
@@ -149,18 +149,18 @@ double prob_me2_me3(chromatin *c, parameters *p, record *r) {
 }
 
 /* Calculate the probability over time of being in the me2/me3 
-   state (for the last hour of each cell cycle only). */
+   K27 (for the last hour of each cell cycle only). */
 
 double prob_me2_me3_lastHour(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0;
   double time_total = 0;
   
-  for (t=1;t<r->state->cols;t++) {
+  for (t=1;t<r->K27->cols;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
-      for (pos=0;pos<r->state->rows;pos++) {
-        if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
+      for (pos=0;pos<r->K27->rows;pos++) {
+        if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
           sumM++;
       }
       if (4*sumM > 3*c->sites) {
@@ -173,7 +173,7 @@ double prob_me2_me3_lastHour(chromatin *c, parameters *p, record *r) {
 }
 
 /* Calculate the probability over time of being in the me2/me3 
-   state (for the last hour of each cell cycle only). Do not 
+   K27 (for the last hour of each cell cycle only). Do not 
    try to include results beyond p.cellCycles. */
 
 double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
@@ -181,11 +181,11 @@ double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   double time_in_M = 0;
   double time_total = 0;
 
-  for (t=1;t<r->state->cols && t<r->t_outLastSample-1;t++) {
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
-      for (pos=0;pos<r->state->rows;pos++) {
-        if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
+      for (pos=0;pos<r->K27->rows;pos++) {
+        if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
           sumM++;
       }
       if (4*sumM > 3*c->sites) {
@@ -198,16 +198,16 @@ double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
 }
 
 /* Calculate the probability over time of being in the me0/me1 
-   state. */
+   K27. */
 
 double prob_me0_me1(chromatin *c, parameters *p, record *r) {
   long sumU, t, pos;
   double time_in_U = 0;
   
-  for (t=1;t<r->state->cols;t++) {
+  for (t=1;t<r->K27->cols;t++) {
     sumU = 0;
-    for (pos=0;pos<r->state->rows;pos++) {
-      if (r->state->el[pos][t]==me0 || r->state->el[pos][t]==me1)
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me0 || r->K27->el[pos][t]==me1)
 	sumU++;
     }
     if (4*sumU > 3*c->sites)
@@ -218,18 +218,18 @@ double prob_me0_me1(chromatin *c, parameters *p, record *r) {
 }
 
 /* Calculate the probability over time of being in the me0/me1 
-   state (for the last hour of each cell cycle only). */
+   K27 (for the last hour of each cell cycle only). */
 
 double prob_me0_me1_lastHour(chromatin *c, parameters *p, record *r) {
   long sumU, t, pos;
   double time_in_U = 0;
   double time_total = 0;
   
-  for (t=1;t<r->state->cols;t++) {
+  for (t=1;t<r->K27->cols;t++) {
     if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumU = 0;
-      for (pos=0;pos<r->state->rows;pos++) {
-        if (r->state->el[pos][t]==me0 || r->state->el[pos][t]==me1)
+      for (pos=0;pos<r->K27->rows;pos++) {
+        if (r->K27->el[pos][t]==me0 || r->K27->el[pos][t]==me1)
           sumU++;
       }
       if (4*sumU > 3*c->sites) {
@@ -243,7 +243,7 @@ double prob_me0_me1_lastHour(chromatin *c, parameters *p, record *r) {
 }
 
 /* Calculate the probability over time of being in the me2/me3 
-   state (for the last hour of each cell cycle only). Do not 
+   K27 (for the last hour of each cell cycle only). Do not 
    try to include results beyond p.cellCycles. */
 
 double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
@@ -251,11 +251,11 @@ double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   double time_in_U = 0;
   double time_total = 0;
 
-  for (t=1;t<r->state->cols && t<r->t_outLastSample-1;t++) {
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumU = 0;
-      for (pos=0;pos<r->state->rows;pos++) {
-        if (r->state->el[pos][t]==me0 || r->state->el[pos][t]==me1)
+      for (pos=0;pos<r->K27->rows;pos++) {
+        if (r->K27->el[pos][t]==me0 || r->K27->el[pos][t]==me1)
           sumU++;
       }
       if (4*sumU > 3*c->sites) {
@@ -274,10 +274,10 @@ double tAverage_me2_me3(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double Mavg = 0;
 
-  for (t=1;t<r->state->cols;t++) {
+  for (t=1;t<r->K27->cols;t++) {
     sumM = 0;
-    for (pos=0;pos<r->state->rows;pos++) {
-      if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
 	sumM++;
     }
     Mavg += (double)sumM*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
@@ -292,10 +292,10 @@ double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double Mavg = 0;
 
-  for (t=1;t<r->state->cols && t<r->t_outLastSample;t++) {
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
     sumM = 0;
-    for (pos=0;pos<r->state->rows;pos++) {
-      if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3)
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
 	sumM++;
     }
     Mavg += (double)sumM*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
@@ -303,22 +303,22 @@ double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   return(Mavg/r->t_out->el[r->t_outLastSample-1]);
 }
 
-/* Calculate the number of times the state switches from high me0/me1
+/* Calculate the number of times the K27 switches from high me0/me1
    to high me2/me3. */
 
 unsigned long numberHistoneStateFlips(record *r) {
   signed char newState = 0, oldState = 0;
   unsigned long t, pos, flips=0, m=0, u=0;;
   
-  for (t=0;t<r->state->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols && t<r->t_outLastSample;t++) {
     
     oldState = newState;
     
     m = 0;
-    for (pos=0;pos<r->state->rows;pos++) {
-      if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3) m++;
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3) m++;
     }
-    u = r->state->rows - m;
+    u = r->K27->rows - m;
 
     if (oldState == 1) { // if previously U
       if (m >= 3*u) {
@@ -348,24 +348,24 @@ double firstPassageTime(record *r, signed char *initial) {
   long unsigned m=0, u=0, pos,t=0;
   
   /* find initial state */
-  for (pos=0;pos<r->state->rows;pos++) {
-    if (r->state->el[pos][0]==me2 || r->state->el[pos][0]==me3) m++;
+  for (pos=0;pos<r->K27->rows;pos++) {
+    if (r->K27->el[pos][0]==me2 || r->K27->el[pos][0]==me3) m++;
   }
-  u = r->state->rows - m;
+  u = r->K27->rows - m;
   
   if (m > u)
     *initial = -1;
   else
     *initial = 1;
     
-  while ( t < r->state->cols && t < r->t_outLastSample &&
+  while ( t < r->K27->cols && t < r->t_outLastSample &&
 	  ((*initial == -1 && 3*m > u) || (*initial == 1 && 3*u > m))) {
     m = 0;
     u = 0;
-    for (pos=0;pos<r->state->rows;pos++) {
-      if (r->state->el[pos][t]==me2 || r->state->el[pos][t]==me3) m++;
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3) m++;
     }
-    u = r->state->rows - m;
+    u = r->K27->rows - m;
     //fprintf(stderr,"t = %0.2f, m %ld u %ld \n",r->t_out->el[t],m,u);
     t++;
   }

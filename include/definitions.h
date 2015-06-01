@@ -34,7 +34,7 @@ typedef unsigned char logical;
 
 typedef struct {
   long sites;
-  I_VEC *state;
+  I_VEC *K27;
 } chromatin;
 
 typedef struct {
@@ -74,7 +74,7 @@ typedef struct {
 } gillespie;
 
 typedef struct {
-  I_MAT *state;
+  I_MAT *K27;
   I_VEC *firing;
   I_VEC *events;
   D_VEC *t, *t_out;
