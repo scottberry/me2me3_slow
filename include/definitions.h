@@ -62,7 +62,7 @@ typedef struct {
   unsigned long loci, reactCount, maxReact;
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
-  logical DNAreplication, resultsLastHourOnly, SILAC;
+  logical DNAreplication, resultsLastHourOnly, SILAC, resultsFinalLocus;
 } parameters;
  
 // specific function pointer typedef

@@ -6,6 +6,22 @@
    ============================================================
  */
 
+/* Print simulation time at sample points. Length depends directly on
+   r.tMax, which is determined by p.cellCycles. */
+
+void fprint_t_out_nCycles(char *fname, record *r) {
+  FILE *fptr;
+  long unsigned count, i, j;
+  
+  fptr = fopen(fname,"w");
+  for (i = 0;i < r->t_out->len && i < r->t_outLastSample;i++) {
+    fprintf(fptr,"%0.4f\n",r->t_out->el[i]);
+    // fprintf(stderr,"%0.4f %0.4f\n",r->tMax, r->t_out->el[i]);
+  }
+  fclose(fptr);
+  return;
+}
+
 /* Average results over time and print a time-dependent results 
    vector. Length depends directly on r.tMax, which is 
    determined by p.cellCycles. */
@@ -17,7 +33,7 @@ void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r) {
   // fprintf(stderr,"rows %ld, cols %ld\n",mat->rows,mat->cols);
   
   fptr = fopen(fname,"w");
-  for (i = 0;i < mat->cols && r->t->el[i] < r->tMax;i++) {
+  for (i = 0;i < mat->cols && i < r->t_outLastSample;i++) {
     count = 0;
     for (j=0;j < mat->rows;j++) {
       if (mat->el[j][i] == target) {
@@ -73,8 +89,8 @@ double tAverageGap_nCycles(chromatin *c, parameters *p, record *r) {
 /* See above - but for last hour of each cell cycle only */
 
 double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
-  long sumM, t, pos;
-  double gapSum = 0, time_total = 0;
+  long sumM = 0, t, pos;
+  double gapSum = 0.0, time_total = 0.0;
 
   for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
@@ -87,6 +103,10 @@ double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
       time_total += r->t_out->el[t] - r->t_out->el[t-1];
     }
   }
+
+  if (time_total == 0.0)
+    fprintf(stderr,"Error: tAverageGap_lastHour_nCycles. No samples for last hour of cell cycle.\n");
+
   return(gapSum/time_total);
 }
 
@@ -115,9 +135,9 @@ double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
    try to include results beyond p.cellCycles. */
 
 double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
-  long sumM, t, pos;
-  double time_in_M = 0;
-  double time_total = 0;
+  long sumM = 0, t, pos;
+  double time_in_M = 0.0;
+  double time_total = 0.0;
 
   for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
@@ -133,6 +153,10 @@ double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
       time_total += r->t_out->el[t] - r->t_out->el[t-1];
     }
   }
+  
+  if (time_total == 0.0)
+    fprintf(stderr,"Error: prob_me2_me3_lastHour_nCycles. No samples for last hour of cell cycle.\n");
+
   return(time_in_M/time_total);
 }
 
@@ -161,9 +185,9 @@ double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r) {
    try to include results beyond p.cellCycles. */
 
 double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
-  long sumU, t, pos;
-  double time_in_U = 0;
-  double time_total = 0;
+  long sumU = 0, t, pos;
+  double time_in_U = 0.0;
+  double time_total = 0.0;
 
   for (t=1;t<r->K27->cols && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
@@ -179,6 +203,9 @@ double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
     }
   }
   
+  if (time_total == 0.0)
+    fprintf(stderr,"Error: prob_me0_me1_lastHour_nCycles. No samples for last hour of cell cycle.\n");
+
   return(time_in_U/time_total);
 }
 
@@ -203,8 +230,8 @@ double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
 /* See above - but for last hour of each cell cycle only */
 
 double tAverage_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
-  long sumM, t, pos;
-  double Mavg = 0, time_total = 0;
+  long sumM = 0, t, pos;
+  double Mavg = 0.0, time_total = 0.0;
 
   for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
     if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
@@ -217,6 +244,10 @@ double tAverage_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r)
     }
     time_total += r->t_out->el[t] - r->t_out->el[t-1];
   }
+
+  if (time_total == 0.0)
+    fprintf(stderr,"Error: tAverage_me2_me3_lastHour_nCycles. No samples for last hour of cell cycle.\n");
+  
   return(Mavg/time_total);
 }
 

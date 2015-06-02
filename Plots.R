@@ -9,34 +9,34 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 setwd("~/Network/group-share/berrys/me2me3_slow/")
 
 s <- 60
-r <- format(100000,scientific=FALSE)
-tr <- "tr0_000" 
+ctrl <- 60
+cc <- 100 
 st <- 1
 
-time_file <- paste("t_s",s,"r",r,tr,"st",st,".txt",sep="")
-tDep_me0_file <- paste("me0_t_s",s,"r",r,tr,"st",st,".txt",sep="")
-tDep_me1_file <- paste("me1_t_s",s,"r",r,tr,"st",st,".txt",sep="")
-tDep_me2_file <- paste("me2_t_s",s,"r",r,tr,"st",st,".txt",sep="")
-tDep_me3_file <- paste("me3_t_s",s,"r",r,tr,"st",st,".txt",sep="")
-tDep_firing_file <- paste("Firing_t_s",s,"r",r,tr,"st",st,".txt",sep="")
+time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
+tDep_me0_file <- paste("me0_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
+tDep_me1_file <- paste("me1_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
+tDep_me2_file <- paste("me2_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
+tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
+tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
 
-time <- t(read.table(time_file))
-me0 <- t(read.table(tDep_me0_file))
-me1 <- t(read.table(tDep_me1_file))
-me2 <- t(read.table(tDep_me2_file))
-me3 <- t(read.table(tDep_me3_file))
-Firing <- t(read.table(tDep_firing_file))
+time <- read.table(time_file) ; colnames(time) <- "time"
+me0 <- read.table(tDep_me0_file) ; colnames(me0) <- "level"
+me1 <- read.table(tDep_me1_file) ; colnames(me1) <- "level"
+me2 <- read.table(tDep_me2_file) ; colnames(me2) <- "level"
+me3 <- read.table(tDep_me3_file) ; colnames(me3) <- "level"
+Firing <- read.table(tDep_firing_file)
 
 par(mfrow=c(5,1),mar=c(2,4,0,0)+0.5,oma=c(3,3,0,0))
-plot(time/3600,me0,type="l",ylim=c(0,1),col="blue3")
-plot(time/3600,me1,type="l",ylim=c(0,1),col="blue3")
-plot(time/3600,me2,type="l",ylim=c(0,1),col="red3")
-plot(time/3600,me3,type="l",ylim=c(0,1),col="red3")
-hist(Firing/3600,seq(0,(max(Firing)/3600 + 1),by=1),ylab="Firing/hour",main="")
+plot(time$time/3600,me0$level,type="l",ylim=c(0,1),col="blue3")
+plot(time$time/3600,me1$level,type="l",ylim=c(0,1),col="blue3")
+plot(time$time/3600,me2$level,type="l",ylim=c(0,1),col="red3")
+plot(time$time/3600,me3$level,type="l",ylim=c(0,1),col="red3")
+hist(Firing$V1/3600,seq(0,(max(Firing)/3600 + 1),by=1),ylab="Firing/hour",main="")
 mtext("time (hours)",side=1,line=0,outer=TRUE)
 mtext("modification level",side=2,line=0,outer=TRUE)
 
-# s
+
 
 # plot(rowMeans(U),ylim=c(0,1),type="l",xlim=c(0,86400), col="orange3")
 # lines(rowMeans(B), col="black")

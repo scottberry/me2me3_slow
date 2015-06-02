@@ -37,22 +37,32 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   
   c.sites = 60;
+
+  /* Note: if sampling frequency is too low, data will not be
+     collected in the last hour of each cell cycle, when parameter
+     values are small. This will lead to program aborting due to
+     Gap = NaN. For robustness in parameter searches use
+     p.samples = p.maxReact. Also choose p.maxReact according to
+     p.cellCycles so that sampling is frequent enough in relation to
+     cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
+     choice for a large parameter search. */
   
-  p.loci = 1; // 50
-  p.maxReact = 200000; // 500000
-  p.samples = 50000; // 2000
+  p.loci = 1;
+  p.maxReact = 100000;
+  p.samples = 100000; 
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 50;
+  p.cellCycles = 100;
   p.cellCycleDuration = 16.0; // (hours)
-  p.G2duration = 0.0; // (hours)
+  p.G2duration = 4.0; // (hours)
 
-  p.DNAreplication = FALSE;
-  p.resultsLastHourOnly = FALSE;
+  p.DNAreplication = TRUE;
+  p.resultsLastHourOnly = TRUE;
   p.SILAC = FALSE;
+  p.resultsFinalLocus = TRUE;
   
   /* ensure that firing_max does not fall below firing_min */
-  p.optimSteps = 16; 
+  p.optimSteps = 1; 
 
   if (argc > 1 && strcmp(argv[1],"C")==0)
     c.controlSites = atoi(argv[2]);
@@ -98,22 +108,20 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<7;p1++) {// 7
+  for (p1=0;p1<1;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         //setseed(&p);
-              
+        /*      
         FIRING = 0.0004*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.2*(p2+3));
         P_METHYLATE = pow(10,-0.15*(p3+20));
-                
-        /*
-        FIRING = 0.031623;
-        P_DEMETHYLATE = 0.001778;
-        P_METHYLATE = 0.0001;
         */
+        FIRING = 0.0128;
+        P_DEMETHYLATE = 0.008;
+        P_METHYLATE = 0.000035;
         
         // Transcription
         // ------------------------------------------------------------
@@ -311,24 +319,22 @@ int main(int argc, char *argv[]) {
   i_vec_free(g.doReactionParam);
   free(g.update);
   rfree(&p);
-  
-  /* print results for final locus */
-  strcpy(fname,"t_\0"); strcat(fname,avgfile);
-  fptr = fopen(fname,"w");
-  d_vec_print(fptr,r.t_out);
-  fclose(fptr);
 
-  strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
-  fprint_t_nCycles(fname,r.K27,me0,&r);
-  strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
-  fprint_t_nCycles(fname,r.K27,me1,&r);
-  strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
-  fprint_t_nCycles(fname,r.K27,me2,&r);
-  strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
-  fprint_t_nCycles(fname,r.K27,me3,&r);
-  strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
-  fprint_firing_t_nCycles(fname,&r);
-  
+  if (p.resultsFinalLocus == TRUE) {
+    /* print results for final locus */
+    strcpy(fname,"t_\0"); strcat(fname,avgfile);
+    fprint_t_out_nCycles(fname,&r);
+    strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
+    fprint_t_nCycles(fname,r.K27,me0,&r);
+    strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
+    fprint_t_nCycles(fname,r.K27,me1,&r);
+    strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
+    fprint_t_nCycles(fname,r.K27,me2,&r);
+    strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
+    fprint_t_nCycles(fname,r.K27,me3,&r);
+    strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
+    fprint_firing_t_nCycles(fname,&r);
+  }
   
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);
   fptr = fopen(fname,"w");
