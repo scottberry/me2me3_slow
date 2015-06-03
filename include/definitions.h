@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <string.h>
 #include <stdio.h>
 #include "scottsmatrices.h"
@@ -52,7 +53,8 @@ typedef struct {
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate;
-
+  double activation;
+  
   // cell cycle parameters
   double firingFactor;
   double cellCycleDuration, G2duration;
