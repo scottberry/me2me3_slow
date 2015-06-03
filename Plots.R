@@ -10,15 +10,18 @@ setwd("~/Network/group-share/berrys/me2me3_slow/")
 
 s <- 60
 ctrl <- 60
-cc <- 100 
+cc <- 20
+a <- 2.0
 st <- 1
 
-time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
-tDep_me0_file <- paste("me0_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
-tDep_me1_file <- paste("me1_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
-tDep_me2_file <- paste("me2_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
-tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
-tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,"st",st,".txt",sep="")
+astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
+
+time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
+tDep_me0_file <- paste("me0_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
+tDep_me1_file <- paste("me1_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
+tDep_me2_file <- paste("me2_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
+tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
+tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
 
 time <- read.table(time_file) ; colnames(time) <- "time"
 me0 <- read.table(tDep_me0_file) ; colnames(me0) <- "level"

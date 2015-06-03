@@ -10,6 +10,8 @@ void usage(void)
 	printf(" -c<control region>\n");
 	printf(" -a<gene activation>\n");
         printf(" -i<identifier>\n");
+        printf(" -m\n");
+        printf(" -u\n");
 	exit (8);
 }
 
@@ -29,6 +31,7 @@ int main(int argc, char *argv[]) {
   double probM, probU, bistability;
   double FIRING, P_DEMETHYLATE, P_METHYLATE;
   int p1, p2, p3, p4;
+  logical startM = FALSE, startU = FALSE;
 
   /* Code timing */
 #ifdef __APPLE__
@@ -58,15 +61,15 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 10;
+  p.loci = 1;
   p.maxReact = 100000;
   p.samples = 100000; 
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 100;
+  p.cellCycles = 20;
   p.cellCycleDuration = 16.0; // (hours)
   p.G2duration = 4.0; // (hours)
-  p.activation = 0.0; // can be replaced via command line
+  p.activation = 1.0; // can be replaced via command line
 
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
@@ -74,10 +77,10 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = TRUE;
   
   p.optimSteps = 1; 
-
+  
   /* Parse command line */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:i:")) != -1)
+  while ((j = getopt (argc, argv, "c:a:i:mu")) != -1)
     switch (j)
       {
       case 'c':
@@ -94,6 +97,14 @@ int main(int argc, char *argv[]) {
         sprintf(id,"_%s",optarg);
         break;
 
+      case 'm':
+        startM = TRUE;
+        break;
+
+      case 'u':
+        startU = TRUE;
+        break;
+        
       default:
         usage();
       }
@@ -205,9 +216,9 @@ int main(int argc, char *argv[]) {
         for (locus=0;locus<p.loci;locus++) {
           // fprintf(stderr,"locus %ld\n",locus);
           if (argc > 1) {
-            if (strcmp(argv[1],"M")==0) {
+            if (startM == TRUE) {
               initialiseRepressed(&c);
-	      } else if (strcmp(argv[1],"U")==0) {
+	      } else if (startU == TRUE) {
               initialiseActive(&c);
             } else { 
               if (locus < floor(p.loci/2))
