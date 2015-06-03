@@ -409,6 +409,7 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"me3factor: %0.4f\n", p->me3factor);
   fprintf(fptr,"firingRateMax: %0.10f\n", p->firingRateMax);
   fprintf(fptr,"firingRateMin: %0.10f\n", p->firingRateMin);
+  fprintf(fptr,"activation: %0.4f\n", p->activation);
   fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
 
   return(1);
