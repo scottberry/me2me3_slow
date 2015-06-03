@@ -1,9 +1,7 @@
 # Remove all variables
 rm(list=ls())
-library(ggplot2)
-library(reshape2)
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
+
+source("~/local/Thesis/R/ThesisTheme.R")
 
 # Set the working directory
 setwd("~/Network/group-share/berrys/me2me3_slow/")

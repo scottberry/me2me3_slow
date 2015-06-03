@@ -22,9 +22,9 @@ void rseed(parameters *p) {
 }
 
 /* Seed the default GSL random number generator reproducibly */
-void setseed(parameters *p) {
+void setseed(parameters *p, long seed) {
   gsl_rng_env_setup();
-  if (!getenv("GSL_RNG_SEED")) gsl_rng_default_seed = 0;
+  if (!getenv("GSL_RNG_SEED")) gsl_rng_default_seed = seed;
   p->gsl_T = gsl_rng_default;
   p->gsl_r = gsl_rng_alloc(p->gsl_T);
   return;

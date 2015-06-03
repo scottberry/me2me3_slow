@@ -27,11 +27,11 @@ int main(int argc, char *argv[]) {
   signed char initial;
   double new, old, t_lastRep, gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
-  long i, j, locus, fh, initM, initU;
+  long i, j, locus, fh, initM, initU, seed;
   double probM, probU, bistability;
   double FIRING, P_DEMETHYLATE, P_METHYLATE;
   int p1, p2, p3, p4;
-  logical startM = FALSE, startU = FALSE;
+  logical startM = FALSE, startU = FALSE, randomSeed = TRUE;
 
   /* Code timing */
 #ifdef __APPLE__
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
   p.samples = 100000; 
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 20;
+  p.cellCycles = 10;
   p.cellCycleDuration = 16.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
@@ -94,6 +94,9 @@ int main(int argc, char *argv[]) {
         break;
 
       case 'i':
+        randomSeed = FALSE;
+        sprintf(id,"%s",optarg);
+        seed = atoi(id);
         sprintf(id,"_%s",optarg);
         break;
 
@@ -110,7 +113,10 @@ int main(int argc, char *argv[]) {
       }
   
   /* Seed RNG */
-  rseed(&p);
+  if (randomSeed == TRUE)
+    rseed(&p);
+  else
+    setseed(&p,time(0) + seed);
 
   /* Handle filename using command line args */
   sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
@@ -159,7 +165,7 @@ int main(int argc, char *argv[]) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
-        //setseed(&p);
+        //setseed(&p,0);
         /*      
         FIRING = 0.0004*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.2*(p2+3));

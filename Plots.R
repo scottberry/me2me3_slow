@@ -10,7 +10,7 @@ setwd("~/Network/group-share/berrys/me2me3_slow/")
 
 s <- 60
 ctrl <- 60
-cc <- 20
+cc <- 10
 a <- 2.0
 st <- 1
 
