@@ -2,6 +2,7 @@ makeit
 lib/makelib
 lib/libscottsmatrices.a
 me2me3
+ConstTimeInterpolate
 *.txt
 .Rhistory
 *.pdf
