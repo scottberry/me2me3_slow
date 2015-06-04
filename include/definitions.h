@@ -83,7 +83,8 @@ typedef struct {
   I_MAT *K27;
   I_VEC *firing;
   D_VEC *t, *t_out;
-  double tMax;
+  double tMax, t_lastRep;
   unsigned long t_outLastSample;
+  double new, old;
 } record;
 

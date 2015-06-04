@@ -11,7 +11,7 @@ setwd("~/Network/group-share/berrys/me2me3_slow/")
 s <- 60
 ctrl <- 60
 cc <- 10
-a <- 2.0
+a <- 1.0
 st <- 1
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")

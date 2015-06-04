@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   gillespie g;
   record r;
   signed char initial;
-  double new, old, t_lastRep, gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
+  double gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
   long i, j, locus, fh, initM, initU, seed;
   double probM, probU, bistability;
@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
         P_DEMETHYLATE = pow(10,-0.2*(p2+3));
         P_METHYLATE = pow(10,-0.15*(p3+20));
         */
-        FIRING = 0.0128;
+        FIRING = 0.0228;
         P_DEMETHYLATE = 0.008;
         P_METHYLATE = 0.000035;
         
@@ -241,55 +241,25 @@ int main(int argc, char *argv[]) {
           p.reactCount = 0;
           p.sampleCount = 0;
           p.cellCycleCount = 0;
-          old = 0;
+          r.old = 0;
           p.firingFactor = 1.0;
-          t_lastRep = 0.0;
-    
+          r.t_lastRep = 0.0;
 
-          for (i=0;i<p.maxReact && p.cellCycleCount < p.cellCycles;i++) {
-            //fprintf(stderr,"Starting reaction loop\n");
+          /* Reaction loop */
+          for (i=0;i<p.maxReact && p.cellCycleCount <= p.cellCycles;i++) {
             if (p.reactCount % p.sampleFreq == 0) {
-              // fprintf(stderr,"Sample %ld\n",p.sampleCount);
               for (j=0;j<(c.sites);j++) {
                 r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
                 r.K27->el[j][p.sampleCount] = c.K27->el[j];
-                // keep track of last sample point stored in record
                 r.t_outLastSample = p.sampleCount;
               }
               p.sampleCount++;
             }
-            // fprintf(stderr,"Reaction %ld\n",p.reactCount);
             r.tMax = r.t->el[p.reactCount];
             p.reactCount++;
             gillespieStep(&c,&p,&g,&r);
-      
-            /* handle DNA replication deterministically, once per 17h */
-            new = fmod(r.t->el[p.reactCount],3600*p.cellCycleDuration);
-            
-            /* inhibit transcription globally by 1/2 during G2 cell cycle
-               phase */
-            if (p.G2duration > 0.0 &&
-                r.t->el[p.reactCount] > 3600*p.cellCycleDuration &&
-                (r.t->el[p.reactCount] - t_lastRep) > (3600*p.G2duration))
-              p.firingFactor = 1.0;
-              
-            if (new < old) {
-              if (p.DNAreplication == TRUE)  {
-                replicateDNA(&c,&p,g.update);
-                p.firingFactor = 0.5;
-              }
-              t_lastRep = r.t->el[p.reactCount];
-              p.cellCycleCount++;
-              // fprintf(stderr,"old = %0.4f, new = %0.4f\n",old,new);
-            }
-            old = new;
           }
-          // fprintf(stderr,"Exiting reaction loop\n");
-    
-          /* calculate and accumulate results for this locus */
-          // fprintf(stderr,"r.t_outLastSample = %ld\n",r.t_outLastSample);
-          // fprintf(stderr,"r.tMax = %0.4f\n",r.tMax);
-          // fprintf(stderr,"p.cellCycleCount = %d\n",p.cellCycleCount);
+
           if (p.resultsLastHourOnly == TRUE) {
             gap += tAverageGap_lastHour_nCycles(&c,&p,&r);
             Mavg += tAverage_me2_me3_lastHour_nCycles(&c,&p,&r);
