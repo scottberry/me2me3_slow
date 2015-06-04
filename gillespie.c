@@ -266,7 +266,12 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
     
     // Release G2 firing inhibition
     // ------------------------------
-
+    /* Note that this solution is better but not perfect since the
+       next delta_t chosen may actually be less than the current
+       delta_t, which will lead effectively to premature release of
+       the G2 transcriptional inhibition. This is likely to be a
+       small effect as G2duration >> delta_t. */
+    
     // update firing factor
     p->firingFactor = 1.0;
 
