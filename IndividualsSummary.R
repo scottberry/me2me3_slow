@@ -11,7 +11,7 @@ ctrl <- 60
 cc <- 10
 st <- 1
 id <- 1
-g_act <- c(0.32,0.64,1.28,2.56,5.12,10.24)
+g_act <- c(0.01,0.02,0.04,0.08,0.16,0.32,0.64,1.28,2.56,5.12,10.24)
 
 transcriptsLastTwoCycles <- function(a) {
   astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
@@ -71,7 +71,6 @@ interpolate_me3 <- function(id,a) {
   return(dat)
 }
 
-g_act <- c(0.32,0.64,1.28,2.56,5.12)
 g <- interpolate_me3(1,g_act[1])
 for (act in g_act) {
   print(act)
@@ -89,7 +88,6 @@ ggsave(filename = "startM.pdf",width=10,height=10,units="cm")
 
 setwd("~/Network/group-share/berrys/Results/me2me3_individuals/startU")
 
-g_act <- c(0.32,0.64,1.28,2.56,5.12)
 g <- interpolate_me3(1,g_act[1])
 for (act in g_act) {
   print(act)
@@ -104,23 +102,3 @@ ggplot(g,aes(x=time/(3600*16),y=level,group=id)) +
   scale_x_continuous(limits=c(0,5)) + facet_grid(act ~ .) + theme_thesis_multiplanel
 
 ggsave(filename = "startU.pdf",width=10,height=10,units="cm")
-
-
-# par(mfrow=c(1,1),mar=c(2,4,0,0)+0.5,oma=c(3,3,0,0))
-# hist(Firing$V1/3600,seq(0,(max(Firing)/3600 + 1),by=1),ylab="Firing/hour",main="")
-# mtext("time (hours)",side=1,line=0,outer=TRUE)
-# mtext("modification level",side=2,line=0,outer=TRUE)
-
-# time <- read.table(time_file) ; colnames(time) <- "time"
-# me0 <- read.table(tDep_me0_file) ; colnames(me0) <- "level"
-# me1 <- read.table(tDep_me1_file) ; colnames(me1) <- "level"
-# me2 <- read.table(tDep_me2_file) ; colnames(me2) <- "level"
-# me3 <- read.table(tDep_me3_file) ; colnames(me3) <- "level"
-
-#time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,"_",id,".txt",sep="")
-#tDep_me0_file <- paste("me0_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,"_",id,".txt",sep="")
-#tDep_me1_file <- paste("me1_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,"_",id,".txt",sep="")
-#tDep_me2_file <- paste("me2_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,"_",id,".txt",sep="")
-#tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,"_",id,".txt",sep="")
-
-0.01*2^seq(1,20)
