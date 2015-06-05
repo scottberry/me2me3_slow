@@ -171,7 +171,7 @@ int main(int argc, char *argv[]) {
         P_DEMETHYLATE = pow(10,-0.2*(p2+3));
         P_METHYLATE = pow(10,-0.15*(p3+20));
         */
-        FIRING = 0.0228;
+        FIRING = 0.0128;
         P_DEMETHYLATE = 0.008;
         P_METHYLATE = 0.000035;
         
@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
         tTot = tTotM = tTotU = 0.0;
         initM = initU = 0;
         firstPassageM = firstPassageU = 0.0;
-
+        
         /* -------------------------------------------------------------------------------- */
         /* loop over loci */
         /* -------------------------------------------------------------------------------- */
@@ -238,13 +238,17 @@ int main(int argc, char *argv[]) {
             else
               initialiseActive(&c);
           }
+
+          // reset counters
           p.reactCount = 0;
           p.sampleCount = 0;
           p.cellCycleCount = 0;
-          r.old = 0;
-          p.firingFactor = 1.0;
-          r.t_lastRep = 0.0;
 
+          // Schedule first instance of the fixed time reactions
+          g.t_nextRep = p.cellCycleDuration*3600;
+          g.t_nextEndG2 = (p.cellCycleDuration + p.G2duration)*3600;
+          p.firingFactor = 1.0;
+          
           /* Reaction loop */
           for (i=0;i<p.maxReact && p.cellCycleCount <= p.cellCycles;i++) {
             if (p.reactCount % p.sampleFreq == 0) {

@@ -191,15 +191,6 @@ double gillespieTimeStep(parameters *p, gillespie *g, double *p_s) {
   // calculate time step  
   delta_t = log(1.0/r1)/(*p_s);
 
-  /* Need some safeguard to determine if delta_t more than a cell
-     cycle, in which case two DNA replications will need to have taken
-     place and program should exit. */
-  
-  if (delta_t > 3600*(p->cellCycleDuration-p->G2duration)) {
-    fprintf(stderr,"Error (gillespieStep): delta_t > cell cycle.");
-    exit(-1);
-  }
-  
   return(delta_t); 
 }
   
@@ -207,94 +198,79 @@ double gillespieTimeStep(parameters *p, gillespie *g, double *p_s) {
    this varies somewhat from a pure stochastic simulation with
    exponentially distributed waiting times because there are events
    which occur at precise time points (DNA replication and release of
-   G2 transcriptional inhibition). Some reactions are discarded as the
-   system state has changed between the two simulation steps.
-   Consequently the algorithm is non-Markovian. See
-   \cite{Barrio:2006kb} for a description of the problems with delays
-   in SSA simulations. */
+   G2 transcriptional inhibition). Some time steps proposed by the
+   simulation algorithm are discarded as the system state has changed
+   between the two simulation steps. Consequently the algorithm is
+   non-Markovian. See \cite{Barrio:2006kb} for a description of the
+   problems with delays in SSA simulations. The following
+   implementation has been referred to as "delays as
+   duration" approach in \cite{Barbuti:2009ih} */
 
 void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   double delta_t, sum, p_s, r2=0.0, scaled_r2=0.0, next_t;
   long m, step, i;
-  logical gillespieReaction = TRUE;
 
+  // local variable
   step = p->reactCount;
   
   // update propensities
   updatePropensities(c,p,g);
   
-  // calculate time step (p_s also stores propensity sum).
+  // calculate time step
+  // (p_s also returns propensity sum for use in Gillespie reaction selection).
   delta_t = gillespieTimeStep(p,g,&p_s);
   next_t = delta_t + r->t->el[step-1];
 
-  /* Determine if the new time is after DNA replication. If so,
-     interrupt Gillespie algorithm to replicate DNA (at a precise
-     time). If not, check if G2 transcription inhibition needs to be
-     released and then proceed with a Gillespie algorithm choice for
-     next system update. */
+  /* Determine if the new time is after DNA replication or release of
+     G2 inhibition. If so, interrupt Gillespie algorithm to replicate
+     DNA or release G2 transcription inhibition (at a precise time).
+     If not, proceed with Gillespie reaction selection. */
 
-  //fprintf(stderr,"next_t = %0.0f ",next_t);
-  
-  r->new = fmod(next_t,3600*p->cellCycleDuration); 
-  //fprintf(stderr,"r->new = %0.0f, r->old %0.0f, cell cycle %d\n",r->new, r->old,p->cellCycleCount);
-  if (r->new < r->old) {
-    // fprintf(stderr,"replicate\n");
-    // DNA replication
+  if (next_t > g->t_nextRep) {
+
+    // DNA replication.
     // ------------------------------
 
-    // increment counters and record new (deterministic) time
+    // increment counters and record new system time
     p->cellCycleCount++;    
-    r->t->el[step] = next_t - r->new;
+    r->t->el[step] = g->t_nextRep;
 
     // replicate DNA and instigate G2 transcriptional inhibition
     if (p->DNAreplication == TRUE)  {
       replicateDNA(c,p,g->update);
       if (p->G2duration > 0.0) p->firingFactor = 0.5;
     }
-    // record time of last replication
-    r->t_lastRep = r->t->el[step];
-
-    // ensure that DNA replication does not occur next time
-    r->old = 0.0;
-
-    // do not proceed with gillespie reaction this time
-    gillespieReaction = FALSE;
-
-  } else if (p->G2duration > 0.0 &&
-             (next_t - r->t_lastRep) > (3600*p->G2duration) &&
-             p->firingFactor == 0.5) {
     
-    // Release G2 firing inhibition
+    // schedule next DNA replication
+    g->t_nextRep += p->cellCycleDuration*3600;
+    
+    // fprintf(stderr,"replicate: t = %0.2f hours\n",r->t->el[step]/3600.0);
+    
+  } else if (next_t > g->t_nextEndG2 && p->G2duration > 0.0) {
+
+    // Release G2 firing inhibition.
     // ------------------------------
-    /* Note that this solution is better but not perfect since the
-       next delta_t chosen may actually be less than the current
-       delta_t, which will lead effectively to premature release of
-       the G2 transcriptional inhibition. This is likely to be a
-       small effect as G2duration >> delta_t. */
     
     // update firing factor
     p->firingFactor = 1.0;
 
-    // reupdate propensities based on new firing factor
+    // force propensity recalculation next step
     g->update->histone = TRUE;
-    updatePropensities(c,p,g);
-    
-    // recalculate time step (p_s also recalculated).
-    delta_t = gillespieTimeStep(p,g,&p_s);
-    next_t = delta_t + r->t->el[step-1];
-    r->new = fmod(next_t,3600*p->cellCycleDuration); 
-    
-    // proceed with gillespie reaction selection
-    gillespieReaction = TRUE;
-    
-  }
 
-  if (gillespieReaction == TRUE) {
+    // increment system time
+    r->t->el[step] = g->t_nextEndG2;
 
-    // Gillespie reaction.
+    // schedule next G2 inhibition end
+    g->t_nextEndG2 += p->cellCycleDuration*3600;
+
+    // fprintf(stderr,"release G2: t = %0.2f hours\n",r->t->el[step]/3600.0);
+    
+  } else {
+    
+    // Gillespie reaction selection.
     // ------------------------------
-
-    // store new (stochastic) time
+    
+    // store new (stochastically chosen) time
     r->t->el[step] = next_t;
     
     // choose reaction m from propensities based on scaled_r2
@@ -322,11 +298,7 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
     } else {
       r->firing->el[p->reactCount] = FALSE;
     }
-
-    // update DNA replcation counter
-    r->old = r->new;    
   }
   
-  
-return;
+  return;
 }

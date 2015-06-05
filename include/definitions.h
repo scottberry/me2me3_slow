@@ -76,6 +76,7 @@ typedef struct {
   I_VEC *methylate_index;
   I_VEC *transcribeDNA_index;
   func_ptr_t *doReaction;
+  double t_nextRep, t_nextEndG2;
   flags *update;
 } gillespie;
 
@@ -83,8 +84,7 @@ typedef struct {
   I_MAT *K27;
   I_VEC *firing;
   D_VEC *t, *t_out;
-  double tMax, t_lastRep;
+  double tMax;
   unsigned long t_outLastSample;
-  double new, old;
 } record;
 
