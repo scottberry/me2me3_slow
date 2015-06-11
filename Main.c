@@ -62,11 +62,11 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
   
   p.loci = 1;
-  p.maxReact = 100000;
-  p.samples = 100000; 
+  p.maxReact = 20000;
+  p.samples = 20000; 
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 10;
+  p.cellCycles = 6;
   p.cellCycleDuration = 16.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
@@ -171,9 +171,9 @@ int main(int argc, char *argv[]) {
         P_DEMETHYLATE = pow(10,-0.2*(p2+3));
         P_METHYLATE = pow(10,-0.15*(p3+20));
         */
-        FIRING = 0.0128;
-        P_DEMETHYLATE = 0.008;
-        P_METHYLATE = 0.000035;
+        FIRING = 0.0064;
+        P_DEMETHYLATE = 0.1;
+        P_METHYLATE = 0.00015;
         
         // Transcription
         // ------------------------------------------------------------
@@ -188,7 +188,9 @@ int main(int argc, char *argv[]) {
         // Methylation/demethylation
         // ------------------------------------------------------------
         /* 5% noise. Represents basal activity of unstimulated PRC2 */
-        p.noisy_methylate = P_METHYLATE/20.0;
+        p.noisy_me0_me1 = 9*P_METHYLATE/20.0;
+        p.noisy_me1_me2 = 6*P_METHYLATE/20.0;
+        p.noisy_me2_me3 = P_METHYLATE/20.0;
         
         /* ratio of 9:6:1 in "specificity constant" k_cat/K_M
            \cite{McCabe:2012kk} \cite{Sneeringer:2010dj} */

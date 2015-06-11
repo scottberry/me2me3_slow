@@ -339,6 +339,7 @@ unsigned long numberHistoneStateFlips(record *r) {
 
 double firstPassageTime(record *r, signed char *initial) {
   long unsigned m=0, u=0, pos,t=0;
+  double fpt = 0.0;
   
   /* find initial state */
   for (pos=0;pos<r->K27->rows;pos++) {
@@ -361,7 +362,11 @@ double firstPassageTime(record *r, signed char *initial) {
     u = r->K27->rows - m;
     t++;
   }
-  return(r->t_out->el[t-1]);
+  if (t==r->t_outLastSample)
+    fpt = r->tMax;
+  else 
+    fpt = r->t_out->el[t-1];
+  return(fpt);
 }
 
 /* Write the log file. */

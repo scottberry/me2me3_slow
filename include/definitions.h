@@ -49,7 +49,7 @@ typedef struct {
   gsl_rng *gsl_r;
 
   // PRC2 / transcription parameters
-  double noisy_methylate;
+  double noisy_me0_me1, noisy_me1_me2, noisy_me2_me3;
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate;

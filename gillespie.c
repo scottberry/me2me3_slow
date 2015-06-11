@@ -155,11 +155,11 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
     for (i=0;i<c->sites;i++) {
       // fprintf(stderr,"i = %d, neighboursK27factor = %0.2f\n",i,neighboursK27factor(c,p,i));
       if (c->K27->el[i] == me0) { // methylate
-        g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me0_me1*(neighboursK27factor(c,p,i));
+        g->propensity->el[g->methylate_index->el[i]] = p->noisy_me0_me1 + p->me0_me1*(neighboursK27factor(c,p,i));
       } else if (c->K27->el[i] == me1) {
-        g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me1_me2*(neighboursK27factor(c,p,i));
+        g->propensity->el[g->methylate_index->el[i]] = p->noisy_me1_me2 + p->me1_me2*(neighboursK27factor(c,p,i));
       } else if (c->K27->el[i] == me2) {
-        g->propensity->el[g->methylate_index->el[i]] = p->noisy_methylate + p->me2_me3*(neighboursK27factor(c,p,i));
+        g->propensity->el[g->methylate_index->el[i]] = p->noisy_me2_me3 + p->me2_me3*(neighboursK27factor(c,p,i));
       } else {
         g->propensity->el[g->methylate_index->el[i]] = 0.0;
       }
