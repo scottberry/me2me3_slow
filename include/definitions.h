@@ -65,6 +65,7 @@ typedef struct {
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
   logical DNAreplication, resultsLastHourOnly, SILAC, resultsFinalLocus;
+
 } parameters;
  
 // specific function pointer typedef
@@ -78,6 +79,11 @@ typedef struct {
   func_ptr_t *doReaction;
   double t_nextRep, t_nextEndG2;
   flags *update;
+
+  // test parameters
+  FILE *test_fptr;
+  logical test;
+
 } gillespie;
 
 typedef struct {

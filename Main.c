@@ -75,6 +75,9 @@ int main(int argc, char *argv[]) {
   p.resultsLastHourOnly = TRUE;
   p.SILAC = FALSE;
   p.resultsFinalLocus = TRUE;
+
+  // Test gillespie algorithm
+  g.test = FALSE;
   
   p.optimSteps = 1; 
   
@@ -140,6 +143,9 @@ int main(int argc, char *argv[]) {
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
 
+  if (g.test==TRUE)
+    g.test_fptr = fopen("TestGillespieFromMain.txt","w");
+  
   /* Memory allocation */
   c.K27 = i_vec_get( c.sites );
   g.methylate_index = i_vec_get( c.sites );
@@ -395,5 +401,6 @@ int main(int argc, char *argv[]) {
 #endif
   
   fclose(fptr);
+  fclose(g.test_fptr);
   return(1);
 }

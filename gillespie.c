@@ -56,7 +56,7 @@ void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
   
   g->update->histone = TRUE;
   g->update->transcribed = FALSE;
-
+  
   for (i=0;i<c->sites;i++) { // methylate
     g->doReaction[i] = methylate;
     g->doReactionParam->el[i] = i;
@@ -66,13 +66,14 @@ void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
   g->doReactionParam->el[c->sites] = 0;
   g->transcribeDNA_index->el[0] = c->sites;
 
-  /*
-    i_vec_print(stderr,g->bindRep_index);
-    i_vec_print(stderr,g->unbindRep_index);
-    i_vec_print(stderr,g->methylate_index);
-    i_vec_print(stderr,g->demethylate_index); 
-    i_vec_print(stderr,g->transcribeDNA_index); 
-  */
+  if (g->test == TRUE) {
+    fprintf(g->test_fptr,"Methylate index:\n");
+    i_vec_print(g->test_fptr,g->methylate_index);
+    fprintf(g->test_fptr,"Transcribe index:\n");
+    i_vec_print(g->test_fptr,g->transcribeDNA_index); 
+    fprintf(g->test_fptr,"doReactionParam:\n");
+    i_vec_print(g->test_fptr,g->doReactionParam); 
+  }
   return;
 }
 
