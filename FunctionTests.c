@@ -1,8 +1,4 @@
 #include "definitions.h"
-#include "random.c"
-#include "modifications.c"
-#include "gillespie.c"
-#include "results.c"
 
 void fprintf_K27(FILE *fptr, chromatin *c) {
   int i;

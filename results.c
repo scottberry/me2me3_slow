@@ -1,3 +1,4 @@
+#include "definitions.h"
 /* 
    Output functions for calulating results and writing to file.
    ============================================================

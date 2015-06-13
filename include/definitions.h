@@ -94,3 +94,47 @@ typedef struct {
   unsigned long t_outLastSample;
 } record;
 
+/* Function prototypes */
+
+// random.c
+double runif(gsl_rng *r);
+void rseed(parameters *p);
+void setseed(parameters *p, long seed);
+void rfree(parameters *p);
+
+// modifications.c
+void methylate(chromatin *c, parameters *p, flags *update, int pos);
+void demethylate(chromatin *c, parameters *p, flags *update, int pos);
+void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos);
+void replicateDNA(chromatin *c, parameters *p, flags *update);
+
+// gillespie.c
+void initialiseRepressed(chromatin *c);
+void initialiseActive(chromatin *c);
+void initialiseRandom(chromatin *c, parameters *p);
+double d_vec_sum(D_VEC *d);
+void initialiseGillespieFunctions(chromatin *c, gillespie *g);
+double frac(I_VEC *vec, int target);
+double fracControlRegion_me2me3(chromatin *c);
+double enzymaticFactor(chromatin *c, parameters *p, int pos);
+double neighboursK27factor(chromatin *c, parameters *p, int pos);
+void updatePropensities(chromatin *c, parameters *p, gillespie *g);
+double gillespieTimeStep(parameters *p, gillespie *g, double *p_s);
+void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r);
+
+// results.c
+char *str_replace(char *orig, char *rep, char *with);
+void fprint_t_out_nCycles(char *fname, record *r);
+void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r);
+void fprint_firing_t_nCycles(char *fname, record *r);
+double tAverageGap_nCycles(chromatin *c, parameters *p, record *r);
+double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r);
+double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r);
+double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r);
+double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r);
+double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r);
+double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r);
+double tAverage_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r);
+unsigned long numberHistoneStateFlips(record *r);
+double firstPassageTime(record *r, signed char *initial);
+int writelog(FILE *fptr, chromatin *c, parameters *p, record *r);

@@ -1,3 +1,4 @@
+#include "definitions.h"
 /* 
    Functions to interface the Gnu Scientific Library pseudo-random
    number generator.

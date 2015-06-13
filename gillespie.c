@@ -1,3 +1,4 @@
+#include "definitions.h"
 /* 
    Implementation of the direct Gillespie algorithm for simulation
    of models of chromatin-based epigenetics.
