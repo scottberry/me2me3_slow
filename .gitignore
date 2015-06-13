@@ -1,7 +1,8 @@
-makeit
-lib/makelib
 lib/libscottsmatrices.a
+lib/*.o
+obj/*.o
 me2me3
+Tests
 ConstTimeInterpolate
 *.txt
 .Rhistory
