@@ -210,7 +210,7 @@ double gillespieTimeStep(parameters *p, gillespie *g, double *p_s) {
 
 void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   double delta_t, sum, p_s, r2=0.0, scaled_r2=0.0, next_t;
-  long m, step, i;
+  long m, step;
 
   // local variable
   step = p->reactCount;

@@ -57,7 +57,7 @@ char *str_replace(char *orig, char *rep, char *with) {
 
 void fprint_t_out_nCycles(char *fname, record *r) {
   FILE *fptr;
-  long unsigned count, i, j;
+  long unsigned i;
   
   fptr = fopen(fname,"w");
   for (i = 0;i < r->t_out->len && i < r->t_outLastSample;i++) {

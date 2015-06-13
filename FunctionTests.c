@@ -20,10 +20,9 @@ void usage(void)
 }
 
 int main(int argc, char *argv[]) {
-  FILE *fptr, *parFile;
-  char avgfile[128]="", fname[128]="", tmp[128]="", buffer[128]="";
-  char parameterSpace[128]="", ptmp[128]="", id[16]="";
-  char *decimal = ".", *underscore = "_";
+  FILE *fptr;
+  char avgfile[128]="", fname[128]="", buffer[128]="";
+  char id[16]="";
   chromatin c;
   parameters p;
   gillespie g;
@@ -31,10 +30,9 @@ int main(int argc, char *argv[]) {
   signed char initial;
   double gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
-  long i, j, locus, fh, initM, initU, seed;
+  long i, j, fh, initM, initU, seed;
   double probM, probU, bistability;
   double FIRING, P_DEMETHYLATE, P_METHYLATE;
-  int p1, p2, p3, p4;
   logical startM = FALSE, startU = FALSE, randomSeed = TRUE;
   
   c.sites = 8;

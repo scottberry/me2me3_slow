@@ -26,13 +26,13 @@ int main(int argc, char *argv[]) {
   long i, j, locus, fh, initM, initU, seed;
   double probM, probU, bistability;
   double FIRING, P_DEMETHYLATE, P_METHYLATE;
-  int p1, p2, p3, p4;
+  int p1, p2, p3;
   logical startM = FALSE, startU = FALSE, randomSeed = TRUE;
 
   /* Code timing */
 #ifdef __APPLE__
   mach_timebase_info_data_t info;
-  uint64_t start, end, timeElapsed;
+  uint64_t start, timeElapsed;
   mach_timebase_info(&info);
   start= mach_absolute_time();
 #else
