@@ -92,6 +92,28 @@ void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r) {
   return;
 }
 
+/* Average results over time and print a time-dependent results 
+   vector. Length depends directly on r.tMax, which is 
+   determined by p.cellCycles. */
+
+void fprint_silac_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, int silac_target, record *r) {
+  FILE *fptr;
+  long unsigned count, i, j;
+  
+  fptr = fopen(fname,"w");
+  for (i=0;i<mat->cols && i < r->t_outLastSample;i++) {
+    count = 0;
+    for (j=0;j<mat->rows;j++) {
+      if (mat->el[j][i] == target && silac->el[j][i] == silac_target) {
+	count++;
+      }
+    }
+    fprintf(fptr,"%0.4f\n",(double)count/(double)j);
+  }
+  fclose(fptr);
+  return;
+}
+
 /* Print absolute time of each firing event.
    Length depends directly on r.tMax, which is 
    determined by p.cellCycles. */
@@ -401,9 +423,10 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   else
     fprintf(fptr," FALSE\n");
   fprintf(fptr,"SILAC:");
-  if (p->SILAC == TRUE)
+  if (p->silacExperiment == TRUE) {
     fprintf(fptr," TRUE\n");
-  else
+    fprintf(fptr," silacLightCycles = %ld \n",p->silacLightCycles);
+  } else
     fprintf(fptr," FALSE\n");
   fprintf(fptr,"cellCycleDuration: %0.2f hours\n", p->cellCycleDuration);
   fprintf(fptr,"G2duration: %0.2f hours\n", p->G2duration);

@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
-  p.SILAC = FALSE;
+  p.silacExperiment = FALSE;
   p.resultsFinalLocus = TRUE;
 
   // Test gillespie algorithm

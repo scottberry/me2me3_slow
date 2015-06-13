@@ -48,6 +48,15 @@ void replicateDNA(chromatin *c, parameters *p, flags *update) {
     if(runif(p->gsl_r)<=0.5) {
       c->K27->el[pos] = me0;
       c->K27->el[pos+1] = me0;
+      if (p->silacExperiment == TRUE) {
+        if (p->silacLabel == LIGHT) {
+          c->silac->el[pos] = LIGHT;
+          c->silac->el[pos+1] = LIGHT;
+        } else {
+          c->silac->el[pos] = HEAVY;
+          c->silac->el[pos+1] = HEAVY;
+        }
+      }
     }
   }
   update->histone = TRUE;

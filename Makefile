@@ -3,7 +3,7 @@ IDIR = ./include
 ODIR = ./obj
 LDIR = ./lib
 
-CFLAGS = -O2 -Wall
+CFLAGS = -O1 -g
 IFLAGS = -I$(IDIR) -I/usr/local/include
 
 LIBS = -lm -lgsl -lgslcblas -lscottsmatrices	
@@ -16,7 +16,7 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ = random.o modifications.o gillespie.o results.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-all: $(STATLIB) $(OBJ) me2me3 Tests ConstTimeInterpolate
+all: $(STATLIB) $(OBJ) me2me3 Silac Tests ConstTimeInterpolate
 
 # make libscottsmatrices object file
 $(LDIR)/scottsmatrices.o: $(LDIR)/scottsmatrices.c $(DEPS)
@@ -31,6 +31,9 @@ $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS) $(IFLAGS)
 
 me2me3: $(ODIR)/Main.o $(STATLIB) $(OBJ)
+	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
+
+Silac: $(ODIR)/Silac.o $(STATLIB) $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 Tests: $(ODIR)/FunctionTests.o $(OBJ)

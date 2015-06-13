@@ -31,12 +31,16 @@
 #define me2 2
 #define me3 3
 
+#define LIGHT 0
+#define HEAVY 1
+
 typedef unsigned char logical;
 
 typedef struct {
   long sites;
   long controlSites;
   I_VEC *K27;
+  I_VEC *silac;
 } chromatin;
 
 typedef struct {
@@ -64,8 +68,13 @@ typedef struct {
   unsigned long loci, reactCount, maxReact;
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
-  logical DNAreplication, resultsLastHourOnly, SILAC, resultsFinalLocus;
+  logical DNAreplication, resultsLastHourOnly, resultsFinalLocus;
 
+  // silac parameters
+  logical silacExperiment;
+  int silacLabel;
+  long silacLightCycles;
+  
 } parameters;
  
 // specific function pointer typedef
@@ -88,6 +97,7 @@ typedef struct {
 
 typedef struct {
   I_MAT *K27;
+  I_MAT *silac;
   I_VEC *firing;
   D_VEC *t, *t_out;
   double tMax;
@@ -126,6 +136,7 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r);
 char *str_replace(char *orig, char *rep, char *with);
 void fprint_t_out_nCycles(char *fname, record *r);
 void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r);
+void fprint_silac_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, int silac_target, record *r);
 void fprint_firing_t_nCycles(char *fname, record *r);
 double tAverageGap_nCycles(chromatin *c, parameters *p, record *r);
 double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r);

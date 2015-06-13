@@ -4,6 +4,7 @@ obj/*.o
 me2me3
 Tests
 ConstTimeInterpolate
+Silac
 *.txt
 .Rhistory
 *.pdf
