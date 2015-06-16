@@ -176,8 +176,8 @@ int main(int argc, char *argv[]) {
         P_METHYLATE = pow(10,-0.15*(p3+20));
         */
         FIRING = 0.0064;
-        P_DEMETHYLATE = 0.1;
-        P_METHYLATE = 0.00015;
+        P_DEMETHYLATE = 0.01;
+        P_METHYLATE = 0.000025;
         
         // Transcription
         // ------------------------------------------------------------
@@ -271,7 +271,7 @@ int main(int argc, char *argv[]) {
             }
             r.tMax = r.t->el[p.reactCount];
             p.reactCount++;
-            if (p.cellCycleCount > p.silacLightCycles)
+            if (p.cellCycleCount >= p.silacLightCycles)
               p.silacLabel = HEAVY;
             gillespieStep(&c,&p,&g,&r);
           }
