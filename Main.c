@@ -64,18 +64,18 @@ int main(int argc, char *argv[]) {
 
   p.cellCycles = 50;
   p.cellCycleDuration = 16.0; // (hours)
-  p.G2duration = 4.0; // (hours)
+  p.G2duration = 0.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
 
-  p.DNAreplication = TRUE;
+  p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = FALSE;
-  p.resultsFinalLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
 
   // Test gillespie algorithm
   g.test = FALSE;
   
-  p.optimSteps = 16; 
+  p.optimSteps = 1; 
   
   /* Parse command line */
   opterr = 0;
@@ -398,6 +398,7 @@ int main(int argc, char *argv[]) {
 #endif
   
   fclose(fptr);
-  fclose(g.test_fptr);
+  if (g.test==TRUE)
+    fclose(g.test_fptr);
   return(1);
 }
