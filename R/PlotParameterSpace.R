@@ -4,9 +4,9 @@ rm(list=ls())
 source("~/local/Thesis/R/ThesisTheme.R")
 
 # Set the working directory
-setwd("~/Network/group-share/berrys/me2me3_slow/")
+setwd("~/local/Modelling/me2me3_slow/")
 
-file= "ParamOptimRes_s60ctrl60cc50st16.txt"
+file= "ParamOptimRes_s60ctrl60cc50a1_00st16_Proc.txt"
 parameterSpace <- read.table(file,header = TRUE)
 
 parameterSpace$firstPassageM[parameterSpace$firstPassageM == -1] <- max(parameterSpace$firstPassageM)

@@ -16,7 +16,10 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ = random.o modifications.o gillespie.o results.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-all: $(STATLIB) $(OBJ) me2me3 Silac Tests ConstTimeInterpolate
+_OBJP = random.o modificationsProcK27me2.o gillespie.o results.o 
+OBJP = $(patsubst %,$(ODIR)/%,$(_OBJP))
+
+all: $(STATLIB) $(OBJ) me2me3 ProcK27me2 Silac Tests ConstTimeInterpolate
 
 # make libscottsmatrices object file
 $(LDIR)/scottsmatrices.o: $(LDIR)/scottsmatrices.c $(DEPS)
@@ -31,6 +34,9 @@ $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS) $(IFLAGS)
 
 me2me3: $(ODIR)/Main.o $(STATLIB) $(OBJ)
+	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
+
+ProcK27me2: $(ODIR)/Main.o $(STATLIB) $(OBJP)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 Silac: $(ODIR)/Silac.o $(STATLIB) $(OBJ)
