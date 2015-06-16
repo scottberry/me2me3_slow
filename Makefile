@@ -54,7 +54,7 @@ clean:
 	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ 
 
 empty:
-	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) me2me3 Tests ConstTimeInterpolate
+	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcK27me2
 
 nores:
 	rm -f *.txt

@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 2;
+  p.loci = 100;
   p.maxReact = 100000;
   p.samples = 100000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -75,11 +75,11 @@ int main(int argc, char *argv[]) {
   // Test gillespie algorithm
   g.test = FALSE;
   
-  p.optimSteps = 1; 
+  p.optimSteps = 20; 
   
   /* Parse command line */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:i:mu")) != -1)
+  while ((j = getopt (argc, argv, "c:a:i:murg:")) != -1)
     switch (j)
       {
       case 'c':
@@ -105,6 +105,15 @@ int main(int argc, char *argv[]) {
 
       case 'u':
         startU = TRUE;
+        break;
+
+      case 'r':
+        p.DNAreplication = TRUE;
+        break;
+
+      case 'g':
+        sprintf(buffer,"%s",optarg);
+        p.G2duration = atof(buffer);
         break;
         
       default:
@@ -170,8 +179,8 @@ int main(int argc, char *argv[]) {
         //setseed(&p,0);
               
         FIRING = 0.0004*pow(2,p1);
-        P_DEMETHYLATE = pow(10,-0.2*(p2+3));
-        P_METHYLATE = pow(10,-0.15*(p3+20));
+        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        P_METHYLATE = pow(10,-0.12*(p3+26));
         
         /*
         FIRING = 0.0064;
@@ -191,14 +200,14 @@ int main(int argc, char *argv[]) {
         // Methylation/demethylation
         // ------------------------------------------------------------
         /* 5% noise. Represents basal activity of unstimulated PRC2 */
-        p.noisy_me0_me1 = 9*P_METHYLATE/20.0;
-        p.noisy_me1_me2 = 6*P_METHYLATE/20.0;
+        p.noisy_me0_me1 = 9.0*P_METHYLATE/20.0;
+        p.noisy_me1_me2 = 6.0*P_METHYLATE/20.0;
         p.noisy_me2_me3 = P_METHYLATE/20.0;
         
         /* ratio of 9:6:1 in "specificity constant" k_cat/K_M
            \cite{McCabe:2012kk} \cite{Sneeringer:2010dj} */
-        p.me0_me1 = 9*P_METHYLATE; 
-        p.me1_me2 = 6*P_METHYLATE; 
+        p.me0_me1 = 9.0*P_METHYLATE; 
+        p.me1_me2 = 6.0*P_METHYLATE; 
         p.me2_me3 = P_METHYLATE;
         
         /* 2 - 2.5 fold lower Kd for K27me3 than K27me2, together with
@@ -207,7 +216,7 @@ int main(int argc, char *argv[]) {
            methyl addition on a nearby nucleosome.
            \cite{Margueron:2009el} */
         p.me2factor = 0.1; 
-        p.me3factor = 1;
+        p.me3factor = 1.0;
 
         // Set results to zero for accumulation over each parameter set
         // ------------------------------------------------------------        
