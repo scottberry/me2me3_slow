@@ -12,9 +12,10 @@ void usage(void)
 }
 
 int main(int argc, char *argv[]) {
-  FILE *fptr, *parFile;
+  FILE *fptr, *parFile, *silacAbsFile, *silacRelFile;
   char avgfile[128]="", fname[128]="", tmp[128]="", buffer[128]="";
   char parameterSpace[128]="", ptmp[128]="", id[16]="";
+  char silacAbs[128]="", silacRel[128]="";
   char *decimal = ".", *underscore = "_";
   chromatin c;
   parameters p;
@@ -57,14 +58,15 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 1;
+  p.loci = 100;
   p.maxReact = 20000;
   p.samples = 20000; 
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 6;
-  p.silacLightCycles = 3;
-  p.cellCycleDuration = 16.0; // (hours)
+  p.cellCycles = 15;
+  p.silacLightCycles = 10;
+  p.silacHeavyCycles = 1;
+  p.cellCycleDuration = 22.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
 
@@ -161,6 +163,20 @@ int main(int argc, char *argv[]) {
   /* Initialisation */
   initialiseGillespieFunctions(&c,&g);
 
+  /* Silac initiation */
+  if (p.silacExperiment == TRUE) {
+    p.SILAC_0h = (double)3600*p.cellCycleDuration*(p.silacLightCycles+1);
+    p.SILAC_10h = p.SILAC_0h + (double)3600*10;
+    p.SILAC_24h = p.SILAC_0h + (double)3600*24;
+    p.SILAC_48h = p.SILAC_0h + (double)3600*48;
+    strcpy(silacAbs,"SilacAbs_\0"); strcat(silacAbs,avgfile); 
+    silacAbsFile = fopen(silacAbs,"w");
+    fprintf(silacAbsFile,"locus\ttime\tmod\tlabel\tlevel\n");
+    strcpy(silacRel,"SilacRel_\0"); strcat(silacRel,avgfile); 
+    silacRelFile = fopen(silacRel,"w");
+    fprintf(silacRelFile,"locus\ttime\tmod\tlabel\tlevel\n");
+  }
+
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
@@ -176,8 +192,8 @@ int main(int argc, char *argv[]) {
         P_METHYLATE = pow(10,-0.15*(p3+20));
         */
         FIRING = 0.0064;
-        P_DEMETHYLATE = 0.01;
-        P_METHYLATE = 0.000025;
+        P_DEMETHYLATE = 0.000;
+        P_METHYLATE = 0.0001;
         
         // Transcription
         // ------------------------------------------------------------
@@ -250,8 +266,11 @@ int main(int argc, char *argv[]) {
           p.sampleCount = 0;
           p.cellCycleCount = 0;
 
-          // reset silac label
+          // reset silac parameters
           p.silacLabel = LIGHT;
+          initialiseSilacLight(&c);
+          p.SILAC_nextReport = p.SILAC_0h;
+          p.SILAC_report = 1;
           
           // Schedule first instance of the fixed time reactions
           g.t_nextRep = p.cellCycleDuration*3600;
@@ -270,9 +289,31 @@ int main(int argc, char *argv[]) {
               p.sampleCount++;
             }
             r.tMax = r.t->el[p.reactCount];
+
+            // SILAC report points
+            if (r.t->el[p.reactCount] >= p.SILAC_nextReport && p.SILAC_report <= 4) {
+              fprintTripleSILAC(silacAbsFile,silacRelFile,locus,&p,&r);
+              if (p.SILAC_report == 1) {
+                p.SILAC_report = 2;
+                p.SILAC_nextReport = p.SILAC_10h;
+              } else if (p.SILAC_report == 2) {
+                p.SILAC_report = 3;
+                p.SILAC_nextReport = p.SILAC_24h;
+              } else if (p.SILAC_report == 3) {
+                p.SILAC_nextReport = p.SILAC_48h;
+                p.SILAC_report = 4;
+              } else if (p.SILAC_report == 4) {
+                p.SILAC_report = 5;
+              }
+            }
+
             p.reactCount++;
             if (p.cellCycleCount >= p.silacLightCycles)
               p.silacLabel = HEAVY;
+            if (p.cellCycleCount >= p.silacLightCycles + p.silacHeavyCycles)
+              p.silacLabel = UNLABELLED;
+
+            
             gillespieStep(&c,&p,&g,&r);
           }
 
@@ -351,7 +392,11 @@ int main(int argc, char *argv[]) {
  
   /* end loop over parameters */
   fclose(parFile);
-
+  if (p.silacExperiment == TRUE) {
+    fclose(silacAbsFile);
+    fclose(silacRelFile);
+  }
+    
   /* -------------------------------------------------------------------------------- */
   /* Tidy up and write results files */
   /* -------------------------------------------------------------------------------- */
@@ -382,7 +427,7 @@ int main(int argc, char *argv[]) {
     strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
     fprint_firing_t_nCycles(fname,&r);
 
-    // old histones
+    // light histones
     strcpy(fname,"LIGHT_me0_t_\0"); strcat(fname,avgfile);
     fprint_silac_t_nCycles(fname,r.K27,me0,r.silac,LIGHT,&r);
     strcpy(fname,"LIGHT_me1_t_\0"); strcat(fname,avgfile);
@@ -392,7 +437,7 @@ int main(int argc, char *argv[]) {
     strcpy(fname,"LIGHT_me3_t_\0"); strcat(fname,avgfile);
     fprint_silac_t_nCycles(fname,r.K27,me3,r.silac,LIGHT,&r);
     
-    // new histones
+    // heavy histones
     strcpy(fname,"HEAVY_me0_t_\0"); strcat(fname,avgfile);
     fprint_silac_t_nCycles(fname,r.K27,me0,r.silac,HEAVY,&r);
     strcpy(fname,"HEAVY_me1_t_\0"); strcat(fname,avgfile);
@@ -402,6 +447,15 @@ int main(int argc, char *argv[]) {
     strcpy(fname,"HEAVY_me3_t_\0"); strcat(fname,avgfile);
     fprint_silac_t_nCycles(fname,r.K27,me3,r.silac,HEAVY,&r);
 
+    // unlabelled histones
+    strcpy(fname,"UNLABELLED_me0_t_\0"); strcat(fname,avgfile);
+    fprint_silac_t_nCycles(fname,r.K27,me0,r.silac,UNLABELLED,&r);
+    strcpy(fname,"UNLABELLED_me1_t_\0"); strcat(fname,avgfile);
+    fprint_silac_t_nCycles(fname,r.K27,me1,r.silac,UNLABELLED,&r);
+    strcpy(fname,"UNLABELLED_me2_t_\0"); strcat(fname,avgfile);
+    fprint_silac_t_nCycles(fname,r.K27,me2,r.silac,UNLABELLED,&r);
+    strcpy(fname,"UNLABELLED_me3_t_\0"); strcat(fname,avgfile);
+    fprint_silac_t_nCycles(fname,r.K27,me3,r.silac,UNLABELLED,&r);    
   }
   
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);

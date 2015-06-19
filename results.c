@@ -443,3 +443,57 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
 
   return(1);
 }
+
+void fprintTripleSILAC(FILE *fptrAbs, FILE *fptrRel, long locus, parameters *p, record *r) {
+  int count_me0_LIGHT = 0;
+  int count_me0_HEAVY = 0;
+  int count_me1_LIGHT = 0;
+  int count_me1_HEAVY = 0;
+  int count_me2_LIGHT = 0;
+  int count_me2_HEAVY = 0;
+  int count_me3_LIGHT = 0;
+  int count_me3_HEAVY = 0;
+  int j, t, tot_HEAVY, tot_LIGHT;
+  double time;
+  
+  t = p->reactCount-1;
+  time = p->SILAC_nextReport;
+  
+  for (j=0;j<r->K27->rows;j++) {
+    if (r->K27->el[j][t] == me0 && r->silac->el[j][t] == LIGHT) count_me0_LIGHT++;
+    if (r->K27->el[j][t] == me0 && r->silac->el[j][t] == HEAVY) count_me0_HEAVY++;
+    if (r->K27->el[j][t] == me1 && r->silac->el[j][t] == LIGHT) count_me1_LIGHT++;
+    if (r->K27->el[j][t] == me1 && r->silac->el[j][t] == HEAVY) count_me1_HEAVY++;
+    if (r->K27->el[j][t] == me2 && r->silac->el[j][t] == LIGHT) count_me2_LIGHT++;
+    if (r->K27->el[j][t] == me2 && r->silac->el[j][t] == HEAVY) count_me2_HEAVY++;
+    if (r->K27->el[j][t] == me3 && r->silac->el[j][t] == LIGHT) count_me3_LIGHT++;
+    if (r->K27->el[j][t] == me3 && r->silac->el[j][t] == HEAVY) count_me3_HEAVY++;
+  }
+
+  /* Print absolute values */
+  fprintf(fptrAbs,"%ld\t%0.4f\tme0\tLIGHT\t%0.10f\n",locus,time,(double)count_me0_LIGHT/(double)r->K27->rows);
+  fprintf(fptrAbs,"%ld\t%0.4f\tme0\tHEAVY\t%0.10f\n",locus,time,(double)count_me0_HEAVY/(double)r->K27->rows);
+  fprintf(fptrAbs,"%ld\t%0.4f\tme1\tLIGHT\t%0.10f\n",locus,time,(double)count_me1_LIGHT/(double)r->K27->rows);
+  fprintf(fptrAbs,"%ld\t%0.4f\tme1\tHEAVY\t%0.10f\n",locus,time,(double)count_me1_HEAVY/(double)r->K27->rows);
+  fprintf(fptrAbs,"%ld\t%0.4f\tme2\tLIGHT\t%0.10f\n",locus,time,(double)count_me2_LIGHT/(double)r->K27->rows);
+  fprintf(fptrAbs,"%ld\t%0.4f\tme2\tHEAVY\t%0.10f\n",locus,time,(double)count_me2_HEAVY/(double)r->K27->rows);
+  fprintf(fptrAbs,"%ld\t%0.4f\tme3\tLIGHT\t%0.10f\n",locus,time,(double)count_me3_LIGHT/(double)r->K27->rows);
+  fprintf(fptrAbs,"%ld\t%0.4f\tme3\tHEAVY\t%0.10f\n",locus,time,(double)count_me3_HEAVY/(double)r->K27->rows);
+
+  /* Print relative values */
+  tot_LIGHT = count_me0_LIGHT + count_me1_LIGHT + count_me2_LIGHT + count_me3_LIGHT;
+  tot_HEAVY = count_me0_HEAVY + count_me1_HEAVY + count_me2_HEAVY + count_me3_HEAVY;
+  fprintf(fptrRel,"%ld\t%0.4f\ttot\tLIGHT\t%0.10f\n",locus,time,(double)tot_LIGHT/r->K27->rows);
+  fprintf(fptrRel,"%ld\t%0.4f\ttot\tHEAVY\t%0.10f\n",locus,time,(double)tot_HEAVY/r->K27->rows);
+  fprintf(fptrRel,"%ld\t%0.4f\tme0\tLIGHT\t%0.10f\n",locus,time,(double)count_me0_LIGHT/(double)tot_LIGHT);
+  fprintf(fptrRel,"%ld\t%0.4f\tme0\tHEAVY\t%0.10f\n",locus,time,(double)count_me0_HEAVY/(double)tot_HEAVY);
+  fprintf(fptrRel,"%ld\t%0.4f\tme1\tLIGHT\t%0.10f\n",locus,time,(double)count_me1_LIGHT/(double)tot_LIGHT);
+  fprintf(fptrRel,"%ld\t%0.4f\tme1\tHEAVY\t%0.10f\n",locus,time,(double)count_me1_HEAVY/(double)tot_HEAVY);
+  fprintf(fptrRel,"%ld\t%0.4f\tme2\tLIGHT\t%0.10f\n",locus,time,(double)count_me2_LIGHT/(double)tot_LIGHT);
+  fprintf(fptrRel,"%ld\t%0.4f\tme2\tHEAVY\t%0.10f\n",locus,time,(double)count_me2_HEAVY/(double)tot_HEAVY);
+  fprintf(fptrRel,"%ld\t%0.4f\tme3\tLIGHT\t%0.10f\n",locus,time,(double)count_me3_LIGHT/(double)tot_LIGHT);
+  fprintf(fptrRel,"%ld\t%0.4f\tme3\tHEAVY\t%0.10f\n",locus,time,(double)count_me3_HEAVY/(double)tot_HEAVY);
+
+  return;
+} 
+

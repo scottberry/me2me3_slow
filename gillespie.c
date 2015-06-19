@@ -24,6 +24,14 @@ void initialiseActive(chromatin *c) {
   return;
 }
 
+void initialiseSilacLight(chromatin *c) {
+  int i;
+  for (i=0;i<c->sites;i++) {
+    c->silac->el[i] = LIGHT;
+  }
+  return;
+}
+
 void initialiseRandom(chromatin *c, parameters *p) {
   int i;
   double rand;

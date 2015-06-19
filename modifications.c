@@ -52,9 +52,12 @@ void replicateDNA(chromatin *c, parameters *p, flags *update) {
         if (p->silacLabel == LIGHT) {
           c->silac->el[pos] = LIGHT;
           c->silac->el[pos+1] = LIGHT;
-        } else {
+        } else if (p->silacLabel == HEAVY) {
           c->silac->el[pos] = HEAVY;
           c->silac->el[pos+1] = HEAVY;
+        } else {
+          c->silac->el[pos] = UNLABELLED;
+          c->silac->el[pos+1] = UNLABELLED;
         }
       }
     }

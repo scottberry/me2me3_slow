@@ -33,6 +33,7 @@
 
 #define LIGHT 0
 #define HEAVY 1
+#define UNLABELLED 2
 
 typedef unsigned char logical;
 
@@ -74,6 +75,9 @@ typedef struct {
   logical silacExperiment;
   int silacLabel;
   long silacLightCycles;
+  long silacHeavyCycles;
+  double SILAC_0h, SILAC_10h, SILAC_24h, SILAC_48h, SILAC_nextReport;
+  int SILAC_report;
   
 } parameters;
  
@@ -121,6 +125,7 @@ void replicateDNA(chromatin *c, parameters *p, flags *update);
 // gillespie.c
 void initialiseRepressed(chromatin *c);
 void initialiseActive(chromatin *c);
+void initialiseSilacLight(chromatin *c);
 void initialiseRandom(chromatin *c, parameters *p);
 double d_vec_sum(D_VEC *d);
 void initialiseGillespieFunctions(chromatin *c, gillespie *g);
@@ -149,3 +154,4 @@ double tAverage_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r)
 unsigned long numberHistoneStateFlips(record *r);
 double firstPassageTime(record *r, signed char *initial);
 int writelog(FILE *fptr, chromatin *c, parameters *p, record *r);
+void fprintTripleSILAC(FILE *fptrAbs, FILE *fptrRel, long locus, parameters *p, record *r);
