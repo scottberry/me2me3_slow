@@ -42,6 +42,7 @@ typedef struct {
   long controlSites;
   I_VEC *K27;
   I_VEC *silac;
+  logical transcribing;
 } chromatin;
 
 typedef struct {
@@ -59,6 +60,7 @@ typedef struct {
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate;
   double activation;
+  double transcriptionDelay, PRC2inhibition;
   
   // cell cycle parameters
   double firingFactor;
@@ -90,7 +92,7 @@ typedef struct {
   I_VEC *methylate_index;
   I_VEC *transcribeDNA_index;
   func_ptr_t *doReaction;
-  double t_nextRep, t_nextEndG2;
+  double t_nextRep, t_nextEndG2, t_nextEndTranscription;
   flags *update;
 
   // test parameters
@@ -134,8 +136,10 @@ double fracControlRegion_me2me3(chromatin *c);
 double enzymaticFactor(chromatin *c, parameters *p, int pos);
 double neighboursK27factor(chromatin *c, parameters *p, int pos);
 void updatePropensities(chromatin *c, parameters *p, gillespie *g);
+void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillespie *g);
 double gillespieTimeStep(parameters *p, gillespie *g, double *p_s);
 void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r);
+void gillespieStepTranscriptionDelays(chromatin *c, parameters *p, gillespie *g, record *r);
 
 // results.c
 char *str_replace(char *orig, char *rep, char *with);

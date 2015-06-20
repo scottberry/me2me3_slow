@@ -186,6 +186,45 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
   return;
 }
 
+/* Update the propensities based on change in system K27. */
+
+void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillespie *g) {
+  int i;
+  double f_me2_me3, PRC2activity;
+   
+  if (g->update->histone==TRUE) {
+    f_me2_me3 = fracControlRegion_me2me3(c);
+    //f_me2_me3 = frac(c->K27,me2) + frac(c->K27,me3);
+
+    if (c->transcribing == TRUE)
+      PRC2activity = 1.0/p->PRC2inhibition;
+    else
+      PRC2activity = 1.0;
+    
+    for (i=0;i<c->sites;i++) {
+      // fprintf(stderr,"i = %d, neighboursK27factor = %0.2f\n",i,neighboursK27factor(c,p,i));
+      if (c->K27->el[i] == me0) { // methylate
+        g->propensity->el[g->methylate_index->el[i]] = p->noisy_me0_me1 + p->me0_me1*(neighboursK27factor(c,p,i))*PRC2activity;
+      } else if (c->K27->el[i] == me1) {
+        g->propensity->el[g->methylate_index->el[i]] = p->noisy_me1_me2 + p->me1_me2*(neighboursK27factor(c,p,i))*PRC2activity;
+      } else if (c->K27->el[i] == me2) {
+        g->propensity->el[g->methylate_index->el[i]] = p->noisy_me2_me3 + p->me2_me3*(neighboursK27factor(c,p,i))*PRC2activity;
+      } else {
+        g->propensity->el[g->methylate_index->el[i]] = 0.0;
+      }
+    }
+   
+    // transcribeDNA
+    g->propensity->el[g->transcribeDNA_index->el[0]] =
+      p->activation*p->firingFactor*(p->firingRateMax + f_me2_me3*(p->firingRateMin - p->firingRateMax));
+     
+    g->update->histone = FALSE; // reset the flag
+     
+  }
+
+  return;
+}
+
 /* calculate the gillespie time step (and propensity sum in argument p_s) */
 double gillespieTimeStep(parameters *p, gillespie *g, double *p_s) {
   double delta_t, r1=0.0;
@@ -304,6 +343,106 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
     // record time of each firing event
     if (g->update->transcribed == TRUE) {
       r->firing->el[p->reactCount] = TRUE;
+      g->update->transcribed = FALSE;
+    } else {
+      r->firing->el[p->reactCount] = FALSE;
+    }
+  }
+  
+  return;
+}
+
+/* Gillespie algorithm with delays for each transcription event 
+   Add variables:
+   logical c.transcribing 
+   double p.transcriptionDelay (duration of transcription event)
+   double g.t_nextEndTranscription
+*/
+
+void gillespieStepTranscriptionDelays(chromatin *c, parameters *p, gillespie *g, record *r) {
+  double delta_t, sum, p_s, r2=0.0, scaled_r2=0.0, next_t;
+  long m, step;
+  logical chooseGillespieReaction = TRUE;
+
+  step = p->reactCount;
+  
+  // update propensities
+  updatePropensitiesTranscriptionInhibit(c,p,g);
+  
+  // calculate time step
+  // (p_s also returns propensity sum for use in Gillespie reaction selection).
+  delta_t = gillespieTimeStep(p,g,&p_s);
+  next_t = delta_t + r->t->el[step-1];
+
+  /* Check delayed reactions.
+     (priority in r->t update given to DNA replication if two delayed
+     reactions occur simultaneously) */
+  /* ---------------------------------------- */
+
+  /* Terminate transcription */
+  if (next_t > g->t_nextEndTranscription && c->transcribing == TRUE) {
+    c->transcribing = FALSE; // update transcription status
+    g->update->histone = TRUE; // force propensity recalculation
+    r->t->el[step] = g->t_nextEndTranscription; // increment system time
+    chooseGillespieReaction = FALSE; // discard gillespie reaction
+    //fprintf(stderr,"terminate: t = %0.2f sec\n",r->t->el[step]);
+  }
+  
+  /*  Release G2 firing inhibition. */
+  if (next_t > g->t_nextEndG2 && p->G2duration > 0.0) {
+    p->firingFactor = 1.0; // update firing factor
+    g->update->histone = TRUE; // force propensity recalculation
+    r->t->el[step] = g->t_nextEndG2; // increment system time
+    g->t_nextEndG2 += p->cellCycleDuration*3600; // schedule next 
+    chooseGillespieReaction = FALSE; // discard gillespie reaction
+    // fprintf(stderr,"release G2: t = %0.2f hours\n",r->t->el[step]/3600.0);
+  }
+
+  /* DNA replication */
+  if (next_t > g->t_nextRep) {
+    p->cellCycleCount++; // increment counters 
+    r->t->el[step] = g->t_nextRep; // update system time
+    if (p->DNAreplication == TRUE)  {
+      replicateDNA(c,p,g->update); // replicate DNA
+      if (p->G2duration > 0.0) p->firingFactor = 0.5; // inhibit transcription
+    }
+    g->t_nextRep += p->cellCycleDuration*3600; // schedule next
+    chooseGillespieReaction = FALSE; // discard gillespie reaction
+    // fprintf(stderr,"replicate: t = %0.2f hours\n",r->t->el[step]/3600.0);
+  }
+  
+  /* End delayed reactions */
+  /* ---------------------------------------- */
+  
+  if (chooseGillespieReaction == TRUE) {
+
+    // store new (stochastically chosen) time
+    r->t->el[step] = next_t;
+    
+    // choose reaction m from propensities based on scaled_r2
+    r2 = runif(p->gsl_r);
+    scaled_r2 = p_s*r2;
+
+    sum = 0;
+    m = 0;
+
+    if (scaled_r2 > g->propensity->el[0]) { // protect against r2==0.0
+      while (scaled_r2 > sum) {
+        sum += g->propensity->el[m];
+        m++;
+      }
+      m--;
+    } else {
+      m=0;
+    }
+    g->doReaction[m](c,p,g->update,g->doReactionParam->el[m]);
+
+    // record each firing event
+    if (g->update->transcribed == TRUE) {
+      r->firing->el[p->reactCount] = TRUE;
+      // fprintf(stderr,"fire: t = %0.2f sec\n",r->t->el[step]);
+      c->transcribing = TRUE;
+      g->t_nextEndTranscription = r->t->el[step] + p->transcriptionDelay;
       g->update->transcribed = FALSE;
     } else {
       r->firing->el[p->reactCount] = FALSE;
