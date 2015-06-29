@@ -16,7 +16,7 @@ a <- 1.0
 st <- 1
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
-# 
+ 
 # time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
 # tDep_me2_file <- paste("me2_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
 # tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
