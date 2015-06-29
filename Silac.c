@@ -12,17 +12,17 @@ void usage(void)
 }
 
 int main(int argc, char *argv[]) {
-  FILE *fptr, *parFile, *silacAbsFile, *silacRelFile;
+  FILE *fptr, *parFile, *silacAbsFile, *silacRelFile, *silacRelAvgFile;
   char avgfile[128]="", fname[128]="", tmp[128]="", buffer[128]="";
   char parameterSpace[128]="", ptmp[128]="", id[16]="";
-  char silacAbs[128]="", silacRel[128]="";
+  char silacAbs[128]="", silacRel[128]="", silacRelAvg[128]="";
   char *decimal = ".", *underscore = "_";
   chromatin c;
   parameters p;
   gillespie g;
   record r;
   signed char initial;
-  double gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
+  double gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime, me3_end;
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
   long i, j, locus, fh, initM, initU, seed;
   double probM, probU, bistability;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 100;
+  p.loci = 50;
   p.maxReact = 20000;
   p.samples = 20000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -66,18 +66,19 @@ int main(int argc, char *argv[]) {
   p.cellCycles = 15;
   p.silacLightCycles = 10;
   p.silacHeavyCycles = 1;
-  p.cellCycleDuration = 22.0; // (hours)
+  p.cellCycleDuration = 23.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
 
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = TRUE;
-  p.resultsFinalLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
+  p.resultsSilacEachLocus = FALSE;
 
   // Test gillespie algorithm
   g.test = FALSE;
-  p.optimSteps = 1; 
+  p.optimSteps = 17; 
   
   /* Parse command line */
   opterr = 0;
@@ -135,11 +136,11 @@ int main(int argc, char *argv[]) {
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
 \tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
 \tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
 
   if (g.test==TRUE)
     g.test_fptr = fopen("TestGillespieFromMain.txt","w");
@@ -169,32 +170,49 @@ int main(int argc, char *argv[]) {
     p.SILAC_10h = p.SILAC_0h + (double)3600*10;
     p.SILAC_24h = p.SILAC_0h + (double)3600*24;
     p.SILAC_48h = p.SILAC_0h + (double)3600*48;
-    strcpy(silacAbs,"SilacAbs_\0"); strcat(silacAbs,avgfile); 
-    silacAbsFile = fopen(silacAbs,"w");
-    fprintf(silacAbsFile,"locus\ttime\tmod\tlabel\tlevel\n");
-    strcpy(silacRel,"SilacRel_\0"); strcat(silacRel,avgfile); 
-    silacRelFile = fopen(silacRel,"w");
-    fprintf(silacRelFile,"locus\ttime\tmod\tlabel\tlevel\n");
+
+    r.silacResultsLight_0h = d_vec_get(p.loci);
+    r.silacResultsLight_10h = d_vec_get(p.loci);
+    r.silacResultsLight_24h = d_vec_get(p.loci);
+    r.silacResultsLight_48h = d_vec_get(p.loci);
+    r.silacResultsHeavy_0h = d_vec_get(p.loci);
+    r.silacResultsHeavy_10h = d_vec_get(p.loci);
+    r.silacResultsHeavy_24h = d_vec_get(p.loci);
+    r.silacResultsHeavy_48h = d_vec_get(p.loci);
+
+    if (p.resultsSilacEachLocus == TRUE) {
+      strcpy(silacAbs,"SilacAbs_\0"); strcat(silacAbs,avgfile); 
+      silacAbsFile = fopen(silacAbs,"w");
+      fprintf(silacAbsFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tlocus\ttime\tmod\tlabel\tlevel\n");
+      strcpy(silacRel,"SilacRel_\0"); strcat(silacRel,avgfile); 
+      silacRelFile = fopen(silacRel,"w");
+      fprintf(silacRelFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tlocus\ttime\tmod\tlabel\tlevel\n");
+    }
+    
+    strcpy(silacRelAvg,"SilacRelAverage_\0"); strcat(silacRelAvg,avgfile); 
+    silacRelAvgFile = fopen(silacRelAvg,"w");
+    fprintf(silacRelAvgFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\ttime\tmod\tlabel\tlevel\n");
   }
 
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<1;p1++) { // 7
-    for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=0;p3<p.optimSteps;p3++) {
+  for (p1=6;p1<7;p1++) { // 7
+    for (p2=11;p2<p.optimSteps;p2++) {
+      for (p3=11;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         //setseed(&p,0);
-        /*      
+              
         FIRING = 0.0004*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.2*(p2+3));
         P_METHYLATE = pow(10,-0.15*(p3+20));
-        */
+        
+        /*
         FIRING = 0.0064;
         P_DEMETHYLATE = 0.000;
         P_METHYLATE = 0.0001;
-        
+        */
         // Transcription
         // ------------------------------------------------------------
         p.firingRateMin = 0.0004; // Leave the repressed firing rate fixed at ~ every 40 min.
@@ -230,6 +248,7 @@ int main(int argc, char *argv[]) {
         // ------------------------------------------------------------        
         gap = 0.0;
         Mavg = 0.0;
+        me3_end = 0.0;
         probM = 0.0;
         probU = 0.0;
         fh = 0;
@@ -292,7 +311,11 @@ int main(int argc, char *argv[]) {
 
             // SILAC report points
             if (r.t->el[p.reactCount] >= p.SILAC_nextReport && p.SILAC_report <= 4) {
-              fprintTripleSILAC(silacAbsFile,silacRelFile,locus,&p,&r);
+              storeTripleSILAC_me3(locus,&p,&r);
+
+              if (p.resultsSilacEachLocus == TRUE)
+                fprintTripleSILAC_eachLocus(silacAbsFile,silacRelFile,locus,&p,&r);
+              
               if (p.SILAC_report == 1) {
                 p.SILAC_report = 2;
                 p.SILAC_nextReport = p.SILAC_10h;
@@ -320,6 +343,7 @@ int main(int argc, char *argv[]) {
           if (p.resultsLastHourOnly == TRUE) {
             gap += tAverageGap_lastHour_nCycles(&c,&p,&r);
             Mavg += tAverage_me2_me3_lastHour_nCycles(&c,&p,&r);
+            me3_end += tAverage_me3_lastHour_nCycles(&c,&p,&r);
             probM += prob_me2_me3_lastHour_nCycles(&c,&p,&r);
             probU += prob_me0_me1_lastHour_nCycles(&c,&p,&r);
           } else {
@@ -374,18 +398,20 @@ int main(int argc, char *argv[]) {
 
         fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\
-\t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
+\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
                 FIRING,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
-                probM/p.loci,probU/p.loci,bistability);
+                probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
         fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
-%0.4f  %0.4f  %0.4f  %0.4f\n",
+%0.4f  %0.4f  %0.4f  %0.4f  %0.6f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
                 FIRING,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
-                probM/p.loci,probU/p.loci,bistability);
+                probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
+
+        fprintTripleSILAC_average(silacRelAvgFile,&p,&r);
       }
     }
   }
@@ -395,6 +421,7 @@ int main(int argc, char *argv[]) {
   if (p.silacExperiment == TRUE) {
     fclose(silacAbsFile);
     fclose(silacRelFile);
+    fclose(silacRelAvgFile);
   }
     
   /* -------------------------------------------------------------------------------- */
@@ -467,6 +494,17 @@ int main(int argc, char *argv[]) {
   d_vec_free(r.t);
   d_vec_free(r.t_out);
 
+  if (p.silacExperiment == TRUE) {
+    d_vec_free(r.silacResultsLight_0h);
+    d_vec_free(r.silacResultsLight_10h);
+    d_vec_free(r.silacResultsLight_24h);
+    d_vec_free(r.silacResultsLight_48h);
+    d_vec_free(r.silacResultsHeavy_0h);
+    d_vec_free(r.silacResultsHeavy_10h);
+    d_vec_free(r.silacResultsHeavy_24h);
+    d_vec_free(r.silacResultsHeavy_48h);
+  }
+  
 #ifdef __APPLE__
   timeElapsed = mach_absolute_time() - start;
   timeElapsed *= info.numer;

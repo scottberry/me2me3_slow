@@ -80,6 +80,7 @@ typedef struct {
   long silacHeavyCycles;
   double SILAC_0h, SILAC_10h, SILAC_24h, SILAC_48h, SILAC_nextReport;
   int SILAC_report;
+  logical resultsSilacEachLocus;
   
 } parameters;
  
@@ -108,6 +109,10 @@ typedef struct {
   D_VEC *t, *t_out;
   double tMax;
   unsigned long t_outLastSample;
+
+  D_VEC *silacResultsLight_0h, *silacResultsLight_10h, *silacResultsLight_24h, *silacResultsLight_48h;
+  D_VEC *silacResultsHeavy_0h, *silacResultsHeavy_10h, *silacResultsHeavy_24h, *silacResultsHeavy_48h;
+  
 } record;
 
 /* Function prototypes */
@@ -155,7 +160,10 @@ double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r);
 double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r);
 double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r);
 double tAverage_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r);
+double tAverage_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r);
 unsigned long numberHistoneStateFlips(record *r);
 double firstPassageTime(record *r, signed char *initial);
 int writelog(FILE *fptr, chromatin *c, parameters *p, record *r);
-void fprintTripleSILAC(FILE *fptrAbs, FILE *fptrRel, long locus, parameters *p, record *r);
+void fprintTripleSILAC_eachLocus(FILE *fptrAbs, FILE *fptrRel, long locus, parameters *p, record *r);
+void storeTripleSILAC_me3(long locus, parameters *p, record *r);
+void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r);
