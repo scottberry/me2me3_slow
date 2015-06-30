@@ -66,19 +66,19 @@ int main(int argc, char *argv[]) {
   p.cellCycles = 15;
   p.silacLightCycles = 10;
   p.silacHeavyCycles = 1;
-  p.cellCycleDuration = 23.0; // (hours)
+  p.cellCycleDuration = 22.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
 
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = TRUE;
-  p.resultsFinalLocus = FALSE;
-  p.resultsSilacEachLocus = FALSE;
+  p.resultsFinalLocus = TRUE;
+  p.resultsSilacEachLocus = TRUE;
 
   // Test gillespie algorithm
   g.test = FALSE;
-  p.optimSteps = 17; 
+  p.optimSteps = 1; 
   
   /* Parse command line */
   opterr = 0;
@@ -134,11 +134,11 @@ int main(int argc, char *argv[]) {
 
   parFile = fopen(parameterSpace,"w");
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
+\tFIRING_K\tFIRING_HILL\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
+\tFIRING_K\tFIRING_HILL\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
 
@@ -197,26 +197,28 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=6;p1<7;p1++) { // 7
-    for (p2=11;p2<p.optimSteps;p2++) {
-      for (p3=11;p3<p.optimSteps;p3++) {
+  for (p1=4;p1<=4;p1++) { // 7
+    for (p2=0;p2<p.optimSteps;p2++) {
+      for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         //setseed(&p,0);
-              
-        FIRING = 0.0004*pow(2,p1);
+                      
+        FIRING = 0.0004*pow(2,6);
         P_DEMETHYLATE = pow(10,-0.2*(p2+3));
         P_METHYLATE = pow(10,-0.15*(p3+20));
         
-        /*
-        FIRING = 0.0064;
-        P_DEMETHYLATE = 0.000;
-        P_METHYLATE = 0.0001;
-        */
+        
+        FIRING = 0.0256;
+        P_DEMETHYLATE = 0.0005;
+        P_METHYLATE = 0.000008;
+        
         // Transcription
         // ------------------------------------------------------------
-        p.firingRateMin = 0.0004; // Leave the repressed firing rate fixed at ~ every 40 min.
+        p.firingRateMin = 0.0002; // Leave the repressed firing rate fixed at ~ every 80 min.
         p.firingRateMax = FIRING; // Optimise
+        p.firingHill = 1.0*p1; // Optimise
+        p.firingK = 0.2;
         p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
         if (p.firingRateMax < p.firingRateMin) {
           fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
@@ -396,18 +398,18 @@ int main(int argc, char *argv[]) {
           tU = -1.0;
         }
 
-        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
+        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\
 \t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
+                FIRING,p.firingK,p.firingHill,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
-        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
+        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
 %0.4f  %0.4f  %0.4f  %0.4f  %0.6f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
+                FIRING,p.firingK,p.firingHill,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
 

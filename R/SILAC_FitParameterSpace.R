@@ -13,7 +13,7 @@ s <- 60
 ctrl <- 60
 cc <- 15
 a <- 1.0
-st <- 17
+st <- 18
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 
@@ -72,7 +72,7 @@ p <- p + geom_raster(aes(fill=me3_end)) +
                 labels = trans_format("log10", math_format(10^.x))) +
   scale_x_log10("Demethylation probability (per histone per firing)",
                 labels = trans_format("log10", math_format(10^.x))) +
-  coord_fixed(ratio=1) +
+  coord_fixed(ratio=1) + facet_grid(FIRING_K ~ .) +
   scale_fill_gradientn(name="me3_end",colours=rev(rainbow(3)),limits=c(0,1)) +
   theme_bw(7) + theme_thesis_multiplanel +
   theme(plot.title = element_text(lineheight=.8, face="bold"),
@@ -90,7 +90,7 @@ p <- p + geom_raster(aes(fill=bistability)) +
                 labels = trans_format("log10", math_format(10^.x))) +
   scale_x_log10("Demethylation probability (per histone per firing)",
                 labels = trans_format("log10", math_format(10^.x))) +
-  coord_fixed(ratio=1) +
+  coord_fixed(ratio=1) + facet_grid(FIRING_HILL ~ .) +
   scale_fill_gradientn(name="Bistability",colours=rev(rainbow(3)),limits=c(0,1)) +
   theme_bw(7) + theme_thesis_multiplanel +
   theme(plot.title = element_text(lineheight=.8, face="bold"),
@@ -99,4 +99,6 @@ p <- p + geom_raster(aes(fill=bistability)) +
         axis.text.x = element_text(angle=0),
         strip.text.x = element_text(size=7, angle=0),
         strip.text.y = element_text(size=7, angle=0))
+p
+ggsave("HillCoefficient.pdf",width=7,height=18,units="cm")
 p
