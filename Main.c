@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 100;
+  p.loci = 10;
   p.maxReact = 100000;
   p.samples = 100000; 
   p.sampleFreq = p.maxReact/p.samples;
