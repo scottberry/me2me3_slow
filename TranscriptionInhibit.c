@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 10;
+  p.loci = 1;
   p.maxReact = 100000;
   p.samples = 100000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -70,12 +70,13 @@ int main(int argc, char *argv[]) {
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = FALSE;
-  p.resultsFinalLocus = FALSE;
+  p.resultsFinalLocus = TRUE;
+  p.resultsTranscribing = TRUE;
 
   // Test gillespie algorithm
   g.test = FALSE;
   
-  p.optimSteps = 20; 
+  p.optimSteps = 1; 
   
   /* Parse command line */
   opterr = 0;
@@ -162,6 +163,8 @@ int main(int argc, char *argv[]) {
 
   r.t = d_vec_get(p.maxReact + 1);
   r.firing = i_vec_get(p.maxReact + 1);
+  if (p.resultsTranscribing == TRUE)
+    r.transcribing = i_vec_get(p.maxReact + 1);
   r.t_out = d_vec_get(p.samples);
   r.K27 = i_mat_get(c.sites,p.samples);
   
@@ -171,22 +174,22 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<7;p1++) { // 7
+  for (p1=0;p1<1;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
-        //setseed(&p,0);
-            
+        setseed(&p,5);
+        /*
         FIRING = 0.0004*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.15*(p2+4));
         P_METHYLATE = pow(10,-0.12*(p3+26));
+        */
         
-        /*
         FIRING = 0.0064;
         P_DEMETHYLATE = 0.1;
         P_METHYLATE = 0.00015;
-        */
+        
         // Transcription
         // ------------------------------------------------------------
         p.firingRateMin = 0.0004; // Leave the repressed firing rate fixed at ~ every 40 min.
@@ -197,7 +200,7 @@ int main(int argc, char *argv[]) {
           p.firingRateMin = p.firingRateMax;
         }
         p.transcriptionDelay = 180;
-        p.PRC2inhibition = 4.0; // fold-change from un-transcribed
+        p.PRC2inhibition = 1.0; // fold-change from un-transcribed
         
         // Methylation/demethylation
         // ------------------------------------------------------------
@@ -389,12 +392,19 @@ int main(int argc, char *argv[]) {
     strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
     fprint_firing_t_nCycles(fname,&r);
   }
+
+  if (p.resultsTranscribing == TRUE) {
+    strcpy(fname,"Transcribing_t_\0"); strcat(fname,avgfile);
+    fprint_transcribing_t_nCycles(fname,&r);  
+  }
   
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);
   fptr = fopen(fname,"w");
   writelog(fptr,&c,&p,&r);
 
   i_vec_free(r.firing);
+  if (p.resultsTranscribing == TRUE)
+    i_vec_free(r.transcribing);
   i_mat_free(r.K27);
   d_vec_free(r.t);
   d_vec_free(r.t_out);

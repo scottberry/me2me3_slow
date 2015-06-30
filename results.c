@@ -131,6 +131,23 @@ void fprint_firing_t_nCycles(char *fname, record *r) {
   return;
 }
 
+/* Print transcription status for each time point
+   Length depends directly on r.tMax, which is 
+   determined by p.cellCycles */
+
+void fprint_transcribing_t_nCycles(char *fname, record *r) {
+  FILE *fptr;
+  long unsigned i;
+
+  fptr = fopen(fname,"w");
+  fprintf(fptr,"t\ttranscribing\n");
+  for (i=0;i<r->firing->len && r->t->el[i]<r->tMax;i++) {
+    fprintf(fptr,"%0.4f\t%d\n",r->t->el[i],r->transcribing->el[i]);
+  }
+  fclose(fptr);
+  return;
+}
+
 /* Calculate the "Gap" parameter, as defined in Dodd et al. 2007:
    |M-A|/(M+A). Average over time for a single locus. Note that
    function evaluation accounts for non-constant time-step using 

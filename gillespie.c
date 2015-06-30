@@ -389,7 +389,7 @@ void gillespieStepTranscriptionDelays(chromatin *c, parameters *p, gillespie *g,
   if (next_t > g->t_nextEndTranscription && c->transcribing == TRUE) {
     c->transcribing = FALSE; // update transcription status
     g->update->histone = TRUE; // force propensity recalculation
-    r->t->el[step] = g->t_nextEndTranscription; // increment system time
+    r->t->el[step] = g->t_nextEndTranscription; // update system time
     chooseGillespieReaction = FALSE; // discard gillespie reaction
     //fprintf(stderr,"terminate: t = %0.2f sec\n",r->t->el[step]);
   }
@@ -398,7 +398,7 @@ void gillespieStepTranscriptionDelays(chromatin *c, parameters *p, gillespie *g,
   if (next_t > g->t_nextEndG2 && p->G2duration > 0.0) {
     p->firingFactor = 1.0; // update firing factor
     g->update->histone = TRUE; // force propensity recalculation
-    r->t->el[step] = g->t_nextEndG2; // increment system time
+    r->t->el[step] = g->t_nextEndG2; // update system time
     g->t_nextEndG2 += p->cellCycleDuration*3600; // schedule next 
     chooseGillespieReaction = FALSE; // discard gillespie reaction
     // fprintf(stderr,"release G2: t = %0.2f hours\n",r->t->el[step]/3600.0);
@@ -445,13 +445,16 @@ void gillespieStepTranscriptionDelays(chromatin *c, parameters *p, gillespie *g,
 
     // record each firing event
     if (g->update->transcribed == TRUE) {
-      r->firing->el[p->reactCount] = TRUE;
+      r->firing->el[step] = TRUE;
       // fprintf(stderr,"fire: t = %0.2f sec\n",r->t->el[step]);
       c->transcribing = TRUE;
       g->t_nextEndTranscription = r->t->el[step] + p->transcriptionDelay;
       g->update->transcribed = FALSE;
     } else {
-      r->firing->el[p->reactCount] = FALSE;
+      r->firing->el[step] = FALSE;
+    }
+    if (p->resultsTranscribing == TRUE) {
+      r->transcribing->el[step] = c->transcribing; // update record
     }
   }
   

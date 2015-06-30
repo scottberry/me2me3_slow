@@ -72,7 +72,7 @@ typedef struct {
   unsigned long loci, reactCount, maxReact;
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
-  logical DNAreplication, resultsLastHourOnly, resultsFinalLocus;
+  logical DNAreplication, resultsLastHourOnly, resultsFinalLocus, resultsTranscribing;
 
   // silac parameters
   logical silacExperiment;
@@ -107,6 +107,7 @@ typedef struct {
   I_MAT *K27;
   I_MAT *silac;
   I_VEC *firing;
+  I_VEC *transcribing;
   D_VEC *t, *t_out;
   double tMax;
   unsigned long t_outLastSample;
@@ -153,6 +154,7 @@ void fprint_t_out_nCycles(char *fname, record *r);
 void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r);
 void fprint_silac_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, int silac_target, record *r);
 void fprint_firing_t_nCycles(char *fname, record *r);
+void fprint_transcribing_t_nCycles(char *fname, record *r);
 double tAverageGap_nCycles(chromatin *c, parameters *p, record *r);
 double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r);
 double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r);
