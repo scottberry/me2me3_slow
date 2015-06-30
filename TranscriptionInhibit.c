@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
   long i, j, locus, fh, initM, initU, seed;
   double probM, probU, bistability;
-  double FIRING, P_DEMETHYLATE, P_METHYLATE;
+  double FIRING, P_DEMETHYLATE, P_METHYLATE, INHIBIT;
   int p1, p2, p3;
   logical startM = FALSE, startU = FALSE, randomSeed = TRUE;
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 1;
+  p.loci = 100;
   p.maxReact = 100000;
   p.samples = 100000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -66,21 +66,22 @@ int main(int argc, char *argv[]) {
   p.cellCycleDuration = 16.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
-
+  INHIBIT = 1.0; // default non-inhbited
+  
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = FALSE;
-  p.resultsFinalLocus = TRUE;
-  p.resultsTranscribing = TRUE;
+  p.resultsFinalLocus = FALSE;
+  p.resultsTranscribing = FALSE;
 
   // Test gillespie algorithm
   g.test = FALSE;
   
-  p.optimSteps = 1; 
+  p.optimSteps = 20; 
   
   /* Parse command line */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:i:murg:")) != -1)
+  while ((j = getopt (argc, argv, "c:a:i:murg:p:")) != -1)
     switch (j)
       {
       case 'c':
@@ -116,6 +117,11 @@ int main(int argc, char *argv[]) {
         sprintf(buffer,"%s",optarg);
         p.G2duration = atof(buffer);
         break;
+
+      case 'p':
+        sprintf(buffer,"%s",optarg);
+        INHIBIT = atof(buffer);
+        break;
         
       default:
         usage();
@@ -129,10 +135,11 @@ int main(int argc, char *argv[]) {
 
   /* Handle filename using command line args */
   sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
-  sprintf(tmp,"ctrl%ld",c.controlSites); strcat(avgfile,tmp);
   sprintf(tmp,"cc%d",p.cellCycles); strcat(avgfile,tmp);
   sprintf(tmp,"%0.2f",p.activation);
   sprintf(ptmp,"a%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(tmp,"%0.2f",INHIBIT);
+  sprintf(ptmp,"p%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"st%ld",p.optimSteps); strcat(avgfile,tmp); 
   strcat(avgfile,id);
   strcat(avgfile,".txt\0");
@@ -141,11 +148,11 @@ int main(int argc, char *argv[]) {
 
   parFile = fopen(parameterSpace,"w");
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
+\tP_DEMETHYLATE\tP_METHYLATE\tINHIBIT\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
+\tP_DEMETHYLATE\tP_METHYLATE\tINHIBIT\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
 
@@ -179,17 +186,17 @@ int main(int argc, char *argv[]) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
-        setseed(&p,5);
-        /*
+        // setseed(&p,5);
+        
         FIRING = 0.0004*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.15*(p2+4));
         P_METHYLATE = pow(10,-0.12*(p3+26));
-        */
         
+        /*
         FIRING = 0.0064;
         P_DEMETHYLATE = 0.1;
         P_METHYLATE = 0.00015;
-        
+        */
         // Transcription
         // ------------------------------------------------------------
         p.firingRateMin = 0.0004; // Leave the repressed firing rate fixed at ~ every 40 min.
@@ -199,8 +206,8 @@ int main(int argc, char *argv[]) {
           fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
           p.firingRateMin = p.firingRateMax;
         }
-        p.transcriptionDelay = 180;
-        p.PRC2inhibition = 1.0; // fold-change from un-transcribed
+        p.transcriptionDelay = 120;
+        p.PRC2inhibition = INHIBIT; // fold-change from un-transcribed
         
         // Methylation/demethylation
         // ------------------------------------------------------------
@@ -342,18 +349,18 @@ int main(int argc, char *argv[]) {
           tU = -1.0;
         }
 
-        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
+        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\
 \t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
+                FIRING,P_DEMETHYLATE,P_METHYLATE,INHIBIT,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability);
-        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
+        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
 %0.4f  %0.4f  %0.4f  %0.4f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
+                FIRING,P_DEMETHYLATE,P_METHYLATE,INHIBIT,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability);
       }
