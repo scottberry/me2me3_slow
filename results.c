@@ -142,7 +142,7 @@ void fprint_transcribing_t_nCycles(char *fname, record *r) {
   fptr = fopen(fname,"w");
   fprintf(fptr,"t\ttranscribing\n");
   for (i=0;i<r->firing->len && r->t->el[i]<r->tMax;i++) {
-    fprintf(fptr,"%0.4f\t%d\n",r->t->el[i],r->transcribing->el[i]);
+    fprintf(fptr,"%0.4f\t%ld\n",r->t->el[i],r->transcribing->el[i]);
   }
   fclose(fptr);
   return;

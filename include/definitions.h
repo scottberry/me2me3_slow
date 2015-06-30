@@ -59,7 +59,7 @@ typedef struct {
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate;
-  double firingHill, firingK;
+  double firingHill, firingK, firingThreshold;
   double activation;
   double transcriptionDelay, PRC2inhibition;
   

@@ -219,6 +219,7 @@ int main(int argc, char *argv[]) {
         p.firingRateMax = FIRING; // Optimise
         p.firingHill = 1.0*p1; // Optimise
         p.firingK = 0.2;
+        p.firingThreshold = 0.5;
         p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
         if (p.firingRateMax < p.firingRateMin) {
           fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
