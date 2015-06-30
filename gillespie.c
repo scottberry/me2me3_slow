@@ -176,14 +176,15 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
     }
    
     // transcribeDNA
-    /* g->propensity->el[g->transcribeDNA_index->el[0]] =
+    g->propensity->el[g->transcribeDNA_index->el[0]] =
       p->activation*p->firingFactor*(p->firingRateMax + f_me2_me3*(p->firingRateMin - p->firingRateMax));
-    */
+    
+    /*
     g->propensity->el[g->transcribeDNA_index->el[0]] =
       p->activation * p->firingFactor *
       (p->firingRateMax - (p->firingRateMax - p->firingRateMin) * pow(f_me2_me3,p->firingHill) /
        (pow(f_me2_me3,p->firingHill) + pow(p->firingK,p->firingHill)));
-    
+    */
     g->update->histone = FALSE; // reset the flag
      
   }
