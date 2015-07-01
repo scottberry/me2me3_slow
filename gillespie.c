@@ -152,6 +152,20 @@ double neighboursK27factor(chromatin *c, parameters *p, int pos) {
   return(n);
 }
 
+/* Define a firing function which is linear between f_max and f_min,
+   which occurs at f_me2_me3 = firingThreshold. */
+
+double firingRate(parameters *p, double f_me2_me3) {
+  double f;
+  if (f_me2_me3 < p->firingThreshold) {
+    f = p->activation * p->firingFactor *
+      (p->firingRateMax + f_me2_me3 * (p->firingRateMin - p->firingRateMax) / p->firingThreshold);
+  } else {
+    f = p->activation * p->firingFactor * p->firingRateMin;
+  }
+  return(f);
+}
+
 /* Update the propensities based on change in system K27. */
 
 void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
@@ -176,18 +190,10 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
     }
    
     // transcribeDNA
-    // linear between f_max and f_min, which occurs at f_me2_me3 = firingThreshold
-    if (f_me2_me3 < p->firingThreshold) {
-      g->propensity->el[g->transcribeDNA_index->el[0]] =
-        p->activation*p->firingFactor*(p->firingRateMax + f_me2_me3 * (p->firingRateMin - p->firingRateMax) / p->firingThreshold);
-    } else {
-      g->propensity->el[g->transcribeDNA_index->el[0]] = p->activation * p->firingFactor * p->firingRateMin;
-    }
-      
-    g->update->histone = FALSE; // reset the flag
-     
-  }
+    g->propensity->el[g->transcribeDNA_index->el[0]] = firingRate(p,f_me2_me3);    
 
+    g->update->histone = FALSE; // reset the flag
+  }
   return;
 }
 
@@ -220,13 +226,10 @@ void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillesp
     }
    
     // transcribeDNA
-    g->propensity->el[g->transcribeDNA_index->el[0]] =
-      p->activation*p->firingFactor*(p->firingRateMax + f_me2_me3*(p->firingRateMin - p->firingRateMax));
-     
+    g->propensity->el[g->transcribeDNA_index->el[0]] = firingRate(p,f_me2_me3);    
     g->update->histone = FALSE; // reset the flag
      
   }
-
   return;
 }
 
