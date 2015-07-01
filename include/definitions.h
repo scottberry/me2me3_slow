@@ -142,6 +142,7 @@ double frac(I_VEC *vec, int target);
 double fracControlRegion_me2me3(chromatin *c);
 double enzymaticFactor(chromatin *c, parameters *p, int pos);
 double neighboursK27factor(chromatin *c, parameters *p, int pos);
+double firingRate(parameters *p, double f_me2_me3);
 void updatePropensities(chromatin *c, parameters *p, gillespie *g);
 void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillespie *g);
 double gillespieTimeStep(parameters *p, gillespie *g, double *p_s);
