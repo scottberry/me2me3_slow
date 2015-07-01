@@ -67,22 +67,24 @@ int main(int argc, char *argv[]) {
   p.silacLightCycles = 10;
   p.silacHeavyCycles = 1;
   p.cellCycleDuration = 22.0; // (hours)
-  p.G2duration = 4.0; // (hours)
+  p.G2duration = 4.0; // can be replaced via command line
   p.activation = 1.0; // can be replaced via command line
-
+  p.firingThreshold = 1.0; // can be replaced via command line
+  
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = TRUE;
   p.resultsFinalLocus = TRUE;
   p.resultsSilacEachLocus = TRUE;
 
+  p.optimSteps = 1; 
+  
   // Test gillespie algorithm
   g.test = FALSE;
-  p.optimSteps = 1; 
   
   /* Parse command line */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:i:mu")) != -1)
+  while ((j = getopt (argc, argv, "c:a:i:mut:")) != -1)
     switch (j)
       {
       case 'c':
@@ -109,6 +111,11 @@ int main(int argc, char *argv[]) {
       case 'u':
         startU = TRUE;
         break;
+
+      case 't':
+        sprintf(buffer,"%s",optarg);
+        p.firingThreshold = atof(buffer);
+        break;
         
       default:
         usage();
@@ -126,6 +133,8 @@ int main(int argc, char *argv[]) {
   sprintf(tmp,"cc%d",p.cellCycles); strcat(avgfile,tmp);
   sprintf(tmp,"%0.2f",p.activation);
   sprintf(ptmp,"a%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(tmp,"%0.2f",p.firingThreshold);
+  sprintf(ptmp,"fir%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"st%ld",p.optimSteps); strcat(avgfile,tmp); 
   strcat(avgfile,id);
   strcat(avgfile,".txt\0");
@@ -217,7 +226,6 @@ int main(int argc, char *argv[]) {
         // ------------------------------------------------------------
         p.firingRateMin = 0.0002; // Leave the repressed firing rate fixed at ~ every 80 min.
         p.firingRateMax = FIRING; // Optimise
-        p.firingThreshold = 0.3;
         p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
         if (p.firingRateMax < p.firingRateMin) {
           fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
