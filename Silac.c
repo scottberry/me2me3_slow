@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 50;
+  p.loci = 1;
   p.maxReact = 20000;
   p.samples = 20000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -134,11 +134,11 @@ int main(int argc, char *argv[]) {
 
   parFile = fopen(parameterSpace,"w");
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_K\tFIRING_HILL\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
+\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_K\tFIRING_HILL\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
+\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
 
@@ -183,43 +183,41 @@ int main(int argc, char *argv[]) {
     if (p.resultsSilacEachLocus == TRUE) {
       strcpy(silacAbs,"SilacAbs_\0"); strcat(silacAbs,avgfile); 
       silacAbsFile = fopen(silacAbs,"w");
-      fprintf(silacAbsFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tlocus\ttime\tmod\tlabel\tlevel\n");
+      fprintf(silacAbsFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tFIRING_THRESHOLDlocus\ttime\tmod\tlabel\tlevel\n");
       strcpy(silacRel,"SilacRel_\0"); strcat(silacRel,avgfile); 
       silacRelFile = fopen(silacRel,"w");
-      fprintf(silacRelFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tlocus\ttime\tmod\tlabel\tlevel\n");
+      fprintf(silacRelFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tFIRING_THRESHOLD\tlocus\ttime\tmod\tlabel\tlevel\n");
     }
     
     strcpy(silacRelAvg,"SilacRelAverage_\0"); strcat(silacRelAvg,avgfile); 
     silacRelAvgFile = fopen(silacRelAvg,"w");
-    fprintf(silacRelAvgFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\ttime\tmod\tlabel\tlevel\n");
+    fprintf(silacRelAvgFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tFIRING_THRESHOLD\ttime\tmod\tlabel\tlevel\n");
   }
 
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=4;p1<=4;p1++) { // 7
+  for (p1=0;p1<1;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=0;p3<p.optimSteps;p3++) {
+      for (p3=0;p3<1;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         //setseed(&p,0);
                       
         FIRING = 0.0004*pow(2,6);
-        P_DEMETHYLATE = pow(10,-0.2*(p2+3));
-        P_METHYLATE = pow(10,-0.15*(p3+20));
+        // P_DEMETHYLATE = pow(10,-0.2*(p2+3));
+        // P_METHYLATE = pow(10,-0.15*(p3+20));
         
         
-        FIRING = 0.0256;
-        P_DEMETHYLATE = 0.0005;
-        P_METHYLATE = 0.000008;
+        // FIRING = 0.0256;
+        P_DEMETHYLATE = 0.00063;
+        P_METHYLATE = 0.0000075;
         
         // Transcription
         // ------------------------------------------------------------
         p.firingRateMin = 0.0002; // Leave the repressed firing rate fixed at ~ every 80 min.
         p.firingRateMax = FIRING; // Optimise
-        p.firingHill = 1.0*p1; // Optimise
-        p.firingK = 0.2;
-        p.firingThreshold = 0.5;
+        p.firingThreshold = 0.3;
         p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
         if (p.firingRateMax < p.firingRateMin) {
           fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
@@ -399,18 +397,20 @@ int main(int argc, char *argv[]) {
           tU = -1.0;
         }
 
-        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
+        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\
 \t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,p.firingK,p.firingHill,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
+                FIRING,p.firingThreshold,
+                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
-        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
+        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
 %0.4f  %0.4f  %0.4f  %0.4f  %0.6f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,p.firingK,p.firingHill,P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
+                FIRING,p.firingThreshold,
+                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
 

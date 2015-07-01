@@ -176,12 +176,7 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
     }
    
     // transcribeDNA
-    // linear
-    /*
-    g->propensity->el[g->transcribeDNA_index->el[0]] =
-      p->activation*p->firingFactor*(p->firingRateMax + f_me2_me3*(p->firingRateMin - p->firingRateMax));
-    */
-    // piece-wise linear
+    // linear between f_max and f_min, which occurs at f_me2_me3 = firingThreshold
     if (f_me2_me3 < p->firingThreshold) {
       g->propensity->el[g->transcribeDNA_index->el[0]] =
         p->activation*p->firingFactor*(p->firingRateMax + f_me2_me3 * (p->firingRateMin - p->firingRateMax) / p->firingThreshold);
@@ -189,13 +184,6 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
       g->propensity->el[g->transcribeDNA_index->el[0]] = p->activation * p->firingFactor * p->firingRateMin;
     }
       
-    /*
-    // hill function
-    g->propensity->el[g->transcribeDNA_index->el[0]] =
-      p->activation * p->firingFactor *
-      (p->firingRateMax - (p->firingRateMax - p->firingRateMin) * pow(f_me2_me3,p->firingHill) /
-       (pow(f_me2_me3,p->firingHill) + pow(p->firingK,p->firingHill)));
-    */
     g->update->histone = FALSE; // reset the flag
      
   }

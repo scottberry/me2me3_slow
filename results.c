@@ -510,28 +510,28 @@ void fprintTripleSILAC_eachLocus(FILE *fptrAbs, FILE *fptrRel, long locus, param
   }
 
   /* Print absolute values */
-  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme0\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me0_LIGHT/(double)r->K27->rows);
-  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme0\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me0_HEAVY/(double)r->K27->rows);
-  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme1\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me1_LIGHT/(double)r->K27->rows);
-  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme1\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me1_HEAVY/(double)r->K27->rows);
-  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme2\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me2_LIGHT/(double)r->K27->rows);
-  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme2\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me2_HEAVY/(double)r->K27->rows);
-  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me3_LIGHT/(double)r->K27->rows);
-  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me3_HEAVY/(double)r->K27->rows);
+  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme0\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me0_LIGHT/(double)r->K27->rows);
+  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme0\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me0_HEAVY/(double)r->K27->rows);
+  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme1\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me1_LIGHT/(double)r->K27->rows);
+  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme1\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me1_HEAVY/(double)r->K27->rows);
+  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme2\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me2_LIGHT/(double)r->K27->rows);
+  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme2\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me2_HEAVY/(double)r->K27->rows);
+  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me3_LIGHT/(double)r->K27->rows);
+  fprintf(fptrAbs,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me3_HEAVY/(double)r->K27->rows);
 
   /* Print relative values */
   tot_LIGHT = count_me0_LIGHT + count_me1_LIGHT + count_me2_LIGHT + count_me3_LIGHT;
   tot_HEAVY = count_me0_HEAVY + count_me1_HEAVY + count_me2_HEAVY + count_me3_HEAVY;
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\ttot\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)tot_LIGHT/r->K27->rows);
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\ttot\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)tot_HEAVY/r->K27->rows);
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme0\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me0_LIGHT/(double)tot_LIGHT);
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme0\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me0_HEAVY/(double)tot_HEAVY);
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme1\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me1_LIGHT/(double)tot_LIGHT);
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme1\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me1_HEAVY/(double)tot_HEAVY);
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme2\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me2_LIGHT/(double)tot_LIGHT);
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme2\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me2_HEAVY/(double)tot_HEAVY);
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me3_LIGHT/(double)tot_LIGHT);
-  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,locus,time,(double)count_me3_HEAVY/(double)tot_HEAVY);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\ttot\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)tot_LIGHT/r->K27->rows);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\ttot\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)tot_HEAVY/r->K27->rows);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme0\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me0_LIGHT/(double)tot_LIGHT);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme0\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me0_HEAVY/(double)tot_HEAVY);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme1\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me1_LIGHT/(double)tot_LIGHT);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme1\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me1_HEAVY/(double)tot_HEAVY);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme2\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me2_LIGHT/(double)tot_LIGHT);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme2\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me2_HEAVY/(double)tot_HEAVY);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me3_LIGHT/(double)tot_LIGHT);
+  fprintf(fptrRel,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%ld\t%0.4f\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,locus,time,(double)count_me3_HEAVY/(double)tot_HEAVY);
 
   return;
 } 
@@ -602,14 +602,14 @@ void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r) {
     //fprintf(stderr,"L48 = %0.10f\n",L48);
   }
 
-  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t0.0\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,L0/(double)p->loci);
-  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t0.0\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,H0/(double)p->loci);
-  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t10.0\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,L10/(double)p->loci);
-  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t10.0\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,H10/(double)p->loci);
-  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t24.0\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,L24/(double)p->loci);
-  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t24.0\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,H24/(double)p->loci);
-  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t48.0\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,L48/(double)p->loci);
-  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t48.0\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,H48/(double)p->loci);
+  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t0.0\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,L0/(double)p->loci);
+  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t0.0\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,H0/(double)p->loci);
+  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t10.0\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,L10/(double)p->loci);
+  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t10.0\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,H10/(double)p->loci);
+  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t24.0\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,L24/(double)p->loci);
+  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t24.0\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,H24/(double)p->loci);
+  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t48.0\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,L48/(double)p->loci);
+  fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t48.0\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,H48/(double)p->loci);
   
   return;
 }
