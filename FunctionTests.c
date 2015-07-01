@@ -110,6 +110,7 @@ int main(int argc, char *argv[]) {
         
   // Transcription
   // ------------------------------------------------------------
+  p.firingThreshold = 1.0;
   p.firingRateMin = 0.0004; 
   p.firingRateMax = FIRING; // Optimise
   p.transcription_demethylate = P_DEMETHYLATE;
@@ -224,8 +225,19 @@ rate. Setting k_min = k_max\n");
   }
   fprintf_K27(g.test_fptr,&c);
 
+  p.firingThreshold = 1.0;
+  p.firingRateMin = 0.0004; 
+  p.firingRateMax = 0.04;
+  p.firingFactor = 1.0;
+  p.activation = 1.0;
+  
+  fprintf(g.test_fptr,"\nFiringRate:\n");
+  fprintf(g.test_fptr,"f_me2_me3 = 1.0, firingRate = %0.4f\n",firingRate(&p,1.0));
+  fprintf(g.test_fptr,"f_me2_me3 = 0.5, firingRate = %0.4f\n",firingRate(&p,0.5));
+  fprintf(g.test_fptr,"f_me2_me3 = 0.0, firingRate = %0.4f\n",firingRate(&p,0.0));
+  
   c.controlSites = c.sites;
-  fprintf(g.test_fptr,"Control Sites: %ld\n",c.controlSites);
+  fprintf(g.test_fptr,"\nControl Sites: %ld\n",c.controlSites);
   fprintf(g.test_fptr,"fracControlRegion_me2me3 = %0.3f\n",fracControlRegion_me2me3(&c));
   c.controlSites = 4;
   fprintf(g.test_fptr,"Control Sites: %ld\n",c.controlSites);

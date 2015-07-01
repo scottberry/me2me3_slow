@@ -220,9 +220,9 @@ double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
 
 double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
-  double time_in_M = 0, f_me2_me3, median;
+  double time_in_M = 0, f_me2_me3, lower_quartile;
 
-  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+  lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
   
   for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
     sumM = 0;
@@ -231,7 +231,7 @@ double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
 	sumM++;
     }
     f_me2_me3 = (double)sumM/(double)c->sites;
-    if (firingRate(p,f_me2_me3) <= median)
+    if (firingRate(p,f_me2_me3) <= lower_quartile)
       time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
   }
 
@@ -275,9 +275,11 @@ double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *
   long sumM = 0, t, pos;
   double time_in_M = 0.0;
   double time_total = 0.0;
-  double f_me2_me3, median;
+  double f_me2_me3, lower_quartile;
 
-  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+  lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
+    
+  // fprintf(stderr,"lower_quartile = %0.10f \n",lower_quartile);
   
   for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
@@ -287,7 +289,8 @@ double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *
           sumM++;
       }
       f_me2_me3 = (double)sumM/(double)c->sites;
-      if (firingRate(p,f_me2_me3) <= median) {
+      // fprintf(stderr,"f_me2_me3 = %0.4f, firing %0.4f\n",f_me2_me3,firingRate(p,f_me2_me3));
+      if (firingRate(p,f_me2_me3) <= lower_quartile) {
         time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
       }
       time_total += r->t_out->el[t] - r->t_out->el[t-1];
@@ -325,9 +328,9 @@ double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r) {
 
 double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
-  double time_in_M = 0, f_me2_me3, median;
+  double time_in_M = 0, f_me2_me3, upper_quartile;
 
-  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+  upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
   
   for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
     sumM = 0;
@@ -336,7 +339,7 @@ double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
 	sumM++;
     }
     f_me2_me3 = (double)sumM/(double)c->sites;
-    if (firingRate(p,f_me2_me3) >= median)
+    if (firingRate(p,f_me2_me3) > upper_quartile)
       time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
   }
 
@@ -379,9 +382,9 @@ double prob_highExpression_lastHour_nCycles(chromatin *c, parameters *p, record 
   long sumM = 0, t, pos;
   double time_in_M = 0.0;
   double time_total = 0.0;
-  double f_me2_me3, median;
+  double f_me2_me3, upper_quartile;
 
-  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+  upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
   
   for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
@@ -391,7 +394,7 @@ double prob_highExpression_lastHour_nCycles(chromatin *c, parameters *p, record 
           sumM++;
       }
       f_me2_me3 = (double)sumM/(double)c->sites;
-      if (firingRate(p,f_me2_me3) >= median) {
+      if (firingRate(p,f_me2_me3) >= upper_quartile) {
         time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
       }
       time_total += r->t_out->el[t] - r->t_out->el[t-1];

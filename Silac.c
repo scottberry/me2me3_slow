@@ -58,9 +58,9 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 1;
-  p.maxReact = 20000;
-  p.samples = 20000; 
+  p.loci = 100;
+  p.maxReact = 30000;
+  p.samples = 30000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   p.cellCycles = 15;
@@ -77,10 +77,10 @@ int main(int argc, char *argv[]) {
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = TRUE;
-  p.resultsFinalLocus = TRUE;
-  p.resultsSilacEachLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
+  p.resultsSilacEachLocus = FALSE;
 
-  p.optimSteps = 1; 
+  p.optimSteps = 20; 
   
   // Test gillespie algorithm
   g.test = FALSE;
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
     if (p.resultsSilacEachLocus == TRUE) {
       strcpy(silacAbs,"SilacAbs_\0"); strcat(silacAbs,avgfile); 
       silacAbsFile = fopen(silacAbs,"w");
-      fprintf(silacAbsFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tFIRING_THRESHOLDlocus\ttime\tmod\tlabel\tlevel\n");
+      fprintf(silacAbsFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tFIRING_THRESHOLD\tlocus\ttime\tmod\tlabel\tlevel\n");
       strcpy(silacRel,"SilacRel_\0"); strcat(silacRel,avgfile); 
       silacRelFile = fopen(silacRel,"w");
       fprintf(silacRelFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tFIRING_THRESHOLD\tlocus\ttime\tmod\tlabel\tlevel\n");
@@ -202,20 +202,19 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<1;p1++) { // 7
-    for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=0;p3<1;p3++) {
+    for (p2=12;p2<p.optimSteps;p2++) {
+      for (p3=12;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         //setseed(&p,0);
                       
-        FIRING = 0.000277778*pow(2,6);
-        // P_DEMETHYLATE = pow(10,-0.2*(p2+3));
-        // P_METHYLATE = pow(10,-0.15*(p3+20));
-        
+        FIRING = 0.000277778*20;
+        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        P_METHYLATE = pow(10,-0.12*(p3+26));
         
         // FIRING = 0.0256;
-        P_DEMETHYLATE = 0.00063;
-        P_METHYLATE = 0.0000075;
+        // P_DEMETHYLATE = pow(10,-0.15*(17+4));
+        // P_METHYLATE = 0.000007;
         
         // Transcription
         // ------------------------------------------------------------
@@ -348,8 +347,8 @@ int main(int argc, char *argv[]) {
             gap += tAverageGap_lastHour_nCycles(&c,&p,&r);
             Mavg += tAverage_me2_me3_lastHour_nCycles(&c,&p,&r);
             me3_end += tAverage_me3_lastHour_nCycles(&c,&p,&r);
-            probM += prob_me2_me3_lastHour_nCycles(&c,&p,&r);
-            probU += prob_me0_me1_lastHour_nCycles(&c,&p,&r);
+            probM += prob_lowExpression_lastHour_nCycles(&c,&p,&r);
+            probU += prob_highExpression_lastHour_nCycles(&c,&p,&r);
           } else {
             gap += tAverageGap_nCycles(&c,&p,&r);
             Mavg += tAverage_me2_me3_nCycles(&c,&p,&r);
@@ -525,6 +524,7 @@ int main(int argc, char *argv[]) {
 #endif
   
   fclose(fptr);
-  fclose(g.test_fptr);
+  if (g.test==TRUE)
+    fclose(g.test_fptr);
   return(1);
 }

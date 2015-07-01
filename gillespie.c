@@ -158,10 +158,9 @@ double neighboursK27factor(chromatin *c, parameters *p, int pos) {
 double firingRate(parameters *p, double f_me2_me3) {
   double f;
   if (f_me2_me3 < p->firingThreshold) {
-    f = p->activation * p->firingFactor *
-      (p->firingRateMax + f_me2_me3 * (p->firingRateMin - p->firingRateMax) / p->firingThreshold);
+    f = p->firingRateMax - (f_me2_me3 * (p->firingRateMax - p->firingRateMin) / p->firingThreshold);
   } else {
-    f = p->activation * p->firingFactor * p->firingRateMin;
+    f = p->firingRateMin;
   }
   return(f);
 }
@@ -226,7 +225,7 @@ void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillesp
     }
    
     // transcribeDNA
-    g->propensity->el[g->transcribeDNA_index->el[0]] = firingRate(p,f_me2_me3);    
+    g->propensity->el[g->transcribeDNA_index->el[0]] = p->activation * p->firingFactor * firingRate(p,f_me2_me3);    
     g->update->histone = FALSE; // reset the flag
      
   }
