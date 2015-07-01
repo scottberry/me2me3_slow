@@ -9,6 +9,10 @@ library(DEoptim)
 # Set the working directory
 setwd("~/local/Modelling/me2me3_slow/")
 
+## Note: Run simulations twice:
+# 1. with -m for Silac results
+# 2. with -i bal for parameter space results
+
 s <- 60
 ctrl <- 60
 cc <- 15
