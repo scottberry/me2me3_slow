@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   p.cellCycles = 50;
-  p.cellCycleDuration = 16.0; // (hours)
+  p.cellCycleDuration = 22.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
   p.firingThreshold = 1.0; // can be replaced via command line

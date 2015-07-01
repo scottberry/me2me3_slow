@@ -67,8 +67,8 @@ int main(int argc, char *argv[]) {
   p.silacLightCycles = 10;
   p.silacHeavyCycles = 1;
   p.cellCycleDuration = 22.0; // (hours)
-  p.G2duration = 4.0; // can be replaced via command line
-  p.activation = 1.0; // can be replaced via command line
+  p.G2duration = 4.0;
+  p.activation = 1.0;
   p.firingThreshold = 1.0; // can be replaced via command line
 
   // fold-change from non-transcribing
@@ -87,19 +87,9 @@ int main(int argc, char *argv[]) {
   
   /* Parse command line */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:i:mut:")) != -1)
+  while ((j = getopt (argc, argv, "i:mut:")) != -1)
     switch (j)
       {
-      case 'c':
-        sprintf(buffer,"%s",optarg);
-        c.controlSites = atoi(buffer);
-        break;
-        
-      case 'a':
-        sprintf(buffer,"%s",optarg);
-        p.activation = atof(buffer);
-        break;
-
       case 'i':
         randomSeed = FALSE;
         sprintf(id,"%s",optarg);

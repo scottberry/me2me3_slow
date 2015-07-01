@@ -696,7 +696,6 @@ void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r) {
   double L0, L10, L24, L48;
   double H0, H10, H24, H48;
   int locus;
-  double time;
 
   L0 = L10 = L24 = L48 = 0.0;
   H0 = H10 = H24 = H48 = 0.0;
@@ -710,7 +709,6 @@ void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r) {
     H24 += r->silacResultsHeavy_24h->el[locus];
     L48 += r->silacResultsLight_48h->el[locus];
     H48 += r->silacResultsHeavy_48h->el[locus];
-    //fprintf(stderr,"L48 = %0.10f\n",L48);
   }
 
   fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t0.0\tme3\tLIGHT\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,L0/(double)p->loci);

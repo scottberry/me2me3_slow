@@ -66,6 +66,7 @@ int main(int argc, char *argv[]) {
   p.cellCycleDuration = 16.0; // (hours)
   p.G2duration = 0.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
+  p.firingThreshold = 1.0; // can be replaced via command line
 
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
@@ -79,7 +80,7 @@ int main(int argc, char *argv[]) {
   
   /* Parse command line */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:i:murg:")) != -1)
+  while ((j = getopt (argc, argv, "c:a:i:murg:t:")) != -1)
     switch (j)
       {
       case 'c':
@@ -114,6 +115,11 @@ int main(int argc, char *argv[]) {
       case 'g':
         sprintf(buffer,"%s",optarg);
         p.G2duration = atof(buffer);
+        break;
+
+      case 't':
+        sprintf(buffer,"%s",optarg);
+        p.firingThreshold = atof(buffer);
         break;
         
       default:
