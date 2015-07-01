@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
   long i, j, locus, fh, initM, initU, seed;
   double probM, probU, bistability;
-  double FIRING, P_DEMETHYLATE, P_METHYLATE, INHIBIT;
+  double FIRING, P_DEMETHYLATE, P_METHYLATE;
   int p1, p2, p3;
   logical startM = FALSE, startU = FALSE, randomSeed = TRUE;
 
@@ -66,7 +66,9 @@ int main(int argc, char *argv[]) {
   p.cellCycleDuration = 16.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
-  INHIBIT = 1.0; // default non-inhbited
+
+  // fold-change from non-transcribing
+  p.PRC2inhibition = 1.0; // can be replaced via command line
   
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
@@ -120,7 +122,7 @@ int main(int argc, char *argv[]) {
 
       case 'p':
         sprintf(buffer,"%s",optarg);
-        INHIBIT = atof(buffer);
+        p.PRC2inhibition = atof(buffer);
         break;
         
       default:
@@ -138,7 +140,7 @@ int main(int argc, char *argv[]) {
   sprintf(tmp,"cc%d",p.cellCycles); strcat(avgfile,tmp);
   sprintf(tmp,"%0.2f",p.activation);
   sprintf(ptmp,"a%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"%0.2f",INHIBIT);
+  sprintf(tmp,"%0.2f",p.PRC2inhibition);
   sprintf(ptmp,"p%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"st%ld",p.optimSteps); strcat(avgfile,tmp); 
   strcat(avgfile,id);
@@ -148,11 +150,11 @@ int main(int argc, char *argv[]) {
 
   parFile = fopen(parameterSpace,"w");
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tP_DEMETHYLATE\tP_METHYLATE\tINHIBIT\tcontrolSites\tactivation\tgap\tMavg       \
+\tP_DEMETHYLATE\tP_METHYLATE\tPRC2inhibition\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tP_DEMETHYLATE\tP_METHYLATE\tINHIBIT\tcontrolSites\tactivation\tgap\tMavg       \
+\tP_DEMETHYLATE\tP_METHYLATE\tPRC2inhibition\tcontrolSites\tactivation\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
 
@@ -206,8 +208,7 @@ int main(int argc, char *argv[]) {
           fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
           p.firingRateMin = p.firingRateMax;
         }
-        p.transcriptionDelay = 120;
-        p.PRC2inhibition = INHIBIT; // fold-change from un-transcribed
+        p.transcriptionDelay = 180;
         
         // Methylation/demethylation
         // ------------------------------------------------------------
@@ -353,14 +354,14 @@ int main(int argc, char *argv[]) {
 \t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\
 \t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,P_DEMETHYLATE,P_METHYLATE,INHIBIT,c.controlSites,p.activation,
+                FIRING,P_DEMETHYLATE,P_METHYLATE,p.PRC2inhibition,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability);
         fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
 %0.4f  %0.4f  %0.4f  %0.4f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,P_DEMETHYLATE,P_METHYLATE,INHIBIT,c.controlSites,p.activation,
+                FIRING,P_DEMETHYLATE,P_METHYLATE,p.PRC2inhibition,c.controlSites,p.activation,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability);
       }
