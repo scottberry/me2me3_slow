@@ -70,6 +70,9 @@ int main(int argc, char *argv[]) {
   p.G2duration = 4.0; // can be replaced via command line
   p.activation = 1.0; // can be replaced via command line
   p.firingThreshold = 1.0; // can be replaced via command line
+
+  // fold-change from non-transcribing
+  p.PRC2inhibition = 1.0; // can be replaced via command line
   
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;

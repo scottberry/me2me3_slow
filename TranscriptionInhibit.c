@@ -66,7 +66,8 @@ int main(int argc, char *argv[]) {
   p.cellCycleDuration = 16.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.activation = 1.0; // can be replaced via command line
-
+  p.firingThreshold = 1.0; // can be replaced via command line
+  
   // fold-change from non-transcribing
   p.PRC2inhibition = 1.0; // can be replaced via command line
   
@@ -83,7 +84,7 @@ int main(int argc, char *argv[]) {
   
   /* Parse command line */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:i:murg:p:")) != -1)
+  while ((j = getopt (argc, argv, "c:a:i:murg:p:t:")) != -1)
     switch (j)
       {
       case 'c':
@@ -123,6 +124,11 @@ int main(int argc, char *argv[]) {
       case 'p':
         sprintf(buffer,"%s",optarg);
         p.PRC2inhibition = atof(buffer);
+        break;
+
+      case 't':
+        sprintf(buffer,"%s",optarg);
+        p.firingThreshold = atof(buffer);
         break;
         
       default:
