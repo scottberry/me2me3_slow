@@ -215,6 +215,29 @@ double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   return(time_in_M/r->t_out->el[r->t_outLastSample]);
 }
 
+/* Calculate the probability over time of being in the low expression
+   state. */
+
+double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
+  long sumM, t, pos;
+  double time_in_M = 0, f_me2_me3, median;
+
+  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+  
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+    sumM = 0;
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
+	sumM++;
+    }
+    f_me2_me3 = (double)sumM/(double)c->sites;
+    if (firingRate(p,f_me2_me3) <= median)
+      time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+  }
+
+  return(time_in_M/r->t_out->el[r->t_outLastSample]);
+}
+
 /* Calculate the probability over time of being in the me2/me3 
    K27 (for the last hour of each cell cycle only). Do not 
    try to include results beyond p.cellCycles. */
@@ -245,6 +268,38 @@ double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   return(time_in_M/time_total);
 }
 
+/* Calculate the probability over time of being in low expression
+   state. (for the last hour of each cell cycle only) */
+
+double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
+  long sumM = 0, t, pos;
+  double time_in_M = 0.0;
+  double time_total = 0.0;
+  double f_me2_me3, median;
+
+  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+  
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+    if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
+      sumM = 0;
+      for (pos=0;pos<r->K27->rows;pos++) {
+        if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
+          sumM++;
+      }
+      f_me2_me3 = (double)sumM/(double)c->sites;
+      if (firingRate(p,f_me2_me3) <= median) {
+        time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+      }
+      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+    }
+  }
+  
+  if (time_total == 0.0)
+    fprintf(stderr,"Error: prob_lowExpression_lastHour_nCycles. No samples for last hour of cell cycle.\n");
+
+  return(time_in_M/time_total);
+}
+
 /* Calculate the probability over time of being in the me0/me1 
    K27. */
 
@@ -263,6 +318,29 @@ double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r) {
   }
 
   return(time_in_U/r->t_out->el[r->t_outLastSample]);
+}
+
+/* Calculate the probability over time of being in the high expression
+   state. */
+
+double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
+  long sumM, t, pos;
+  double time_in_M = 0, f_me2_me3, median;
+
+  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+  
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+    sumM = 0;
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
+	sumM++;
+    }
+    f_me2_me3 = (double)sumM/(double)c->sites;
+    if (firingRate(p,f_me2_me3) >= median)
+      time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+  }
+
+  return(time_in_M/r->t_out->el[r->t_outLastSample]);
 }
 
 /* Calculate the probability over time of being in the me2/me3 
@@ -292,6 +370,38 @@ double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
     fprintf(stderr,"Error: prob_me0_me1_lastHour_nCycles. No samples for last hour of cell cycle.\n");
 
   return(time_in_U/time_total);
+}
+
+/* Calculate the probability over time of being in high expression
+   state. (for the last hour of each cell cycle only) */
+
+double prob_highExpression_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
+  long sumM = 0, t, pos;
+  double time_in_M = 0.0;
+  double time_total = 0.0;
+  double f_me2_me3, median;
+
+  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+  
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+    if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
+      sumM = 0;
+      for (pos=0;pos<r->K27->rows;pos++) {
+        if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
+          sumM++;
+      }
+      f_me2_me3 = (double)sumM/(double)c->sites;
+      if (firingRate(p,f_me2_me3) >= median) {
+        time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+      }
+      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+    }
+  }
+  
+  if (time_total == 0.0)
+    fprintf(stderr,"Error: prob_highExpression_lastHour_nCycles. No samples for last hour of cell cycle.\n");
+
+  return(time_in_M/time_total);
 }
 
 /* Calculate the average number of histones in me2/me3 over time do
@@ -477,6 +587,7 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"me3factor: %0.4f\n", p->me3factor);
   fprintf(fptr,"firingRateMax: %0.10f\n", p->firingRateMax);
   fprintf(fptr,"firingRateMin: %0.10f\n", p->firingRateMin);
+  fprintf(fptr,"firingThreshold: %0.10f\n", p->firingThreshold);
   fprintf(fptr,"activation: %0.4f\n", p->activation);
   fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
 
