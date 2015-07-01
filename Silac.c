@@ -13,9 +13,9 @@ void usage(void)
 
 int main(int argc, char *argv[]) {
   FILE *fptr, *parFile, *silacAbsFile, *silacRelFile, *silacRelAvgFile;
-  char avgfile[128]="", fname[128]="", tmp[128]="", buffer[128]="";
-  char parameterSpace[128]="", ptmp[128]="", id[16]="";
-  char silacAbs[128]="", silacRel[128]="", silacRelAvg[128]="";
+  char avgfile[256]="", fname[256]="", tmp[256]="", buffer[256]="";
+  char parameterSpace[256]="", ptmp[256]="", id[16]="";
+  char silacAbs[256]="", silacRel[256]="", silacRelAvg[256]="";
   char *decimal = ".", *underscore = "_";
   chromatin c;
   parameters p;
@@ -128,6 +128,8 @@ int main(int argc, char *argv[]) {
   sprintf(ptmp,"a%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.2f",p.firingThreshold);
   sprintf(ptmp,"fir%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(tmp,"%0.2f",p.G2duration);
+  sprintf(ptmp,"tau%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"st%ld",p.optimSteps); strcat(avgfile,tmp); 
   strcat(avgfile,id);
   strcat(avgfile,".txt\0");
@@ -206,7 +208,7 @@ int main(int argc, char *argv[]) {
         // !!! Set seed for debugging - remove for simulations
         //setseed(&p,0);
                       
-        FIRING = 0.0004*pow(2,6);
+        FIRING = 0.000277778*pow(2,6);
         // P_DEMETHYLATE = pow(10,-0.2*(p2+3));
         // P_METHYLATE = pow(10,-0.15*(p3+20));
         
@@ -217,7 +219,7 @@ int main(int argc, char *argv[]) {
         
         // Transcription
         // ------------------------------------------------------------
-        p.firingRateMin = 0.0002; // Leave the repressed firing rate fixed at ~ every 80 min.
+        p.firingRateMin = 0.000277778; // Leave the repressed firing rate fixed at ~ every 60 min.
         p.firingRateMax = FIRING; // Optimise
         p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
         if (p.firingRateMax < p.firingRateMin) {

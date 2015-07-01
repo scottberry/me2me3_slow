@@ -119,3 +119,6 @@ sum_sq_err <- aggregate(comparison$sq_err,by=list(comparison$P_DEMETHYLATE,
 colnames(sum_sq_err) <- c("P_DEMETHYLATE","FIRING_THRESHOLD","SSE")
 
 sum_sq_err[sum_sq_err$SSE==min(sum_sq_err$SSE),]
+
+# geom_rect(data = tp,aes(fill = day),xmin = -Inf,xmax = Inf,
+#           ymin = -Inf,ymax = Inf,alpha = 0.3)

@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
         // !!! Set seed for debugging - remove for simulations
         // setseed(&p,5);
         
-        FIRING = 0.0004*pow(2,p1);
+        FIRING = 0.000277778*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.15*(p2+4));
         P_METHYLATE = pow(10,-0.12*(p3+26));
         
@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
         */
         // Transcription
         // ------------------------------------------------------------
-        p.firingRateMin = 0.0004; // Leave the repressed firing rate fixed at ~ every 40 min.
+        p.firingRateMin = 0.000277778; // Leave the repressed firing rate fixed at ~ every 60 min.
         p.firingRateMax = FIRING; // Optimise
         p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
         if (p.firingRateMax < p.firingRateMin) {
