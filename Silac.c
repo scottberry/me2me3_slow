@@ -163,13 +163,14 @@ int main(int argc, char *argv[]) {
   r.firing = i_vec_get(p.maxReact + 1);
   r.t_out = d_vec_get(p.samples);
   r.K27 = i_mat_get(c.sites,p.samples);
-  r.silac = i_mat_get(c.sites,p.samples);
   
   /* Initialisation */
   initialiseGillespieFunctions(&c,&g);
 
   /* Silac initiation */
   if (p.silacExperiment == TRUE) {
+    r.silac = i_mat_get(c.sites,p.samples);
+
     p.SILAC_0h = (double)3600*p.cellCycleDuration*(p.silacLightCycles+1);
     p.SILAC_10h = p.SILAC_0h + (double)3600*10;
     p.SILAC_24h = p.SILAC_0h + (double)3600*24;
@@ -206,7 +207,7 @@ int main(int argc, char *argv[]) {
       for (p3=12;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
-        //setseed(&p,0);
+        // setseed(&p,0);
                       
         FIRING = 0.000277778*20;
         P_DEMETHYLATE = pow(10,-0.15*(p2+4));
@@ -424,11 +425,13 @@ int main(int argc, char *argv[]) {
   /* end loop over parameters */
   fclose(parFile);
   if (p.silacExperiment == TRUE) {
-    fclose(silacAbsFile);
-    fclose(silacRelFile);
+    if (p.resultsSilacEachLocus == TRUE) {
+      fclose(silacAbsFile);
+      fclose(silacRelFile);
+    }
     fclose(silacRelAvgFile);
   }
-    
+
   /* -------------------------------------------------------------------------------- */
   /* Tidy up and write results files */
   /* -------------------------------------------------------------------------------- */
@@ -500,6 +503,7 @@ int main(int argc, char *argv[]) {
   d_vec_free(r.t_out);
 
   if (p.silacExperiment == TRUE) {
+    i_mat_free(r.silac);
     d_vec_free(r.silacResultsLight_0h);
     d_vec_free(r.silacResultsLight_10h);
     d_vec_free(r.silacResultsLight_24h);
