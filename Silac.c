@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = FALSE;
   p.resultsSilacEachLocus = FALSE;
 
-  p.optimSteps = 19; 
+  p.optimSteps = 22; 
   
   // Test gillespie algorithm
   g.test = FALSE;
@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<1;p1++) { // 7
-    for (p2=12;p2<p.optimSteps;p2++) {
+    for (p2=7;p2<p.optimSteps;p2++) {
       for (p3=12;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
