@@ -11,11 +11,11 @@ setwd("~/local/Modelling/me2me3_slow/")
 
 s <- 60
 ctrl <- 60
-cc <- 15
+cc <- 20
 a <- 1.0
 f <- 1.0
 tau <- 4.0
-st <- 20
+st <- 1
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")

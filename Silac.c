@@ -58,13 +58,13 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 200;
+  p.loci = 1;
   p.maxReact = 30000;
   p.samples = 30000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   p.cellCycles = 20;
-  p.silacLightCycles = 10;
+  p.silacLightCycles = 5;
   p.silacHeavyCycles = 1;
   p.cellCycleDuration = 22.0; // (hours)
   p.G2duration = 4.0;
@@ -77,10 +77,10 @@ int main(int argc, char *argv[]) {
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = TRUE;
-  p.resultsFinalLocus = FALSE;
+  p.resultsFinalLocus = TRUE;
   p.resultsSilacEachLocus = FALSE;
 
-  p.optimSteps = 22; 
+  p.optimSteps = 1; 
   
   // Test gillespie algorithm
   g.test = FALSE;
@@ -203,19 +203,19 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<1;p1++) { // 7
-    for (p2=7;p2<p.optimSteps;p2++) {
-      for (p3=12;p3<p.optimSteps;p3++) {
+    for (p2=p.optimSteps-1;p2<p.optimSteps;p2++) {
+      for (p3=p.optimSteps-1;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         // setseed(&p,0);
                       
         FIRING = 0.000277778*20;
-        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
-        P_METHYLATE = pow(10,-0.12*(p3+26));
+        // P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        // P_METHYLATE = pow(10,-0.12*(p3+26));
         
         // FIRING = 0.0256;
-        // P_DEMETHYLATE = pow(10,-0.15*(17+4));
-        // P_METHYLATE = 0.000007;
+        P_DEMETHYLATE = 0.02;
+        P_METHYLATE = 0.00003;
         
         // Transcription
         // ------------------------------------------------------------

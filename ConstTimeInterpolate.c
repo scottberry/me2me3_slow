@@ -97,9 +97,10 @@ int main(int argc, char *argv[]) {
   dFilePtr = fopen(dFileName,"r");
 
   sprintf(outFileName,"%s",str_replace(dFileName,txt,int_txt));
-  outFilePtr = fopen(outFileName,"w");
   if (standardOut == TRUE)
     outFilePtr = stdout;
+  else
+    outFilePtr = fopen(outFileName,"w");
   
   t_out = 0;
   fscanf(tFilePtr, "%lf", &t_in);
@@ -118,7 +119,8 @@ int main(int argc, char *argv[]) {
 
   fclose(tFilePtr);
   fclose(dFilePtr);
-  fclose(outFilePtr);
+  if (standardOut != TRUE)
+    fclose(outFilePtr);
   
   return(1);
 }
