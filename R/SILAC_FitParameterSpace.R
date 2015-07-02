@@ -27,37 +27,56 @@ f <- 0.2
 fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
 silacAvg_file_0_2 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
 parameterSpace_file_0_2 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
+parameterSpace_file_0_2_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_bal.txt",sep="")
+f <- 0.3
+fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+silacAvg_file_0_3 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
+parameterSpace_file_0_3 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
+parameterSpace_file_0_3_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_bal.txt",sep="")
 f <- 0.4
 fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
 silacAvg_file_0_4 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
 parameterSpace_file_0_4 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
+parameterSpace_file_0_4_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_bal.txt",sep="")
 f <- 0.6
 fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
 silacAvg_file_0_6 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
 parameterSpace_file_0_6 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
+parameterSpace_file_0_6_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_bal.txt",sep="")
 f <- 0.8
 fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
 silacAvg_file_0_8 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
 parameterSpace_file_0_8 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
+parameterSpace_file_0_8_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_bal.txt",sep="")
 f <- 1.0
 fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
 silacAvg_file_1_0 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
 parameterSpace_file_1_0 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,".txt",sep="")
+parameterSpace_file_1_0_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_bal.txt",sep="")
 
 
 silacAvg_0_2 <- read.table(silacAvg_file_0_2,header = TRUE)
 parameterSpace_0_2 <- read.table(parameterSpace_file_0_2,header = TRUE)
+parameterSpace_0_2_bal <- read.table(parameterSpace_file_0_2_bal,header = TRUE)
+silacAvg_0_3 <- read.table(silacAvg_file_0_3,header = TRUE)
+parameterSpace_0_3 <- read.table(parameterSpace_file_0_3,header = TRUE)
+parameterSpace_0_3_bal <- read.table(parameterSpace_file_0_3_bal,header = TRUE)
 silacAvg_0_4 <- read.table(silacAvg_file_0_4,header = TRUE)
 parameterSpace_0_4 <- read.table(parameterSpace_file_0_4,header = TRUE)
+parameterSpace_0_4_bal <- read.table(parameterSpace_file_0_4_bal,header = TRUE)
 silacAvg_0_6 <- read.table(silacAvg_file_0_6,header = TRUE)
 parameterSpace_0_6 <- read.table(parameterSpace_file_0_6,header = TRUE)
+parameterSpace_0_6_bal <- read.table(parameterSpace_file_0_6_bal,header = TRUE)
 silacAvg_0_8 <- read.table(silacAvg_file_0_8,header = TRUE)
 parameterSpace_0_8 <- read.table(parameterSpace_file_0_8,header = TRUE)
+parameterSpace_0_8_bal <- read.table(parameterSpace_file_0_8_bal,header = TRUE)
 silacAvg_1_0 <- read.table(silacAvg_file_1_0,header = TRUE)
 parameterSpace_1_0 <- read.table(parameterSpace_file_1_0,header = TRUE)
+parameterSpace_1_0_bal <- read.table(parameterSpace_file_1_0_bal,header = TRUE)
 
-silacAvg <- rbind(silacAvg_0_2,silacAvg_0_4,silacAvg_0_6,silacAvg_0_8,silacAvg_1_0)
-parameterSpace <- rbind(parameterSpace_0_2,parameterSpace_0_4,parameterSpace_0_6,parameterSpace_0_8,parameterSpace_1_0)
+silacAvg <- rbind(silacAvg_0_2,silacAvg_0_3,silacAvg_0_4,silacAvg_0_6,silacAvg_0_8,silacAvg_1_0)
+parameterSpace <- rbind(parameterSpace_0_2,parameterSpace_0_3,parameterSpace_0_4,parameterSpace_0_6,parameterSpace_0_8,parameterSpace_1_0)
+parameterSpace_bal <- rbind(parameterSpace_0_2_bal,parameterSpace_0_3_bal,parameterSpace_0_4_bal,parameterSpace_0_6_bal,parameterSpace_0_8_bal,parameterSpace_1_0_bal)
 
 ## Extract the cell-cycle-end K27me3 level for this parameter set (over all cell cycles)
 endVal <- subset(parameterSpace,select=c(FIRING,P_DEMETHYLATE,P_METHYLATE,FIRING_THRESHOLD,me3_end))
@@ -107,7 +126,7 @@ ggplot(K27me3_Alabert_Dummy,aes(x=time,y=adjusted_level,col=label,group=label)) 
   geom_errorbar(width=3,aes(ymin=adjusted_level-adjusted_sd,
                     ymax=adjusted_level+adjusted_sd)) +
   facet_grid(P_METHYLATE ~ P_DEMETHYLATE) + 
-  geom_line(data=subset(adjustedSILAC,FIRING_THRESHOLD==1.0)) + 
+  geom_line(data=subset(adjustedSILAC,FIRING_THRESHOLD==0.3)) + 
   scale_y_continuous(limits=c(0,2)) + 
   scale_color_manual(values=c("blue2","orange")) +
   theme_thesis_multiplanel
@@ -135,8 +154,8 @@ ggsave(file="ParameterSpaceFit.pdf",width=20,height=15,units="cm")
 # p
 
 ## bistability (15 cell cycles)
-p <- ggplot(parameterSpace,aes(x=P_DEMETHYLATE,y=P_METHYLATE))
-p <- p + geom_raster(aes(fill=probU)) + 
+p <- ggplot(parameterSpace_bal,aes(x=P_DEMETHYLATE,y=P_METHYLATE))
+p <- p + geom_raster(aes(fill=bistability)) + 
   scale_y_log10("Methylation rate (per second)",
                 labels = trans_format("log10", math_format(10^.x))) +
   scale_x_log10("Demethylation probability (per histone per firing)",
@@ -187,7 +206,9 @@ p <- p + geom_raster(aes(fill=SSE)) +
 p
 ggsave("SSE.pdf",width=7,height=18,units="cm")
 
-sum_sq_err[sum_sq_err$SSE==min(sum_sq_err$SSE),]
+fitSILAC <- sum_sq_err[sum_sq_err$SSE<0.9,]
+fitSILAC_parameterSpace <- merge(fitSILAC,parameterSpace_bal,by=c("P_METHYLATE","P_DEMETHYLATE","FIRING_THRESHOLD"))
+fitSILAC_parameterSpace[fitSILAC_parameterSpace$bistability==max(fitSILAC_parameterSpace$bistability),]
 
 # geom_rect(data = tp,aes(fill = day),xmin = -Inf,xmax = Inf,
 #           ymin = -Inf,ymax = Inf,alpha = 0.3)

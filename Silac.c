@@ -58,12 +58,12 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
      choice for a large parameter search. */
   
-  p.loci = 100;
+  p.loci = 200;
   p.maxReact = 30000;
   p.samples = 30000; 
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 15;
+  p.cellCycles = 20;
   p.silacLightCycles = 10;
   p.silacHeavyCycles = 1;
   p.cellCycleDuration = 22.0; // (hours)
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = FALSE;
   p.resultsSilacEachLocus = FALSE;
 
-  p.optimSteps = 20; 
+  p.optimSteps = 19; 
   
   // Test gillespie algorithm
   g.test = FALSE;
