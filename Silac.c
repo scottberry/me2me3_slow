@@ -214,8 +214,8 @@ int main(int argc, char *argv[]) {
         // P_METHYLATE = pow(10,-0.12*(p3+26));
         
         // FIRING = 0.0256;
-        P_DEMETHYLATE = 0.02;
-        P_METHYLATE = 0.00003;
+        P_DEMETHYLATE = 0.004;
+        P_METHYLATE = 0.000008;
         
         // Transcription
         // ------------------------------------------------------------

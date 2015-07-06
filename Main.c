@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 200000 is a good
      choice for a large parameter search. */
   
-  p.loci = 2;
+  p.loci = 100;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
   // Test gillespie algorithm
   g.test = FALSE;
   
-  p.optimSteps = 20; 
+  p.optimSteps = 1; 
   
   /* Parse command line */
   opterr = 0;
@@ -184,22 +184,22 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<7;p1++) { // 7
+  for (p1=0;p1<1;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         //setseed(&p,0);
-              
+        /*            
         FIRING = 0.000277778*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.15*(p2+4));
         P_METHYLATE = pow(10,-0.12*(p3+26));
+        */        
+
+        FIRING = 0.000277778*20;
+        P_DEMETHYLATE = 0.0035;
+        P_METHYLATE = 0.000007;
         
-        /*
-        FIRING = 0.0064;
-        P_DEMETHYLATE = 0.1;
-        P_METHYLATE = 0.00015;
-        */
         // Transcription
         // ------------------------------------------------------------
         p.firingRateMin = 0.000277778; // Leave the repressed firing rate fixed at ~ every 60 min.
