@@ -158,9 +158,9 @@ double neighboursK27factor(chromatin *c, parameters *p, int pos) {
 double firingRate(parameters *p, double f_me2_me3) {
   double f;
   if (f_me2_me3 < p->firingThreshold) {
-    f = p->firingRateMax - (f_me2_me3 * (p->firingRateMax - p->firingRateMin) / p->firingThreshold);
+    f = (p->alpha + 1.0)*p->firingRateMax - (f_me2_me3 * (p->firingRateMax - p->firingRateMin) / p->firingThreshold);
   } else {
-    f = p->firingRateMin;
+    f = (p->alpha*p->firingRateMax + p->firingRateMin);
   }
   return(f);
 }
@@ -178,18 +178,18 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
     for (i=0;i<c->sites;i++) {
       // fprintf(stderr,"i = %d, neighboursK27factor = %0.2f\n",i,neighboursK27factor(c,p,i));
       if (c->K27->el[i] == me0) { // methylate
-        g->propensity->el[g->methylate_index->el[i]] = p->noisy_me0_me1 + p->me0_me1*(neighboursK27factor(c,p,i));
+        g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me0_me1 + p->me0_me1*(neighboursK27factor(c,p,i)));
       } else if (c->K27->el[i] == me1) {
-        g->propensity->el[g->methylate_index->el[i]] = p->noisy_me1_me2 + p->me1_me2*(neighboursK27factor(c,p,i));
+        g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me1_me2 + p->me1_me2*(neighboursK27factor(c,p,i)));
       } else if (c->K27->el[i] == me2) {
-        g->propensity->el[g->methylate_index->el[i]] = p->noisy_me2_me3 + p->me2_me3*(neighboursK27factor(c,p,i));
+        g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me2_me3 + p->me2_me3*(neighboursK27factor(c,p,i)));
       } else {
         g->propensity->el[g->methylate_index->el[i]] = 0.0;
       }
     }
    
     // transcribeDNA
-    g->propensity->el[g->transcribeDNA_index->el[0]] = firingRate(p,f_me2_me3);    
+    g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * firingRate(p,f_me2_me3);    
 
     g->update->histone = FALSE; // reset the flag
   }
@@ -225,7 +225,8 @@ void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillesp
     }
    
     // transcribeDNA
-    g->propensity->el[g->transcribeDNA_index->el[0]] = p->activation * p->firingFactor * firingRate(p,f_me2_me3);    
+    g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * firingRate(p,f_me2_me3);    
+
     g->update->histone = FALSE; // reset the flag
      
   }

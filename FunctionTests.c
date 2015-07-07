@@ -45,7 +45,8 @@ int main(int argc, char *argv[]) {
   p.cellCycles = 6;
   p.cellCycleDuration = 16.0; // (hours)
   p.G2duration = 4.0; // (hours)
-  p.activation = 1.0; // can be replaced via command line
+  p.alpha = 0.0; // can be replaced via command line
+  p.beta = 1.0; // can be replaced via command line
   
   /* Parse command line */
   opterr = 0;
@@ -59,7 +60,7 @@ int main(int argc, char *argv[]) {
         
       case 'a':
         sprintf(buffer,"%s",optarg);
-        p.activation = atof(buffer);
+        p.alpha = atof(buffer);
         break;
 
       case 'i':
@@ -229,7 +230,7 @@ rate. Setting k_min = k_max\n");
   p.firingRateMin = 0.0004; 
   p.firingRateMax = 0.04;
   p.firingFactor = 1.0;
-  p.activation = 1.0;
+  p.alpha = 0.0;
   
   fprintf(g.test_fptr,"\nFiringRate:\n");
   fprintf(g.test_fptr,"f_me2_me3 = 1.0, firingRate = %0.4f\n",firingRate(&p,1.0));

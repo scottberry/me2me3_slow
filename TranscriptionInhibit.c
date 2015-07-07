@@ -65,7 +65,8 @@ int main(int argc, char *argv[]) {
   p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
   p.G2duration = 4.0; // (hours)
-  p.activation = 1.0; // can be replaced via command line
+  p.alpha = 0.0; // can be replaced via command line
+  p.beta = 1.0; // can be replaced via command line
   p.firingThreshold = 1.0; // can be replaced via command line
   
   // fold-change from non-transcribing
@@ -94,7 +95,7 @@ int main(int argc, char *argv[]) {
         
       case 'a':
         sprintf(buffer,"%s",optarg);
-        p.activation = atof(buffer);
+        p.alpha = atof(buffer);
         break;
 
       case 'i':
@@ -144,7 +145,7 @@ int main(int argc, char *argv[]) {
   /* Handle filename using command line args */
   sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
   sprintf(tmp,"cc%d",p.cellCycles); strcat(avgfile,tmp);
-  sprintf(tmp,"%0.2f",p.activation);
+  sprintf(tmp,"%0.2f",p.alpha);
   sprintf(ptmp,"a%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.2f",p.PRC2inhibition);
   sprintf(ptmp,"p%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
@@ -156,11 +157,11 @@ int main(int argc, char *argv[]) {
 
   parFile = fopen(parameterSpace,"w");
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tP_DEMETHYLATE\tP_METHYLATE\tPRC2inhibition\tcontrolSites\tactivation\tgap\tMavg       \
+\tP_DEMETHYLATE\tP_METHYLATE\tPRC2inhibition\tcontrolSites\talpha\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tP_DEMETHYLATE\tP_METHYLATE\tPRC2inhibition\tcontrolSites\tactivation\tgap\tMavg       \
+\tP_DEMETHYLATE\tP_METHYLATE\tPRC2inhibition\tcontrolSites\talpha\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\n");
 
@@ -360,14 +361,14 @@ int main(int argc, char *argv[]) {
 \t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\
 \t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,P_DEMETHYLATE,P_METHYLATE,p.PRC2inhibition,c.controlSites,p.activation,
+                FIRING,P_DEMETHYLATE,P_METHYLATE,p.PRC2inhibition,c.controlSites,p.alpha,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability);
         fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
 %0.4f  %0.4f  %0.4f  %0.4f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,P_DEMETHYLATE,P_METHYLATE,p.PRC2inhibition,c.controlSites,p.activation,
+                FIRING,P_DEMETHYLATE,P_METHYLATE,p.PRC2inhibition,c.controlSites,p.alpha,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability);
       }

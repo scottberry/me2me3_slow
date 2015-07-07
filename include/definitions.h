@@ -60,7 +60,7 @@ typedef struct {
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate;
   double firingThreshold;
-  double activation;
+  double alpha, beta;
   double transcriptionDelay, PRC2inhibition;
   
   // cell cycle parameters

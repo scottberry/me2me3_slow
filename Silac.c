@@ -68,7 +68,8 @@ int main(int argc, char *argv[]) {
   p.silacHeavyCycles = 1;
   p.cellCycleDuration = 22.0; // (hours)
   p.G2duration = 4.0;
-  p.activation = 1.0;
+  p.alpha = 0.0; // can be replaced via command line
+  p.beta = 1.0; // can be replaced via command line
   p.firingThreshold = 1.0; // can be replaced via command line
 
   // fold-change from non-transcribing
@@ -78,16 +79,16 @@ int main(int argc, char *argv[]) {
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = TRUE;
   p.resultsFinalLocus = TRUE;
-  p.resultsSilacEachLocus = FALSE;
+  p.resultsSilacEachLocus = TRUE;
 
-  p.optimSteps = 1; 
+  p.optimSteps = 22; 
   
   // Test gillespie algorithm
   g.test = FALSE;
   
   /* Parse command line */
   opterr = 0;
-  while ((j = getopt (argc, argv, "i:mut:")) != -1)
+  while ((j = getopt (argc, argv, "i:mug:t:")) != -1)
     switch (j)
       {
       case 'i':
@@ -105,6 +106,11 @@ int main(int argc, char *argv[]) {
         startU = TRUE;
         break;
 
+      case 'g':
+        sprintf(buffer,"%s",optarg);
+        p.G2duration = atof(buffer);
+        break;
+        
       case 't':
         sprintf(buffer,"%s",optarg);
         p.firingThreshold = atof(buffer);
@@ -124,8 +130,10 @@ int main(int argc, char *argv[]) {
   sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
   sprintf(tmp,"ctrl%ld",c.controlSites); strcat(avgfile,tmp);
   sprintf(tmp,"cc%d",p.cellCycles); strcat(avgfile,tmp);
-  sprintf(tmp,"%0.2f",p.activation);
+  sprintf(tmp,"%0.2f",p.alpha);
   sprintf(ptmp,"a%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(tmp,"%0.2f",p.beta);
+  sprintf(ptmp,"b%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.2f",p.firingThreshold);
   sprintf(ptmp,"fir%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.2f",p.G2duration);
@@ -138,11 +146,11 @@ int main(int argc, char *argv[]) {
 
   parFile = fopen(parameterSpace,"w");
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
+\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\tactivation\tgap\tMavg       \
+\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg       \
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
 
@@ -203,19 +211,19 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<1;p1++) { // 7
-    for (p2=p.optimSteps-1;p2<p.optimSteps;p2++) {
-      for (p3=p.optimSteps-1;p3<p.optimSteps;p3++) {
+    for (p2=7;p2<p.optimSteps;p2++) {
+      for (p3=12;p3<p.optimSteps;p3++) {
 	  
         // !!! Set seed for debugging - remove for simulations
         // setseed(&p,0);
                       
         FIRING = 0.000277778*20;
-        // P_DEMETHYLATE = pow(10,-0.15*(p2+4));
-        // P_METHYLATE = pow(10,-0.12*(p3+26));
+        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        P_METHYLATE = pow(10,-0.12*(p3+26));
         
         // FIRING = 0.0256;
-        P_DEMETHYLATE = 0.004;
-        P_METHYLATE = 0.000008;
+        // P_DEMETHYLATE = 0.004;
+        // P_METHYLATE = 0.000008;
         
         // Transcription
         // ------------------------------------------------------------
@@ -400,20 +408,20 @@ int main(int argc, char *argv[]) {
           tU = -1.0;
         }
 
-        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
-\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\
+                fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
+\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\
 \t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
                 FIRING,p.firingThreshold,
-                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
+                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.alpha,p.G2duration,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
         fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
-%0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
+%0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
 %0.4f  %0.4f  %0.4f  %0.4f  %0.6f\n",
                 p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
                 FIRING,p.firingThreshold,
-                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.activation,
+                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.alpha,p.G2duration,
                 gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
                 probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
 
