@@ -11,12 +11,14 @@ setwd("~/local/Modelling/me2me3_slow/")
 s <- 60
 ctrl <- 60
 cc <- 20
-a <- 1.0
-f <- 0.3
+a <- 0.0
+b <- 1.0
+f <- 1.0
 tau <- 4.0
 st <- 1
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
+bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
 fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
 taustr <- paste('tau',gsub("\\.", "_",sprintf("%0.2f",tau)),sep="")
 
@@ -36,11 +38,12 @@ interpolateGillespie <- function(tFile,
 
 interpolate_me3 <- function(id,steps=50) {
   astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
-  time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_",id,".txt",sep="")
-  tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_",id,".txt",sep="")
-  tDep_me3_LIGHT_file <- paste("LIGHT_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_",id,".txt",sep="")
-  tDep_me3_HEAVY_file <- paste("HEAVY_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_",id,".txt",sep="")
-  tDep_me3_UNLABELLED_file <- paste("UNLABELLED_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+  bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
+  time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+  tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+  tDep_me3_LIGHT_file <- paste("LIGHT_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+  tDep_me3_HEAVY_file <- paste("HEAVY_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+  tDep_me3_UNLABELLED_file <- paste("UNLABELLED_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
   total <- interpolateGillespie(time_file,tDep_me3_file,steps=steps)
   total$species <- "Total"
   light <- interpolateGillespie(time_file,tDep_me3_LIGHT_file,steps=steps)
@@ -144,14 +147,13 @@ id <- 1
 binwidth <- 1800
 loci <- 20
 brks <- seq(0,22*10*3600,by=binwidth)
-astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
-tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
 Firing <- t(read.table(tDep_firing_file))
 Firing <- Firing[Firing<22*10*3600]
 binned <- findInterval(Firing,brks)
 
 for (id in seq(2,loci)) {
-  tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+  tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
   Firing <- t(read.table(tDep_firing_file))
   Firing <- Firing[Firing<22*10*3600]
   binned <- c(binned,findInterval(Firing,brks))

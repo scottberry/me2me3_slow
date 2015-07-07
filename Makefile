@@ -57,7 +57,7 @@ clean:
 	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ 
 
 empty:
-	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcK27me2 Transcription Inhibit
+	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcK27me2 TranscriptionInhibit
 
 nores:
-	rm -f *.txt
+	rm -f *.txt *.out
