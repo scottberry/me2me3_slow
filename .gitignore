@@ -2,6 +2,7 @@ lib/libscottsmatrices.a
 lib/*.o
 obj/*.o
 me2me3
+Dynamic
 TranscriptionInhibit
 ProcK27me2
 Tests
