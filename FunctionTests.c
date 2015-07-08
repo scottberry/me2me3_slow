@@ -114,6 +114,7 @@ int main(int argc, char *argv[]) {
   p.firingThreshold = 1.0;
   p.firingRateMin = 0.0004; 
   p.firingRateMax = FIRING; // Optimise
+  p.firingCap = 0.0166667; // Cap firing rate at ~ every minute.
   p.transcription_demethylate = P_DEMETHYLATE;
   if (p.firingRateMax < p.firingRateMin) {
     fprintf(stderr,"Error: Max firing rate less than min firing \

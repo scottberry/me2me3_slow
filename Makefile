@@ -19,7 +19,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 _OBJP = random.o modificationsProcK27me2.o gillespie.o results.o 
 OBJP = $(patsubst %,$(ODIR)/%,$(_OBJP))
 
-all: $(STATLIB) $(OBJ) me2me3 TranscriptionInhibit ProcK27me2 Silac Tests ConstTimeInterpolate
+all: $(STATLIB) $(OBJ) me2me3 Dynamic TranscriptionInhibit ProcK27me2 Silac Tests ConstTimeInterpolate
 
 # make libscottsmatrices object file
 $(LDIR)/scottsmatrices.o: $(LDIR)/scottsmatrices.c $(DEPS)
@@ -34,6 +34,9 @@ $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS) $(IFLAGS)
 
 me2me3: $(ODIR)/Main.o $(STATLIB) $(OBJ)
+	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
+
+Dynamic: $(ODIR)/Dynamic.o $(STATLIB) $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 TranscriptionInhibit: $(ODIR)/TranscriptionInhibit.o $(STATLIB) $(OBJ)

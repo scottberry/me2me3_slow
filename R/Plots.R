@@ -6,23 +6,28 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 
 # Set the working directory
-setwd("~/Network/group-share/berrys/me2me3_slow/")
+setwd("~/local/Modelling/me2me3_slow/")
 
 s <- 60
 ctrl <- 60
-cc <- 50
+cc <- 39
 a <- 1.0
+b <- 0.8
+f <- 0.4
+tau <- 4.0
 st <- 1
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
+bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
+fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+taustr <- paste('tau',gsub("\\.", "_",sprintf("%0.2f",tau)),sep="")
 
-time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
-tDep_me0_file <- paste("me0_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
-tDep_me1_file <- paste("me1_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
-tDep_me2_file <- paste("me2_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
-tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
-tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
-tDep_transcribing_file <- paste("Transcribing_t_s",s,"ctrl",ctrl,"cc",cc,astr,"st",st,".txt",sep="")
+time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
+tDep_me0_file <- paste("me0_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
+tDep_me1_file <- paste("me1_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
+tDep_me2_file <- paste("me2_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
+tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
+tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
 
 time <- read.table(time_file) ; colnames(time) <- "time"
 me0 <- read.table(tDep_me0_file) ; colnames(me0) <- "level"
@@ -30,21 +35,13 @@ me1 <- read.table(tDep_me1_file) ; colnames(me1) <- "level"
 me2 <- read.table(tDep_me2_file) ; colnames(me2) <- "level"
 me3 <- read.table(tDep_me3_file) ; colnames(me3) <- "level"
 Firing <- read.table(tDep_firing_file)
-Transcribing <- read.table(tDep_transcribing_file, header=TRUE)
 
 par(mfrow=c(5,1),mar=c(2,4,0,0)+0.5,oma=c(3,3,0,0))
-plot(time$time/3600,me0$level,type="l",ylim=c(0,1),col="blue3")
-plot(time$time/3600,me1$level,type="l",ylim=c(0,1),col="blue3")
-plot(time$time/3600,me2$level,type="l",ylim=c(0,1),col="red3")
-plot(time$time/3600,me3$level,type="l",ylim=c(0,1),col="red3")
-hist(Firing$V1/3600,seq(0,(max(Firing)/3600 + 1),by=1),ylab="Firing/hour",main="")
-mtext("time (hours)",side=1,line=0,outer=TRUE)
+plot(time$time/(3600*22),me0$level,type="l",ylim=c(0,1),col="blue3")
+plot(time$time/(3600*22),me1$level,type="l",ylim=c(0,1),col="blue3")
+plot(time$time/(3600*22),me2$level,type="l",ylim=c(0,1),col="red3")
+plot(time$time/(3600*22),me3$level,type="l",ylim=c(0,1),col="red3")
+hist(Firing$V1/(3600*22),seq(0,(max(Firing)/(3600*22) + 1/22),by=1/22),ylab="Firing/hour",main="")
+mtext("time (cell cycles)",side=1,line=0,outer=TRUE)
 mtext("modification level",side=2,line=0,outer=TRUE)
 
-par(mfrow=c(1,1),mar=c(2,4,0,0)+0.5,oma=c(3,3,0,0))
-plot(Transcribing$t,Transcribing$transcribing,type="p",xlim=c(0,500),col="blue",pch=4,cex=2)
-Firing$Firing = 1
-EndFiring <- Firing
-EndFiring$V1 <- Firing$V1+180
-points(Firing$V1,Firing$Firing,bg="red",pch=21)
-points(EndFiring$V1,EndFiring$Firing,bg="green",pch=21)

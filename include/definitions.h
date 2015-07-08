@@ -59,7 +59,7 @@ typedef struct {
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate;
-  double firingThreshold;
+  double firingThreshold, firingCap;
   double alpha, beta;
   double transcriptionDelay, PRC2inhibition;
   
@@ -67,7 +67,8 @@ typedef struct {
   double firingFactor;
   double cellCycleDuration, G2duration;
   int cellCycles, cellCycleCount;
-
+  int initialCellCycles;
+  
   // run parameters
   unsigned long loci, reactCount, maxReact;
   unsigned long samples, sampleFreq, sampleCount;
@@ -136,6 +137,7 @@ void initialiseRepressed(chromatin *c);
 void initialiseActive(chromatin *c);
 void initialiseSilacLight(chromatin *c);
 void initialiseRandom(chromatin *c, parameters *p);
+void initialiseMixed(chromatin *c, parameters *p);
 double d_vec_sum(D_VEC *d);
 void initialiseGillespieFunctions(chromatin *c, gillespie *g);
 double frac(I_VEC *vec, int target);

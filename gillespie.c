@@ -49,6 +49,19 @@ void initialiseRandom(chromatin *c, parameters *p) {
   return;
 }
 
+void initialiseMixed(chromatin *c, parameters *p) {
+  int i;
+
+  for (i=0;i<c->sites;i++) {
+    if (runif(p->gsl_r) <= 0.5)  {
+      c->K27->el[i] = me0;
+    } else {
+      c->K27->el[i] = me3;
+    }
+  }
+  return;
+}
+
 double d_vec_sum(D_VEC *d) {
   int i;
   double sum = 0;
@@ -158,9 +171,9 @@ double neighboursK27factor(chromatin *c, parameters *p, int pos) {
 double firingRate(parameters *p, double f_me2_me3) {
   double f;
   if (f_me2_me3 < p->firingThreshold) {
-    f = (p->alpha + 1.0)*p->firingRateMax - (f_me2_me3 * (p->firingRateMax - p->firingRateMin) / p->firingThreshold);
+    f = p->firingRateMax - (f_me2_me3 * (p->firingRateMax - p->firingRateMin) / p->firingThreshold);
   } else {
-    f = (p->alpha*p->firingRateMax + p->firingRateMin);
+    f = p->firingRateMin;
   }
   return(f);
 }
@@ -189,7 +202,9 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
     }
    
     // transcribeDNA
-    g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * firingRate(p,f_me2_me3);    
+    g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * p->alpha * firingRate(p,f_me2_me3);
+    if (g->propensity->el[g->transcribeDNA_index->el[0]] > p->firingCap)
+      g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingCap;
 
     g->update->histone = FALSE; // reset the flag
   }
@@ -225,7 +240,9 @@ void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillesp
     }
    
     // transcribeDNA
-    g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * firingRate(p,f_me2_me3);    
+    g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * p->alpha * firingRate(p,f_me2_me3);
+    if (g->propensity->el[g->transcribeDNA_index->el[0]] > p->firingCap)
+      g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingCap;
 
     g->update->histone = FALSE; // reset the flag
      

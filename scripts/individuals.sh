@@ -1,10 +1,11 @@
 #!/bin/bash
 
-for act in 0.01 0.02 0.04 0.08 0.16 0.32 0.64 1.28 2.56 5.12 10.24;
+#for act in 0.0156 0.03125 0.0625 0.125 0.25 0.5 1 2 4 8 16 32 64 128
+for act in 128
 do
-    for i in `seq 1 10`;
+    for i in `seq 1 100`;
     do
-        ./me2me3 -c 60 -m -a $act -i $i > out$act_$i.txt 2>&1 &
+        ../Dynamic -c 60 -u -t 0.4 -b 1.0 -a $act -i $i > out$act$i.out 2>&1 &
         NPROC=$(($NPROC+1))
         if [ "$NPROC" -ge 4 ]; then
             wait

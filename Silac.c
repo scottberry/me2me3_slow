@@ -229,6 +229,7 @@ int main(int argc, char *argv[]) {
         // ------------------------------------------------------------
         p.firingRateMin = 0.000277778; // Leave the repressed firing rate fixed at ~ every 60 min.
         p.firingRateMax = FIRING; // Optimise
+        p.firingCap = 0.0166667; // Cap firing rate at ~ every minute.
         p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
         if (p.firingRateMax < p.firingRateMin) {
           fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
