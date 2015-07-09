@@ -5,7 +5,7 @@
    Author: Scott Berry
    Institute: John Innes Centre
    ============================================================
- */
+*/
 
 void methylate(chromatin *c, parameters *p, flags *update, int pos) {
   if (c->K27->el[pos] == me0) {
@@ -30,12 +30,55 @@ void demethylate(chromatin *c, parameters *p, flags *update, int pos) {
   update->histone = TRUE;
   return;
 }
-
+/*
 void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
   unsigned long i;
   for (i=0;i<c->sites;i++) {
     if(runif(p->gsl_r) <= p->transcription_demethylate) {
       demethylate(c,p,update,i);
+    }
+    update->transcribed = TRUE;
+  }
+  return;
+}
+*/
+void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
+  unsigned long i;
+  double rand;
+  rand = runif(p->gsl_r);
+
+  for (i=0;i<c->sites;i++) {
+    if (rand <= p->transcription_demethylate) {
+      demethylate(c,p,update,i);
+    } else if (rand <= p->transcription_demethylate + p->transcription_turnover) {
+      if (i % 2 == 0) { // even histone
+        if (p->checkHistoneTurnover==TRUE) {
+          if (c->K27->el[i]==me0) c->turnover->el[0]++;
+          if (c->K27->el[i+1]==me0) c->turnover->el[0]++;
+          if (c->K27->el[i]==me1) c->turnover->el[1]++;
+          if (c->K27->el[i+1]==me1) c->turnover->el[1]++;
+          if (c->K27->el[i]==me2) c->turnover->el[2]++;
+          if (c->K27->el[i+1]==me2) c->turnover->el[2]++;
+          if (c->K27->el[i]==me3) c->turnover->el[3]++;
+          if (c->K27->el[i+1]==me3) c->turnover->el[3]++;
+        }
+        c->K27->el[i] = me0;
+        c->K27->el[i+1] = me0;
+      } else { // odd histone
+        if (p->checkHistoneTurnover==TRUE) {
+          if (c->K27->el[i]==me0) c->turnover->el[0]++;
+          if (c->K27->el[i-1]==me0) c->turnover->el[0]++;
+          if (c->K27->el[i]==me1) c->turnover->el[1]++;
+          if (c->K27->el[i-1]==me1) c->turnover->el[1]++;
+          if (c->K27->el[i]==me2) c->turnover->el[2]++;
+          if (c->K27->el[i-1]==me2) c->turnover->el[2]++;
+          if (c->K27->el[i]==me3) c->turnover->el[3]++;
+          if (c->K27->el[i-1]==me3) c->turnover->el[3]++;
+        }
+        c->K27->el[i] = me0;
+        c->K27->el[i-1] = me0;
+      }
+      update->histone = TRUE;
     }
     update->transcribed = TRUE;
   }
@@ -62,6 +105,6 @@ void replicateDNA(chromatin *c, parameters *p, flags *update) {
       }
     }
   }
-  update->histone = TRUE;
+
   return;
 }

@@ -5,51 +5,51 @@
    Author: Scott Berry
    Institute: John Innes Centre
    ============================================================
- */
+*/
 
 /* Replace a character of a string */
 char *str_replace(char *orig, char *rep, char *with) {
-    char *result; // the return string
-    char *ins;    // the next insert point
-    char *tmp;    // varies
-    int len_rep;  // length of rep
-    int len_with; // length of with
-    int len_front; // distance between rep and end of last rep
-    int count;    // number of replacements
+  char *result; // the return string
+  char *ins;    // the next insert point
+  char *tmp;    // varies
+  int len_rep;  // length of rep
+  int len_with; // length of with
+  int len_front; // distance between rep and end of last rep
+  int count;    // number of replacements
 
-    if (!orig)
-        return NULL;
-    if (!rep)
-        rep = "";
-    len_rep = strlen(rep);
-    if (!with)
-        with = "";
-    len_with = strlen(with);
+  if (!orig)
+    return NULL;
+  if (!rep)
+    rep = "";
+  len_rep = strlen(rep);
+  if (!with)
+    with = "";
+  len_with = strlen(with);
 
-    ins = orig;
-    for (count = 0; (tmp = strstr(ins, rep)); ++count) {
-        ins = tmp + len_rep;
-    }
+  ins = orig;
+  for (count = 0; (tmp = strstr(ins, rep)); ++count) {
+    ins = tmp + len_rep;
+  }
 
-    // first time through the loop, all the variable are set correctly
-    // from here on,
-    //    tmp points to the end of the result string
-    //    ins points to the next occurrence of rep in orig
-    //    orig points to the remainder of orig after "end of rep"
-    tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+  // first time through the loop, all the variable are set correctly
+  // from here on,
+  //    tmp points to the end of the result string
+  //    ins points to the next occurrence of rep in orig
+  //    orig points to the remainder of orig after "end of rep"
+  tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
 
-    if (!result)
-        return NULL;
+  if (!result)
+    return NULL;
 
-    while (count--) {
-        ins = strstr(orig, rep);
-        len_front = ins - orig;
-        tmp = strncpy(tmp, orig, len_front) + len_front;
-        tmp = strcpy(tmp, with) + len_with;
-        orig += len_front + len_rep; // move to next "end of rep"
-    }
-    strcpy(tmp, orig);
-    return result;
+  while (count--) {
+    ins = strstr(orig, rep);
+    len_front = ins - orig;
+    tmp = strncpy(tmp, orig, len_front) + len_front;
+    tmp = strcpy(tmp, with) + len_with;
+    orig += len_front + len_rep; // move to next "end of rep"
+  }
+  strcpy(tmp, orig);
+  return result;
 }
 
 /* Print simulation time at sample points. Length depends directly on
@@ -661,7 +661,7 @@ void storeTripleSILAC_me3(long locus, parameters *p, record *r) {
   time = p->SILAC_nextReport;
   
   for (j=0;j<r->K27->rows;j++) {
-    if (r->K27->el[j][t] == me3 && r->silac->el[j][t] == LIGHT) count_me3_LIGHT++;
+    if (r->K27->el[j][t] == me3 && r->silac->el[j][t] == LIGHT) count_me3_LIGHT++;    
     if (r->K27->el[j][t] == me3 && r->silac->el[j][t] == HEAVY) count_me3_HEAVY++;
     if (r->silac->el[j][t] == LIGHT) tot_LIGHT++;
     if (r->silac->el[j][t] == HEAVY) tot_HEAVY++;
@@ -725,4 +725,25 @@ void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r) {
   fprintf(fptr,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t48.0\tme3\tHEAVY\t%0.10f\n",p->firingRateMax,p->transcription_demethylate,p->me2_me3,p->firingThreshold,H48/(double)p->loci);
   
   return;
+}
+
+void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r) {
+  double turn_me0, turn_me1, turn_me2, turn_me3;
+  long locus;
+  
+  fprintf(fptr,"species\tturnover\n");
+  
+  for (locus=0;locus<p->loci;locus++) {
+    turn_me0 += r->turnover->el[locus][0];
+    turn_me1 += r->turnover->el[locus][1];
+    turn_me2 += r->turnover->el[locus][2];
+    turn_me3 += r->turnover->el[locus][3];
+  }
+
+  fprintf(fptr,"me0\t%0.12f\n",turn_me0/p->loci);
+  fprintf(fptr,"me1\t%0.12f\n",turn_me1/p->loci);
+  fprintf(fptr,"me2\t%0.12f\n",turn_me2/p->loci);
+  fprintf(fptr,"me3\t%0.12f\n",turn_me3/p->loci);
+  fprintf(fptr,"total\t%0.12f\n",(turn_me0 + turn_me1 + turn_me2 + turn_me3)/p->loci);
+  
 }

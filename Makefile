@@ -19,7 +19,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 _OBJP = random.o modificationsProcK27me2.o gillespie.o results.o 
 OBJP = $(patsubst %,$(ODIR)/%,$(_OBJP))
 
-all: $(STATLIB) $(OBJ) me2me3 Dynamic TranscriptionInhibit ProcK27me2 Silac Tests ConstTimeInterpolate
+all: $(STATLIB) $(OBJ) me2me3 Dynamic HistoneTurnover TranscriptionInhibit ProcK27me2 Silac Tests ConstTimeInterpolate
 
 # make libscottsmatrices object file
 $(LDIR)/scottsmatrices.o: $(LDIR)/scottsmatrices.c $(DEPS)
@@ -37,6 +37,9 @@ me2me3: $(ODIR)/Main.o $(STATLIB) $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 Dynamic: $(ODIR)/Dynamic.o $(STATLIB) $(OBJ)
+	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
+
+HistoneTurnover: $(ODIR)/HistoneTurnover.o $(STATLIB) $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 TranscriptionInhibit: $(ODIR)/TranscriptionInhibit.o $(STATLIB) $(OBJ)
@@ -60,7 +63,7 @@ clean:
 	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ 
 
 empty:
-	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcK27me2 TranscriptionInhibit
+	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcK27me2 TranscriptionInhibit HistoneTurnover
 
 nores:
 	rm -f *.txt *.out

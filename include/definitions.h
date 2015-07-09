@@ -43,6 +43,7 @@ typedef struct {
   I_VEC *K27;
   I_VEC *silac;
   logical transcribing;
+  I_VEC *turnover;
 } chromatin;
 
 typedef struct {
@@ -58,7 +59,7 @@ typedef struct {
   double noisy_me0_me1, noisy_me1_me2, noisy_me2_me3;
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
-  double firingRateMax, firingRateMin, transcription_demethylate;
+  double firingRateMax, firingRateMin, transcription_demethylate, transcription_turnover;
   double firingThreshold, firingCap;
   double alpha, beta;
   double transcriptionDelay, PRC2inhibition;
@@ -74,7 +75,8 @@ typedef struct {
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
   logical DNAreplication, resultsLastHourOnly, resultsFinalLocus, resultsTranscribing;
-
+  logical checkHistoneTurnover;
+  
   // silac parameters
   logical silacExperiment;
   int silacLabel;
@@ -109,6 +111,7 @@ typedef struct {
   I_MAT *silac;
   I_VEC *firing;
   I_VEC *transcribing;
+  D_MAT *turnover;
   D_VEC *t, *t_out;
   double tMax;
   unsigned long t_outLastSample;
@@ -177,3 +180,4 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r);
 void fprintTripleSILAC_eachLocus(FILE *fptrAbs, FILE *fptrRel, long locus, parameters *p, record *r);
 void storeTripleSILAC_me3(long locus, parameters *p, record *r);
 void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r);
+void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r);
