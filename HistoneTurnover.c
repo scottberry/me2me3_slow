@@ -57,28 +57,28 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 200000 is a good
      choice for a large parameter search. */
   
-  p.loci = 2;
+  p.loci = 100;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 20;
+  p.cellCycles = 10;
   p.cellCycleDuration = 22.0; // (hours)
-  p.G2duration = 0.0; // (hours)
+  p.G2duration = 4.0; // (hours)
   p.alpha = 1.0; // can be replaced via command line
   p.beta = 1.0; // can be replaced via command line
   p.firingThreshold = 1.0; // can be replaced via command line
 
-  p.DNAreplication = FALSE;
+  p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = FALSE;
-  p.resultsFinalLocus = FALSE;
+  p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = TRUE;
 
   // Test gillespie algorithm
   g.test = FALSE;
   
-  p.optimSteps = 30; 
+  p.optimSteps = 1; 
   
   /* Parse command line */
   opterr = 0;
@@ -200,7 +200,7 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<10;p1++) {
+  for (p1=0;p1<1;p1++) {
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
@@ -208,15 +208,15 @@ int main(int argc, char *argv[]) {
         //setseed(&p,0);
         
         // FIRING = 0.000277778*pow(2,p1);
-        P_TURNOVER = 1.0/(pow(2,p1)*10);
-        if (p1==9) P_TURNOVER = 0;
-        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
-        P_METHYLATE = pow(10,-0.12*(p3+21));
+        // P_TURNOVER = 1.0/(pow(2,p1)*10);
+        // if (p1==9) P_TURNOVER = 0;
+        //P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        //P_METHYLATE = pow(10,-0.12*(p3+21));
         
         FIRING = 0.000277778*20;
-        // P_TURNOVER = 0.001;
-        // P_DEMETHYLATE = 0.03;
-        // P_METHYLATE = 0.00005;
+        P_TURNOVER = 0.004;  //0.004;
+        P_DEMETHYLATE = 0.004;
+        P_METHYLATE = 0.000022;
                 
         // Transcription
         // ------------------------------------------------------------

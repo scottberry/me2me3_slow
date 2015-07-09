@@ -42,15 +42,16 @@ void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
   return;
 }
 */
+
 void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
   unsigned long i;
   double rand;
-  rand = runif(p->gsl_r);
 
   for (i=0;i<c->sites;i++) {
-    if (rand <= p->transcription_demethylate) {
+    rand = runif(p->gsl_r);
+    if (rand < p->transcription_demethylate) {
       demethylate(c,p,update,i);
-    } else if (rand <= p->transcription_demethylate + p->transcription_turnover) {
+    } else if (rand < p->transcription_demethylate + p->transcription_turnover) {
       if (i % 2 == 0) { // even histone
         if (p->checkHistoneTurnover==TRUE) {
           if (c->K27->el[i]==me0) c->turnover->el[0]++;
@@ -105,6 +106,6 @@ void replicateDNA(chromatin *c, parameters *p, flags *update) {
       }
     }
   }
-
+  update->histone = TRUE;
   return;
 }

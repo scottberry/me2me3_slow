@@ -295,6 +295,8 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   delta_t = gillespieTimeStep(p,g,&p_s);
   next_t = delta_t + r->t->el[step-1];
 
+  // fprintf(stderr,"next_t = %0.2f, g->t_nextRep = %0.2f , g->t_nextEndG2 = %0.2f\n",next_t,g->t_nextRep,g->t_nextEndG2); 
+
   /* Determine if the new time is after DNA replication or release of
      G2 inhibition. If so, interrupt Gillespie algorithm to replicate
      DNA or release G2 transcription inhibition (at a precise time).
