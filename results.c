@@ -544,6 +544,50 @@ double firstPassageTime(record *r, signed char *initial) {
   return(fpt);
 }
 
+/* Calculate the first passage time (taking care not to exceed
+   p.t_outLastSample. */
+
+double firstPassageTimeExpression(record *r, parameters *p, signed char *initial) {
+  long unsigned m=0, pos,t=0;
+  double lower_quartile, median, upper_quartile, f;
+  double fpt = 0.0;
+
+  lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
+  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+  upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
+
+  // fprintf(stderr,"upr = %0.8f,med = %0.8f,lwr = %0.8f,",upper_quartile,median,lower_quartile);
+  
+  /* find initial state */
+  for (pos=0;pos<r->K27->rows;pos++) {
+    if (r->K27->el[pos][0]==me2 || r->K27->el[pos][0]==me3) m++;
+  }
+
+  f = firingRate(p,(double)m/r->K27->rows);
+  //   fprintf(stderr,"m = %ld,f = %0.8f\n",m,f);
+  
+  /* find initial state */
+  if (f < median)
+    *initial = -1;
+  else
+    *initial = 1;
+  
+  while ( t < r->K27->cols && t < r->t_outLastSample &&
+	  ((*initial == -1 && f < upper_quartile) || (*initial == 1 && f > lower_quartile))) {
+    m = 0;
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3) m++;
+    }
+    f = firingRate(p,(double)m/r->K27->rows);
+    t++;
+  }
+  if (t==r->t_outLastSample)
+    fpt = r->tMax;
+  else 
+    fpt = r->t_out->el[t-1];
+  return(fpt);
+}
+
 /* Write the log file. */
 
 int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {

@@ -176,6 +176,7 @@ double tAverage_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r)
 double tAverage_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r);
 unsigned long numberHistoneStateFlips(record *r);
 double firstPassageTime(record *r, signed char *initial);
+double firstPassageTimeExpression(record *r, parameters *p, signed char *initial);
 int writelog(FILE *fptr, chromatin *c, parameters *p, record *r);
 void fprintTripleSILAC_eachLocus(FILE *fptrAbs, FILE *fptrRel, long locus, parameters *p, record *r);
 void storeTripleSILAC_me3(long locus, parameters *p, record *r);

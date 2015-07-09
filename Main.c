@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
   // Test gillespie algorithm
   g.test = FALSE;
   
-  p.optimSteps = 20; 
+  p.optimSteps = 1; 
   
   /* Parse command line */
   opterr = 0;
@@ -201,14 +201,13 @@ int main(int argc, char *argv[]) {
         // !!! Set seed for debugging - remove for simulations
         //setseed(&p,0);
         
-        FIRING = 0.000277778*pow(2,p1);
+        // FIRING = 0.000277778*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.15*(p2+4));
         P_METHYLATE = pow(10,-0.12*(p3+26));
              
-        // FIRING = 0.000277778*10;
+        FIRING = 0.000277778*10;
         // P_DEMETHYLATE = 0.0005;
         // P_METHYLATE = 0.00005;
-        
         
         // Transcription
         // ------------------------------------------------------------
@@ -264,7 +263,7 @@ int main(int argc, char *argv[]) {
           if (argc > 1) {
             if (startM == TRUE) {
               initialiseRepressed(&c);
-	      } else if (startU == TRUE) {
+            } else if (startU == TRUE) {
               initialiseActive(&c);
             } else { 
               if (locus < floor(p.loci/2))
@@ -328,8 +327,13 @@ int main(int argc, char *argv[]) {
                     p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE);
             exit(-1);
           }
+          
+          // Note: this metric works best when threshold = 1.0
+          // firstPassage = firstPassageTime(&r,&initial);
 
-          firstPassage = firstPassageTime(&r,&initial);
+          // Note: this metric requires firing rate changes to work
+          firstPassage = firstPassageTimeExpression(&r,&p,&initial);
+
           if (initial==-1) {
             firstPassageM += firstPassage;
             initM++;
