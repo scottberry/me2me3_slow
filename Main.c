@@ -74,7 +74,8 @@ int main(int argc, char *argv[]) {
   p.silacExperiment = FALSE;
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
-
+  p.resultsTranscribing = FALSE;
+  
   // Test gillespie algorithm
   g.test = FALSE;
   

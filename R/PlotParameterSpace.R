@@ -10,7 +10,7 @@ setwd("~/local/Modelling/me2me3_slow/")
 # ctrl10_file = "ParamOptimRes_s60ctrl10cc50st16.txt"
 # ctrl20_file = "ParamOptimRes_s60ctrl20cc50st16.txt"
 # ctrl30_file = "ParamOptimRes_s60ctrl30cc50st16.txt"
-ctrl60_file = "ParamOptimRes_s60ctrl60cc20a1_00b1_00fir1_00tau0_00st20.txt"
+ctrl60_file = "ParamOptimRes_s60cc20a1_00p4_00st20.txt"
 
 # parameterSpace_ctrl5 <- read.table(ctrl5_file,header = TRUE)
 # parameterSpace_ctrl10 <- read.table(ctrl10_file,header = TRUE)

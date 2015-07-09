@@ -13,15 +13,15 @@ void usage(void)
 
 int main(int argc, char *argv[]) {
   FILE *fptr, *parFile;
-  char avgfile[128]="", fname[128]="", tmp[128]="", buffer[128]="";
-  char parameterSpace[128]="", ptmp[128]="", id[16]="";
+  char avgfile[256]="", fname[256]="", tmp[256]="", buffer[256]="";
+  char parameterSpace[256]="", ptmp[256]="", id[16]="";
   char *decimal = ".", *underscore = "_";
   chromatin c;
   parameters p;
   gillespie g;
   record r;
   signed char initial;
-  double gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime;
+  double gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime, me3_end;
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
   long i, j, locus, fh, initM, initU, seed;
   double probM, probU, bistability;
@@ -54,18 +54,18 @@ int main(int argc, char *argv[]) {
      Gap = NaN. For robustness in parameter searches use
      p.samples = p.maxReact. Also choose p.maxReact according to
      p.cellCycles so that sampling is frequent enough in relation to
-     cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
+     cell cycle. For 50 cell cycles, p.maxReact = 200000 is a good
      choice for a large parameter search. */
   
   p.loci = 100;
-  p.maxReact = 100000;
-  p.samples = 100000; 
+  p.maxReact = 200000;
+  p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
   p.G2duration = 4.0; // (hours)
-  p.alpha = 0.0; // can be replaced via command line
+  p.alpha = 1.0; // can be replaced via command line
   p.beta = 1.0; // can be replaced via command line
   p.firingThreshold = 1.0; // can be replaced via command line
   
@@ -77,7 +77,8 @@ int main(int argc, char *argv[]) {
   p.silacExperiment = FALSE;
   p.resultsFinalLocus = FALSE;
   p.resultsTranscribing = FALSE;
-
+  p.checkHistoneTurnover = FALSE;
+  
   // Test gillespie algorithm
   g.test = FALSE;
   
@@ -85,7 +86,7 @@ int main(int argc, char *argv[]) {
   
   /* Parse command line */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:i:murg:p:t:")) != -1)
+  while ((j = getopt (argc, argv, "c:a:b:i:murg:p:t:")) != -1)
     switch (j)
       {
       case 'c':
@@ -96,6 +97,11 @@ int main(int argc, char *argv[]) {
       case 'a':
         sprintf(buffer,"%s",optarg);
         p.alpha = atof(buffer);
+        break;
+
+      case 'b':
+        sprintf(buffer,"%s",optarg);
+        p.beta = atof(buffer);
         break;
 
       case 'i':
@@ -190,7 +196,7 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<1;p1++) { // 7
+  for (p1=0;p1<6;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
@@ -201,11 +207,10 @@ int main(int argc, char *argv[]) {
         P_DEMETHYLATE = pow(10,-0.15*(p2+4));
         P_METHYLATE = pow(10,-0.12*(p3+26));
         
-        /*
-        FIRING = 0.0064;
-        P_DEMETHYLATE = 0.1;
-        P_METHYLATE = 0.00015;
-        */
+        // FIRING = 0.000277778*20;
+        // P_DEMETHYLATE = 0.1;
+        // P_METHYLATE = 0.00015;
+        
         // Transcription
         // ------------------------------------------------------------
         p.firingRateMin = 0.000277778; // Leave the repressed firing rate fixed at ~ every 60 min.
@@ -244,6 +249,7 @@ int main(int argc, char *argv[]) {
         // ------------------------------------------------------------        
         gap = 0.0;
         Mavg = 0.0;
+        me3_end = 0.0;
         probM = 0.0;
         probU = 0.0;
         fh = 0;
@@ -307,6 +313,9 @@ int main(int argc, char *argv[]) {
           if (p.resultsLastHourOnly == TRUE) {
             gap += tAverageGap_lastHour_nCycles(&c,&p,&r);
             Mavg += tAverage_me2_me3_lastHour_nCycles(&c,&p,&r);
+            me3_end += tAverage_me3_lastHour_nCycles(&c,&p,&r);
+            // probM += prob_lowExpression_lastHour_nCycles(&c,&p,&r);
+            // probU += prob_highExpression_lastHour_nCycles(&c,&p,&r);
             probM += prob_me2_me3_lastHour_nCycles(&c,&p,&r);
             probU += prob_me0_me1_lastHour_nCycles(&c,&p,&r);
           } else {
