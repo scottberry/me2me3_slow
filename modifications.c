@@ -65,6 +65,7 @@ void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
         }
         c->K27->el[i] = me0;
         c->K27->el[i+1] = me0;
+        update->histone = TRUE;
       } else { // odd histone
         if (p->checkHistoneTurnover==TRUE) {
           if (c->K27->el[i]==me0) c->turnover->el[0]++;
@@ -78,11 +79,11 @@ void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
         }
         c->K27->el[i] = me0;
         c->K27->el[i-1] = me0;
+        update->histone = TRUE;
       }
-      update->histone = TRUE;
     }
-    update->transcribed = TRUE;
   }
+  update->transcribed = TRUE;
   return;
 }
 

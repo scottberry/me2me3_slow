@@ -40,7 +40,7 @@ scientific_10 <- function(x) {
 }
 ## Bistability
 p1 <- ggplot(subset(parameterSpace,controlSites==60 & FIRING < 0.02),aes(x=P_DEMETHYLATE,y=P_METHYLATE))
-p1 <- p1 + geom_tile(aes(fill=probM)) + 
+p1 <- p1 + geom_tile(aes(fill=bistability)) + 
   scale_y_log10("Methylation rate",
                 labels = trans_format("log10", math_format(10^.x))) +
   scale_x_log10("Demethylation probability",

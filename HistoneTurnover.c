@@ -57,12 +57,12 @@ int main(int argc, char *argv[]) {
      cell cycle. For 50 cell cycles, p.maxReact = 200000 is a good
      choice for a large parameter search. */
   
-  p.loci = 100;
+  p.loci = 4;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
-  p.cellCycles = 10;
+  p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
   p.G2duration = 4.0; // (hours)
   p.alpha = 1.0; // can be replaced via command line
@@ -72,13 +72,13 @@ int main(int argc, char *argv[]) {
   p.DNAreplication = TRUE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = FALSE;
-  p.resultsFinalLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
   p.checkHistoneTurnover = TRUE;
 
   // Test gillespie algorithm
   g.test = FALSE;
   
-  p.optimSteps = 1; 
+  p.optimSteps = 30; 
   
   /* Parse command line */
   opterr = 0;
@@ -200,7 +200,7 @@ int main(int argc, char *argv[]) {
   /* -------------------------------------------------------------------------------- */
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
-  for (p1=0;p1<1;p1++) {
+  for (p1=0;p1<9;p1++) {
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
@@ -208,15 +208,15 @@ int main(int argc, char *argv[]) {
         //setseed(&p,0);
         
         // FIRING = 0.000277778*pow(2,p1);
-        // P_TURNOVER = 1.0/(pow(2,p1)*10);
-        // if (p1==9) P_TURNOVER = 0;
-        //P_DEMETHYLATE = pow(10,-0.15*(p2+4));
-        //P_METHYLATE = pow(10,-0.12*(p3+21));
-        
+        P_TURNOVER = 1.0/(pow(2,p1)*10);
+        if (p1==9) P_TURNOVER = 0;
+        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        P_METHYLATE = pow(10,-0.12*(p3+21));
+
         FIRING = 0.000277778*20;
-        P_TURNOVER = 0.004;  //0.004;
-        P_DEMETHYLATE = 0.004;
-        P_METHYLATE = 0.000022;
+        // P_TURNOVER = 0.004;  //0.004;
+        // P_DEMETHYLATE = 0.004;
+        // P_METHYLATE = 0.000018;
                 
         // Transcription
         // ------------------------------------------------------------
@@ -262,6 +262,8 @@ int main(int argc, char *argv[]) {
         tTot = tTotM = tTotU = 0.0;
         initM = initU = 0;
         firstPassageM = firstPassageU = 0.0;
+        if (p.checkHistoneTurnover == TRUE)
+          totalHistoneTurnover = 0.0;
         
         /* -------------------------------------------------------------------------------- */
         /* loop over loci */
@@ -291,11 +293,11 @@ int main(int argc, char *argv[]) {
           p.reactCount = 0;
           p.sampleCount = 0;
           p.cellCycleCount = 0;
-          if (p.checkHistoneTurnover == TRUE) {
+
+          // reset turnover counter
+          if (p.checkHistoneTurnover == TRUE)
             for (j=0;j<4;j++) c.turnover->el[j]=0;
-            totalHistoneTurnover = 0.0;
-          }
-            
+          
           // Schedule first instance of the fixed time reactions
           g.t_nextRep = p.cellCycleDuration*3600;
           g.t_nextEndG2 = (p.cellCycleDuration + p.G2duration)*3600;
@@ -353,22 +355,21 @@ int main(int argc, char *argv[]) {
           }
 
           /* turnover rate is number of swapouts per site per unit time */
-          
           if (p.checkHistoneTurnover == TRUE) {
-          for (j=0;j<4;j++) {
-          r.turnover->el[locus][j] = (double)c.turnover->el[j]/(c.sites * r.tMax);
-          totalHistoneTurnover += r.turnover->el[locus][j];
-        }
-        }
+            for (j=0;j<4;j++) {
+              r.turnover->el[locus][j] = (double)c.turnover->el[j]/(c.sites * r.tMax);
+              totalHistoneTurnover += r.turnover->el[locus][j];
+            }
+          }
           
         } /* end loop over loci */
+        
+        if (fh != 0) lifetime = tTot/fh;
+        else lifetime = -1.0;
           
-          if (fh != 0) lifetime = tTot/fh;
-          else lifetime = -1.0;
+        bistability = 4*probM*probU/(p.loci*p.loci);
           
-          bistability = 4*probM*probU/(p.loci*p.loci);
-          
-          if (initM != 0) {
+        if (initM != 0) {
           fpM = firstPassageM/initM;
           tM = tTotM/initM;
         } else {
@@ -376,7 +377,7 @@ int main(int argc, char *argv[]) {
           tM = -1.0;
         }
           
-          if (initU != 0) {
+        if (initU != 0) {
           fpU= firstPassageU/initU;
           tU = tTotU/initU;
         } else {
@@ -384,99 +385,99 @@ int main(int argc, char *argv[]) {
           tU = -1.0;
         }
           
-          fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
+        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%ld\t%0.4f\t%0.4f\t%0.4f\
 \t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%0.4f\
 \t%0.4f\t%0.4f\t%0.4f\t%0.10f\n",
-            p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-            FIRING,p.firingThreshold,P_DEMETHYLATE,P_METHYLATE,P_TURNOVER,
-            c.controlSites,p.alpha,p.beta,p.G2duration,
-            gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
-            probM/p.loci,probU/p.loci,bistability,totalHistoneTurnover);
-          fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
+                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
+                FIRING,p.firingThreshold,P_DEMETHYLATE,P_METHYLATE,P_TURNOVER,
+                c.controlSites,p.alpha,p.beta,p.G2duration,
+                gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
+                probM/p.loci,probU/p.loci,bistability,totalHistoneTurnover/p.loci);
+        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %ld  %0.4f  %0.4f  %0.4f  \
 %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f %0.4f  \
 %0.4f  %0.4f  %0.4f  %0.10f\n",
-            p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-            FIRING,p.firingThreshold,P_DEMETHYLATE,P_METHYLATE,P_TURNOVER,
-            c.controlSites,p.alpha,p.beta,p.G2duration,
-            gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
-            probM/p.loci,probU/p.loci,bistability,totalHistoneTurnover);
-        }
-        }
-        }
+                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
+                FIRING,p.firingThreshold,P_DEMETHYLATE,P_METHYLATE,P_TURNOVER,
+                c.controlSites,p.alpha,p.beta,p.G2duration,
+                gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
+                probM/p.loci,probU/p.loci,bistability,totalHistoneTurnover/p.loci);
+      }
+    }
+  }
  
-          /* end loop over parameters */
-          fclose(parFile);
+  /* end loop over parameters */
+  fclose(parFile);
           
-          /* -------------------------------------------------------------------------------- */
-          /* Tidy up and write results files */
-          /* -------------------------------------------------------------------------------- */
+  /* -------------------------------------------------------------------------------- */
+  /* Tidy up and write results files */
+  /* -------------------------------------------------------------------------------- */
           
-          /* free all arrays */
-          i_vec_free(c.K27);
-          i_vec_free(g.methylate_index);
-          i_vec_free(g.transcribeDNA_index);
-          d_vec_free(g.propensity);
-          free(g.doReaction);
-          i_vec_free(g.doReactionParam);
-          free(g.update);
-          rfree(&p);
+  /* free all arrays */
+  i_vec_free(c.K27);
+  i_vec_free(g.methylate_index);
+  i_vec_free(g.transcribeDNA_index);
+  d_vec_free(g.propensity);
+  free(g.doReaction);
+  i_vec_free(g.doReactionParam);
+  free(g.update);
+  rfree(&p);
 
-          if (p.resultsFinalLocus == TRUE) {
-          /* print results for final locus */
-          strcpy(fname,"t_\0"); strcat(fname,avgfile);
-          fprint_t_out_nCycles(fname,&r);
-          strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
-          fprint_t_nCycles(fname,r.K27,me0,&r);
-          strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
-          fprint_t_nCycles(fname,r.K27,me1,&r);
-          strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
-          fprint_t_nCycles(fname,r.K27,me2,&r);
-          strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
-          fprint_t_nCycles(fname,r.K27,me3,&r);
-          strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
-          fprint_firing_t_nCycles(fname,&r);
-        }
+  if (p.resultsFinalLocus == TRUE) {
+    /* print results for final locus */
+    strcpy(fname,"t_\0"); strcat(fname,avgfile);
+    fprint_t_out_nCycles(fname,&r);
+    strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
+    fprint_t_nCycles(fname,r.K27,me0,&r);
+    strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
+    fprint_t_nCycles(fname,r.K27,me1,&r);
+    strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
+    fprint_t_nCycles(fname,r.K27,me2,&r);
+    strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
+    fprint_t_nCycles(fname,r.K27,me3,&r);
+    strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
+    fprint_firing_t_nCycles(fname,&r);
+  }
   
-          strcpy(fname,"Log_\0"); strcat(fname,avgfile);
-          fptr = fopen(fname,"w");
-          writelog(fptr,&c,&p,&r);
+  strcpy(fname,"Log_\0"); strcat(fname,avgfile);
+  fptr = fopen(fname,"w");
+  writelog(fptr,&c,&p,&r);
 
-          i_vec_free(r.firing);
-          i_mat_free(r.K27);
-          d_vec_free(r.t);
-          d_vec_free(r.t_out);
+  i_vec_free(r.firing);
+  i_mat_free(r.K27);
+  d_vec_free(r.t);
+  d_vec_free(r.t_out);
 
-          /* Print histone turnover results */
-          if (p.checkHistoneTurnover == TRUE) {
-          i_vec_free(c.turnover);
+  /* Print histone turnover results */
+  if (p.checkHistoneTurnover == TRUE) {
+    i_vec_free(c.turnover);
 
-          strcpy(fname,"turnover_\0"); strcat(fname,avgfile);
-          turnPtr = fopen(fname,"w");
-          fprintHistoneTurnover(turnPtr,&p,&r);
-          fclose(turnPtr);
+    strcpy(fname,"turnover_\0"); strcat(fname,avgfile);
+    turnPtr = fopen(fname,"w");
+    fprintHistoneTurnover(turnPtr,&p,&r);
+    fclose(turnPtr);
 
-          d_mat_free(r.turnover);
-        }
+    d_mat_free(r.turnover);
+  }
   
 #ifdef __APPLE__
-          timeElapsed = mach_absolute_time() - start;
-          timeElapsed *= info.numer;
-          timeElapsed /= info.denom;
-          fprintf(fptr,"Simulation time: %f seconds\n", (float)(timeElapsed)/pow(10,9));
-          fprintf(stdout,"Simulation time: %f seconds\n", (float)(timeElapsed)/pow(10,9));
+  timeElapsed = mach_absolute_time() - start;
+  timeElapsed *= info.numer;
+  timeElapsed /= info.denom;
+  fprintf(fptr,"Simulation time: %f seconds\n", (float)(timeElapsed)/pow(10,9));
+  fprintf(stdout,"Simulation time: %f seconds\n", (float)(timeElapsed)/pow(10,9));
 #else
-          end = clock();
-          timeElapsed = (float)(end-start)/CLOCKS_PER_SEC;
-          fprintf(fptr,"Simulation time: %f seconds\n", (float)(timeElapsed));
-          fprintf(stdout,"Simulation time: %f seconds\n", (float)(timeElapsed));
+  end = clock();
+  timeElapsed = (float)(end-start)/CLOCKS_PER_SEC;
+  fprintf(fptr,"Simulation time: %f seconds\n", (float)(timeElapsed));
+  fprintf(stdout,"Simulation time: %f seconds\n", (float)(timeElapsed));
 #endif
   
-          fclose(fptr);
-          if (g.test==TRUE)
-            fclose(g.test_fptr);
-          return(1);
-        }
+  fclose(fptr);
+  if (g.test==TRUE)
+    fclose(g.test_fptr);
+  return(1);
+}
