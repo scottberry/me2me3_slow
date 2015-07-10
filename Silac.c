@@ -1,16 +1,5 @@
 #include "definitions.h"
 
-void usage(void)
-{
-	printf("Usage:\n");
-	printf(" -c<control region>\n");
-	printf(" -a<gene activation>\n");
-        printf(" -i<identifier>\n");
-        printf(" -m\n");
-        printf(" -u\n");
-	exit (8);
-}
-
 int main(int argc, char *argv[]) {
   FILE *fptr, *parFile, *silacAbsFile, *silacRelFile, *silacRelAvgFile;
   char avgfile[256]="", fname[256]="", tmp[256]="", buffer[256]="";

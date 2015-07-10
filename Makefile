@@ -3,7 +3,7 @@ IDIR = ./include
 ODIR = ./obj
 LDIR = ./lib
 
-CFLAGS = -O2
+CFLAGS = -O2 -Wall
 IFLAGS = -I$(IDIR) -I/usr/local/include
 
 LIBS = -lm -lgsl -lgslcblas -lscottsmatrices	
@@ -13,10 +13,10 @@ STATLIB = $(LDIR)/libscottsmatrices.a
 _DEPS = definitions.h scottsmatrices.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = random.o modifications.o gillespie.o results.o 
+_OBJ = random.o modifications.o gillespie.o results.o parse.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-_OBJP = random.o modificationsProcK27me2.o gillespie.o results.o 
+_OBJP = random.o modificationsProcK27me2.o gillespie.o results.o parse.o
 OBJP = $(patsubst %,$(ODIR)/%,$(_OBJP))
 
 all: $(STATLIB) $(OBJ) me2me3 Dynamic HistoneTurnover TranscriptionInhibit ProcK27me2 Silac Tests ConstTimeInterpolate

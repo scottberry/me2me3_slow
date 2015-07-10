@@ -1,33 +1,16 @@
 #include "definitions.h"
 
-void usage(void)
-{
-	printf("Usage:\n");
-	printf(" -c<control region>\n");
-	printf(" -a<gene activation>\n");
-        printf(" -i<identifier>\n");
-        printf(" -m\n");
-        printf(" -u\n");
-	exit (8);
-}
-
 int main(int argc, char *argv[]) {
   FILE *fptr, *parFile;
-  char avgfile[256]="", fname[256]="", tmp[256]="", buffer[256]="";
-  char parameterSpace[256]="", ptmp[256]="", id[16]="";
-  char *decimal = ".", *underscore = "_";
+  char *avgfile, fname[256]="", parameterSpace[256]="";
   chromatin c;
   parameters p;
   gillespie g;
   record r;
-  signed char initial;
-  double gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime, me3_end;
-  double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
-  long i, j, locus, fh, initM, initU, seed;
-  double probM, probU, bistability;
+  quantification q;
+  long i, j, locus;
   double FIRING, P_DEMETHYLATE, P_METHYLATE;
   int p1, p2, p3;
-  logical startM = FALSE, startU = FALSE, randomSeed = TRUE;
 
   /* Code timing */
 #ifdef __APPLE__
@@ -41,13 +24,10 @@ int main(int argc, char *argv[]) {
   start = clock();
 #endif
 
-  /* -------------------------------------------------------------------------------- */
+  /* ----------------- */
   /* Simulation setup  */
-  /* -------------------------------------------------------------------------------- */
-  
-  c.sites = 60;
-  c.controlSites = c.sites; // can be replaced via command line
-  
+  /* ----------------- */
+    
   /* Note: if sampling frequency is too low, data will not be
      collected in the last hour of each cell cycle, when parameter
      values are small. This will lead to program aborting due to
@@ -56,150 +36,59 @@ int main(int argc, char *argv[]) {
      p.cellCycles so that sampling is frequent enough in relation to
      cell cycle. For 50 cell cycles, p.maxReact = 200000 is a good
      choice for a large parameter search. */
-  
+
+  c.sites = 60;
   p.loci = 4;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
+  /* Set program run parameters */
   p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.G2duration = 0.0; // (hours)
-  p.alpha = 1.0; // can be replaced via command line
-  p.beta = 1.0; // can be replaced via command line
-  p.firingThreshold = 1.0; // can be replaced via command line
+  p.optimSteps = 1; 
 
+  /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
   p.silacExperiment = FALSE;
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
-  
-  // Test gillespie algorithm
   g.test = FALSE;
   
-  p.optimSteps = 1; 
-  
   /* Parse command line */
-  opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:b:i:murg:t:")) != -1)
-    switch (j)
-      {
-      case 'c':
-        sprintf(buffer,"%s",optarg);
-        c.controlSites = atoi(buffer);
-        break;
-        
-      case 'a':
-        sprintf(buffer,"%s",optarg);
-        p.alpha = atof(buffer);
-        break;
-
-      case 'b':
-        sprintf(buffer,"%s",optarg);
-        p.beta = atof(buffer);
-        break;
-
-      case 'i':
-        randomSeed = FALSE;
-        sprintf(id,"%s",optarg);
-        seed = atoi(id);
-        sprintf(id,"_%s",optarg);
-        break;
-
-      case 'm':
-        startM = TRUE;
-        break;
-
-      case 'u':
-        startU = TRUE;
-        break;
-
-      case 'r':
-        p.DNAreplication = TRUE;
-        break;
-
-      case 'g':
-        sprintf(buffer,"%s",optarg);
-        p.G2duration = atof(buffer);
-        break;
-
-      case 't':
-        sprintf(buffer,"%s",optarg);
-        p.firingThreshold = atof(buffer);
-        break;
-        
-      default:
-        usage();
-      }
+  parseCommandLine(argc,argv,&c,&p);
   
   /* Seed RNG */
-  if (randomSeed == TRUE)
+  if (p.randomSeed == TRUE)
     rseed(&p);
   else
-    setseed(&p,time(0) + seed); // use randomised locus id as seed to
+    setseed(&p,time(0) + p.seed); // use randomised locus id as seed to
                                 // generate different simulations for
                                 // each id
   
-
-  /* Handle filename using command line args */
-  sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
-  sprintf(tmp,"ctrl%ld",c.controlSites); strcat(avgfile,tmp);
-  sprintf(tmp,"cc%d",p.cellCycles); strcat(avgfile,tmp);
-  sprintf(tmp,"%0.2f",p.alpha);
-  sprintf(ptmp,"a%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"%0.2f",p.beta);
-  sprintf(ptmp,"b%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"%0.2f",p.firingThreshold);
-  sprintf(ptmp,"fir%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"%0.2f",p.G2duration);
-  sprintf(ptmp,"tau%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"st%ld",p.optimSteps); strcat(avgfile,tmp); 
-  strcat(avgfile,id);
-  strcat(avgfile,".txt\0");
-
+  avgfile = parameterDependentBasename(&c,&p);
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
 
   parFile = fopen(parameterSpace,"w");
-    fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg       \
-\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
-  fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg       \
-\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
+  fprintParameterSpaceHeader(parFile);
 
   if (g.test==TRUE)
     g.test_fptr = fopen("TestGillespieFromMain.txt","w");
   
-  /* Memory allocation */
-  c.K27 = i_vec_get( c.sites );
-  g.methylate_index = i_vec_get( c.sites );
-  g.transcribeDNA_index = i_vec_get( 1 );
-  g.propensity = d_vec_get( c.sites + 1 );
-  g.doReaction = malloc(g.propensity->len*sizeof( func_ptr_t ) );
-  g.doReactionParam = i_vec_get( g.propensity->len );
-  g.update = malloc(sizeof( flags ) );
-
-  r.t = d_vec_get(p.maxReact + 1);
-  r.firing = i_vec_get(p.maxReact + 1);
-  r.t_out = d_vec_get(p.samples);
-  r.K27 = i_mat_get(c.sites,p.samples);
-  
-  /* Initialisation */
+  allocateGillespieMemory(&c,&p,&g,&r);
   initialiseGillespieFunctions(&c,&g);
 
-  /* -------------------------------------------------------------------------------- */
+  /* -------------------------- */
   /* Start loop over parameters */
-  /* -------------------------------------------------------------------------------- */
+  /* -------------------------- */
+
   for (p1=0;p1<6;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
-        // !!! Set seed for debugging - remove for simulations
-        //setseed(&p,0);
+        //setseed(&p,p.seed);
         
         // FIRING = 0.000277778*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.15*(p2+4));
@@ -242,47 +131,31 @@ int main(int argc, char *argv[]) {
         p.me2factor = 0.1; 
         p.me3factor = 1.0;
 
-        // Set results to zero for accumulation over each parameter set
-        // ------------------------------------------------------------        
-        gap = 0.0;
-        Mavg = 0.0;
-        me3_end = 0.0;
-        probM = 0.0;
-        probU = 0.0;
-        fh = 0;
-        tTot = tTotM = tTotU = 0.0;
-        initM = initU = 0;
-        firstPassageM = firstPassageU = 0.0;
-        
-        /* -------------------------------------------------------------------------------- */
+        // Reset results to zero for each parameter set
+        resetQuantification(&q);
+
+        /* ------------------------------------------------------------------ */
         /* loop over loci */
-        /* -------------------------------------------------------------------------------- */
+        /* ------------------------------------------------------------------ */
         
         for (locus=0;locus<p.loci;locus++) {
           // fprintf(stderr,"locus %ld\n",locus);
-          if (argc > 1) {
-            if (startM == TRUE) {
-              initialiseRepressed(&c);
-            } else if (startU == TRUE) {
-              initialiseActive(&c);
-            } else { 
-              if (locus < floor(p.loci/2))
-                initialiseRepressed(&c);
-              else
-                initialiseActive(&c);
-            }
+          if (p.startM == TRUE) {
+            initialiseRepressed(&c);
+          } else if (p.startU == TRUE) {
+            initialiseActive(&c);
           } else { 
             if (locus < floor(p.loci/2))
               initialiseRepressed(&c);
             else
               initialiseActive(&c);
           }
-
+          
           // reset counters
           p.reactCount = 0;
           p.sampleCount = 0;
           p.cellCycleCount = 0;
-
+          
           // Schedule first instance of the fixed time reactions
           g.t_nextRep = p.cellCycleDuration*3600;
           g.t_nextEndG2 = (p.cellCycleDuration + p.G2duration)*3600;
@@ -303,132 +176,29 @@ int main(int argc, char *argv[]) {
             gillespieStep(&c,&p,&g,&r);
           }
 
-          if (p.resultsLastHourOnly == TRUE) {
-            gap += tAverageGap_lastHour_nCycles(&c,&p,&r);
-            Mavg += tAverage_me2_me3_lastHour_nCycles(&c,&p,&r);
-            me3_end += tAverage_me3_lastHour_nCycles(&c,&p,&r);
-            // probM += prob_lowExpression_lastHour_nCycles(&c,&p,&r);
-            // probU += prob_highExpression_lastHour_nCycles(&c,&p,&r);
-            probM += prob_me2_me3_lastHour_nCycles(&c,&p,&r);
-            probU += prob_me0_me1_lastHour_nCycles(&c,&p,&r);
-          } else {
-            gap += tAverageGap_nCycles(&c,&p,&r);
-            Mavg += tAverage_me2_me3_nCycles(&c,&p,&r);
-            probM += prob_me2_me3_nCycles(&c,&p,&r);
-            probU += prob_me0_me1_nCycles(&c,&p,&r);
-          }
-          fh += numberHistoneStateFlips(&r);
-          tTot += r.t->el[p.reactCount];
-
-          if (isnan(gap)) {
-            fprintf(stderr,"Error: gap is nan. Locus %ld\n",locus);
-            fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\n");
-            fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f\n",
-                    p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE);
-            exit(-1);
-          }
-          
-          // Note: this metric works best when threshold = 1.0
-          // firstPassage = firstPassageTime(&r,&initial);
-
-          // Note: this metric requires firing rate changes to work
-          firstPassage = firstPassageTimeExpression(&r,&p,&initial);
-
-          if (initial==-1) {
-            firstPassageM += firstPassage;
-            initM++;
-            tTotM += r.t->el[p.reactCount];
-          } else {
-            firstPassageU += firstPassage;
-            initU++;
-            tTotU += r.t->el[p.reactCount];
-          }
+          accumulateQuantification(&c,&p,&r,&q);
         } /* end loop over loci */
 
-        if (fh != 0) lifetime = tTot/fh;
-        else lifetime = -1.0;
-
-        bistability = 4*probM*probU/(p.loci*p.loci);
-
-        if (initM != 0) {
-          fpM = firstPassageM/initM;
-          tM = tTotM/initM;
-        } else {
-          fpM = -1.0;
-          tM = -1.0;
-        }
-
-        if (initU != 0) {
-          fpU= firstPassageU/initU;
-          tU = tTotU/initU;
-        } else {
-          fpU = -1.0;
-          tU = -1.0;
-        }
-
-        
-        fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
-\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
-\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\n",
-                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,p.firingThreshold,
-                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.alpha,p.G2duration,
-                gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
-                probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
-        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
-%0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
-%0.4f  %0.4f  %0.4f  %0.4f  %0.6f\n",
-                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,p.firingThreshold,
-                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.alpha,p.G2duration,
-                gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
-                probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
+        averageQuantification(&c,&p,&r,&q);
+        fprintParameterSpaceResults(parFile,&p,&c,&q);
       }
     }
   }
- 
   /* end loop over parameters */
   fclose(parFile);
 
-  /* -------------------------------------------------------------------------------- */
-  /* Tidy up and write results files */
-  /* -------------------------------------------------------------------------------- */
+  /* print final results */
+  if (p.resultsFinalLocus == TRUE)
+    fprintResultsFinalLocus(avgfile,&r);
 
-  /* free all arrays */
-  i_vec_free(c.K27);
-  i_vec_free(g.methylate_index);
-  i_vec_free(g.transcribeDNA_index);
-  d_vec_free(g.propensity);
-  free(g.doReaction);
-  i_vec_free(g.doReactionParam);
-  free(g.update);
-  rfree(&p);
-
-  if (p.resultsFinalLocus == TRUE) {
-    /* print results for final locus */
-    strcpy(fname,"t_\0"); strcat(fname,avgfile);
-    fprint_t_out_nCycles(fname,&r);
-    strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
-    fprint_t_nCycles(fname,r.K27,me0,&r);
-    strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
-    fprint_t_nCycles(fname,r.K27,me1,&r);
-    strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
-    fprint_t_nCycles(fname,r.K27,me2,&r);
-    strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
-    fprint_t_nCycles(fname,r.K27,me3,&r);
-    strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
-    fprint_firing_t_nCycles(fname,&r);
-  }
-  
+  /* write log file */
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);
   fptr = fopen(fname,"w");
   writelog(fptr,&c,&p,&r);
 
-  i_vec_free(r.firing);
-  i_mat_free(r.K27);
-  d_vec_free(r.t);
-  d_vec_free(r.t_out);
-
+  /* free memory */
+  freeGillespieMemory(&c,&p,&g,&r);
+  
 #ifdef __APPLE__
   timeElapsed = mach_absolute_time() - start;
   timeElapsed *= info.numer;

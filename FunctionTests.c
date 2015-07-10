@@ -8,17 +8,6 @@ void fprintf_K27(FILE *fptr, chromatin *c) {
   fprintf(fptr,"\n");
 }
 
-void usage(void)
-{
-	printf("Usage:\n");
-	printf(" -c<control region>\n");
-	printf(" -a<gene activation>\n");
-        printf(" -i<identifier>\n");
-        printf(" -m\n");
-        printf(" -u\n");
-	exit (8);
-}
-
 int main(int argc, char *argv[]) {
   FILE *fptr;
   char avgfile[128]="", fname[128]="", buffer[128]="";

@@ -71,6 +71,8 @@ typedef struct {
   int initialCellCycles;
   
   // run parameters
+  logical startM, startU, randomSeed;
+  long seed;
   unsigned long loci, reactCount, maxReact;
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
@@ -85,6 +87,8 @@ typedef struct {
   double SILAC_0h, SILAC_10h, SILAC_24h, SILAC_48h, SILAC_nextReport;
   int SILAC_report;
   logical resultsSilacEachLocus;
+
+  char id[128];
   
 } parameters;
  
@@ -121,7 +125,19 @@ typedef struct {
   
 } record;
 
+typedef struct {
+  signed char initial;
+  double gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime, me3_end;
+  double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
+  long fh, initM, initU;
+  double probM, probU, bistability;
+} quantification;
+
 /* Function prototypes */
+
+// parse.c
+void usage(void);
+void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p);
 
 // random.c
 double runif(gsl_rng *r);
@@ -136,6 +152,8 @@ void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos);
 void replicateDNA(chromatin *c, parameters *p, flags *update);
 
 // gillespie.c
+void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r);
+void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r);
 void initialiseRepressed(chromatin *c);
 void initialiseActive(chromatin *c);
 void initialiseSilacLight(chromatin *c);
@@ -155,6 +173,12 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r);
 void gillespieStepTranscriptionDelays(chromatin *c, parameters *p, gillespie *g, record *r);
 
 // results.c
+void resetQuantification(quantification *q);
+void accumulateQuantification(chromatin *c, parameters *p, record *r, quantification *q);
+void averageQuantification(chromatin *c, parameters *p, record *r, quantification *q);
+char *parameterDependentBasename(chromatin *c, parameters *p);
+void fprintParameterSpaceHeader(FILE *parFile);
+void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, quantification *q);
 char *str_replace(char *orig, char *rep, char *with);
 void fprint_t_out_nCycles(char *fname, record *r);
 void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r);
@@ -182,3 +206,4 @@ void fprintTripleSILAC_eachLocus(FILE *fptrAbs, FILE *fptrRel, long locus, param
 void storeTripleSILAC_me3(long locus, parameters *p, record *r);
 void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r);
 void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r);
+void fprintResultsFinalLocus(char *avgfile, record *r);

@@ -7,6 +7,147 @@
    ============================================================
 */
 
+void resetQuantification(quantification *q) {
+  q->gap = 0.0;
+  q->Mavg = 0.0;
+  q->me3_end = 0.0;
+  q->probM = 0.0;
+  q->probU = 0.0;
+  q->fh = 0;
+  q->tTot = q->tTotM = q->tTotU = 0.0;
+  q->initM = q->initU = 0;
+  q->firstPassageM = q->firstPassageU = 0.0;
+
+  return;
+}
+
+void accumulateQuantification(chromatin *c, parameters *p, record *r, quantification *q) {  
+
+  if (p->resultsLastHourOnly == TRUE) {
+    q->gap += tAverageGap_lastHour_nCycles(c,p,r);
+    q->Mavg += tAverage_me2_me3_lastHour_nCycles(c,p,r);
+    // q->probM += prob_lowExpression_lastHour_nCycles(c,p,r);
+    // q->probU += prob_highExpression_lastHour_nCycles(c,p,r);
+    q->probM += prob_me2_me3_lastHour_nCycles(c,p,r);
+    q->probU += prob_me0_me1_lastHour_nCycles(c,p,r);
+  } else {
+    q->gap += tAverageGap_nCycles(c,p,r);
+    q->Mavg += tAverage_me2_me3_nCycles(c,p,r);
+    q->probM += prob_me2_me3_nCycles(c,p,r);
+    q->probU += prob_me0_me1_nCycles(c,p,r);
+  }
+  q->me3_end += tAverage_me3_lastHour_nCycles(c,p,r);
+  q->fh += numberHistoneStateFlips(r);
+  q->tTot += r->t->el[p->reactCount];
+          
+  // Note: this metric works best when threshold = 1.0
+  // q->firstPassage = firstPassageTime(r,&q->initial);
+
+  // Note: this metric requires firing rate changes to work
+  q->firstPassage = firstPassageTimeExpression(r,p,&q->initial);
+
+  if (q->initial==-1) {
+    q->firstPassageM += q->firstPassage;
+    q->initM++;
+    q->tTotM += r->t->el[p->reactCount];
+  } else {
+    q->firstPassageU += q->firstPassage;
+    q->initU++;
+    q->tTotU += r->t->el[p->reactCount];
+  }
+  return;
+}
+
+void averageQuantification(chromatin *c, parameters *p, record *r, quantification *q) {  
+
+  if (q->fh != 0) q->lifetime = q->tTot/q->fh;
+  else q->lifetime = -1.0;
+
+  q->bistability = 4*q->probM*q->probU/(p->loci*p->loci);
+
+  if (q->initM != 0) {
+    q->fpM = q->firstPassageM/q->initM;
+    q->tM = q->tTotM/q->initM;
+  } else {
+    q->fpM = -1.0;
+    q->tM = -1.0;
+  }
+
+  if (q->initU != 0) {
+    q->fpU= q->firstPassageU/q->initU;
+    q->tU = q->tTotU/q->initU;
+  } else {
+    q->fpU = -1.0;
+    q->tU = -1.0;
+  }
+  return;
+}
+
+/* Create a parameter-dependent filename */
+char *parameterDependentBasename(chromatin *c, parameters *p) {
+  char *avgfile;
+  char *decimal = ".", *underscore = "_";
+  char ptmp[256]="", tmp[256]="";
+
+  avgfile = malloc(256);
+  sprintf(tmp,"s%ld",c->sites); strcat(avgfile,tmp); 
+  sprintf(tmp,"ctrl%ld",c->controlSites); strcat(avgfile,tmp);
+  sprintf(tmp,"cc%d",p->cellCycles); strcat(avgfile,tmp);
+  sprintf(tmp,"%0.2f",p->alpha);
+  sprintf(ptmp,"a%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(tmp,"%0.2f",p->beta);
+  sprintf(ptmp,"b%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(tmp,"%0.2f",p->firingThreshold);
+  sprintf(ptmp,"fir%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(tmp,"%0.2f",p->G2duration);
+  sprintf(ptmp,"tau%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(tmp,"%0.2f",p->PRC2inhibition);
+  sprintf(ptmp,"p%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  if (p->DNAreplication == TRUE) {
+    sprintf(tmp,"Rep"); strcat(avgfile,tmp);
+  } else {
+    sprintf(tmp,"NoRep"); strcat(avgfile,tmp); 
+  }
+  sprintf(tmp,"_st%ld",p->optimSteps); strcat(avgfile,tmp); 
+
+  strcat(avgfile,p->id);
+  strcat(avgfile,".txt\0");
+
+  return(avgfile);
+}
+
+void fprintParameterSpaceHeader(FILE *parFile) {
+  fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
+\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg\
+\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
+  fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
+\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg\
+\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
+  return;
+}
+
+void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, quantification *q) {        
+  fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
+\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
+\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\n",
+          p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
+          p->firingRateMax,p->firingThreshold,
+          p->transcription_demethylate,p->me2_me3,c->controlSites,p->alpha,p->G2duration,
+          q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
+          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci);
+  fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
+%0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
+%0.4f  %0.4f  %0.4f  %0.4f  %0.6f\n",
+          p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
+          p->firingRateMax,p->firingThreshold,
+          p->transcription_demethylate,p->me2_me3,c->controlSites,p->alpha,p->G2duration,
+          q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
+          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci);
+  return;
+}
+
 /* Replace a character of a string */
 char *str_replace(char *orig, char *rep, char *with) {
   char *result; // the return string
@@ -83,7 +224,7 @@ void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r) {
     count = 0;
     for (j=0;j < mat->rows;j++) {
       if (mat->el[j][i] == target) {
-	count++;
+        count++;
       }
     }
     fprintf(fptr,"%0.4f\n",(double)count/(double)j);
@@ -105,7 +246,7 @@ void fprint_silac_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, i
     count = 0;
     for (j=0;j<mat->rows;j++) {
       if (mat->el[j][i] == target && silac->el[j][i] == silac_target) {
-	count++;
+        count++;
       }
     }
     fprintf(fptr,"%0.4f\n",(double)count/(double)j);
@@ -164,7 +305,7 @@ double tAverageGap_nCycles(chromatin *c, parameters *p, record *r) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
-	sumM++;
+        sumM++;
     }
     gapSum += (double)labs(2*sumM-c->sites)*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
   }
@@ -206,7 +347,7 @@ double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
-	sumM++;
+        sumM++;
     }
     if (4*sumM > 3*c->sites)
       time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
@@ -228,7 +369,7 @@ double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
-	sumM++;
+        sumM++;
     }
     f_me2_me3 = (double)sumM/(double)c->sites;
     if (firingRate(p,f_me2_me3) <= lower_quartile)
@@ -314,7 +455,7 @@ double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r) {
     sumU = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me0 || r->K27->el[pos][t]==me1)
-	sumU++;
+        sumU++;
     }
     if (4*sumU > 3*c->sites)
       time_in_U += r->t_out->el[t] - r->t_out->el[t-1];
@@ -336,7 +477,7 @@ double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
-	sumM++;
+        sumM++;
     }
     f_me2_me3 = (double)sumM/(double)c->sites;
     if (firingRate(p,f_me2_me3) > upper_quartile)
@@ -418,7 +559,7 @@ double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
-	sumM++;
+        sumM++;
     }
     Mavg += (double)sumM*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
   }
@@ -490,19 +631,19 @@ unsigned long numberHistoneStateFlips(record *r) {
 
     if (oldState == 1) { // if previously U
       if (m >= 3*u) {
-	newState = -1;
-	flips++;
+        newState = -1;
+        flips++;
       }
     } else if (oldState == -1) { // if previously M
       if (u >= 3*m) {
-	newState = 1;
-	flips++;
+        newState = 1;
+        flips++;
       }
     } else if (oldState == 0) { // first time-point
       if (u >= 3*m)
-	newState = 1;
+        newState = 1;
       else
-	newState = -1;
+        newState = -1;
     }
   }
  
@@ -528,7 +669,7 @@ double firstPassageTime(record *r, signed char *initial) {
     *initial = 1;
     
   while ( t < r->K27->cols && t < r->t_outLastSample &&
-	  ((*initial == -1 && 3*m > u) || (*initial == 1 && 3*u > m))) {
+          ((*initial == -1 && 3*m > u) || (*initial == 1 && 3*u > m))) {
     m = 0;
     u = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
@@ -573,7 +714,7 @@ double firstPassageTimeExpression(record *r, parameters *p, signed char *initial
     *initial = 1;
   
   while ( t < r->K27->cols && t < r->t_outLastSample &&
-	  ((*initial == -1 && f < upper_quartile) || (*initial == 1 && f > lower_quartile))) {
+          ((*initial == -1 && f < upper_quartile) || (*initial == 1 && f > lower_quartile))) {
     m = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3) m++;
@@ -772,7 +913,7 @@ void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r) {
 }
 
 void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r) {
-  double turn_me0, turn_me1, turn_me2, turn_me3;
+  double turn_me0 = 0.0, turn_me1 = 0.0, turn_me2 = 0.0, turn_me3 = 0.0;
   long locus;
   
   fprintf(fptr,"species\tturnover\n");
@@ -790,4 +931,24 @@ void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r) {
   fprintf(fptr,"me3\t%0.12f\n",turn_me3/p->loci);
   fprintf(fptr,"total\t%0.12f\n",(turn_me0 + turn_me1 + turn_me2 + turn_me3)/p->loci);
   
+}
+
+void fprintResultsFinalLocus(char *avgfile, record *r) {
+  char fname[256]="";
+  
+  /* print results for final locus */
+  strcpy(fname,"t_\0"); strcat(fname,avgfile);
+  fprint_t_out_nCycles(fname,r);
+  strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
+  fprint_t_nCycles(fname,r->K27,me0,r);
+  strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
+  fprint_t_nCycles(fname,r->K27,me1,r);
+  strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
+  fprint_t_nCycles(fname,r->K27,me2,r);
+  strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
+  fprint_t_nCycles(fname,r->K27,me3,r);
+  strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
+  fprint_firing_t_nCycles(fname,r);
+
+  return;
 }

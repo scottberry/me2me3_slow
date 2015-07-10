@@ -8,6 +8,39 @@
    ============================================================
 */
 
+void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
+  c->K27 = i_vec_get( c->sites );
+  g->methylate_index = i_vec_get( c->sites );
+  g->transcribeDNA_index = i_vec_get( 1 );
+  g->propensity = d_vec_get( c->sites + 1 );
+  g->doReaction = malloc(g->propensity->len*sizeof( func_ptr_t ) );
+  g->doReactionParam = i_vec_get( g->propensity->len );
+  g->update = malloc(sizeof( flags ) );
+
+  r->t = d_vec_get(p->maxReact + 1);
+  r->firing = i_vec_get(p->maxReact + 1);
+  r->t_out = d_vec_get(p->samples);
+  r->K27 = i_mat_get(c->sites,p->samples);
+  return;
+}
+
+void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
+  i_vec_free(c->K27);
+  i_vec_free(g->methylate_index);
+  i_vec_free(g->transcribeDNA_index);
+  d_vec_free(g->propensity);
+  free(g->doReaction);
+  i_vec_free(g->doReactionParam);
+  free(g->update);
+  rfree(p);
+
+  i_vec_free(r->firing);
+  i_mat_free(r->K27);
+  d_vec_free(r->t);
+  d_vec_free(r->t_out);
+  return;
+}
+
 void initialiseRepressed(chromatin *c) {
   int i;
   for (i=0;i<c->sites;i++) {
