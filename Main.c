@@ -64,26 +64,26 @@ int main(int argc, char *argv[]) {
   if (p.randomSeed == TRUE)
     rseed(&p);
   else
-    setseed(&p,time(0) + p.seed); // use randomised locus id as seed to
-                                // generate different simulations for
-                                // each id
-  
-  avgfile = parameterDependentBasename(&c,&p);
-  strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
+    setseed(&p,time(0) + p.seed); 
 
+  /* create base filename from specified run parameters */
+  avgfile = parameterDependentBasename(&c,&p);
+
+  /* open results file and write header */
+  strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
   parFile = fopen(parameterSpace,"w");
   fprintParameterSpaceHeader(parFile);
 
   if (g.test==TRUE)
     g.test_fptr = fopen("TestGillespieFromMain.txt","w");
-  
+
+  /* allocate memory and initialise gillespie algorithm */
   allocateGillespieMemory(&c,&p,&g,&r);
   initialiseGillespieFunctions(&c,&g);
 
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-
   for (p1=0;p1<6;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
@@ -99,19 +99,24 @@ int main(int argc, char *argv[]) {
         // P_METHYLATE = 0.00005;
         
         // Transcription
-        // ------------------------------------------------------------
-        p.firingRateMin = 0.000277778; // Leave the repressed firing rate fixed at ~ every 60 min.
+        // -------------
+        /* Leave the repressed firing rate fixed at ~ every 60 min. */
+        p.firingRateMin = 0.000277778; 
         p.firingRateMax = FIRING; // Optimise
-        p.firingCap = 0.0166667; // Cap firing rate at ~ every minute.
-        p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
-        p.transcription_turnover = 0.0; // (rate per site per transcription event)
+
+        /* Cap firing rate at ~ every minute. */
+        p.firingCap = 0.0166667;
+        p.transcription_demethylate = P_DEMETHYLATE; 
+        p.transcription_turnover = 0.0; 
+
         if (p.firingRateMax < p.firingRateMin) {
-          fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
+          fprintf(stderr,"Error: Max firing rate less than min firing rate.");
+          fprintf(stderr," Setting k_min = k_max\n");
           p.firingRateMin = p.firingRateMax;
         }
         
         // Methylation/demethylation
-        // ------------------------------------------------------------
+        // -------------------------
         /* 5% noise. Represents basal activity of unstimulated PRC2 */
         p.noisy_me0_me1 = 9.0*P_METHYLATE/20.0;
         p.noisy_me1_me2 = 6.0*P_METHYLATE/20.0;
@@ -134,10 +139,9 @@ int main(int argc, char *argv[]) {
         // Reset results to zero for each parameter set
         resetQuantification(&q);
 
-        /* ------------------------------------------------------------------ */
+        /* -------------- */
         /* loop over loci */
-        /* ------------------------------------------------------------------ */
-        
+        /* -------------- */
         for (locus=0;locus<p.loci;locus++) {
           // fprintf(stderr,"locus %ld\n",locus);
           if (p.startM == TRUE) {
@@ -151,12 +155,12 @@ int main(int argc, char *argv[]) {
               initialiseActive(&c);
           }
           
-          // reset counters
+          /* reset counters */
           p.reactCount = 0;
           p.sampleCount = 0;
           p.cellCycleCount = 0;
           
-          // Schedule first instance of the fixed time reactions
+          /* Schedule first instance of the fixed time reactions */
           g.t_nextRep = p.cellCycleDuration*3600;
           g.t_nextEndG2 = (p.cellCycleDuration + p.G2duration)*3600;
           p.firingFactor = 1.0;
