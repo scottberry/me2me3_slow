@@ -1,4 +1,4 @@
-CC =gcc
+CC = gcc
 IDIR = ./include
 ODIR = ./obj
 LDIR = ./lib
@@ -63,7 +63,7 @@ clean:
 	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ 
 
 empty:
-	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcK27me2 TranscriptionInhibit HistoneTurnover
+	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcK27me2 TranscriptionInhibit HistoneTurnover Dynamic
 
 nores:
 	rm -f *.txt *.out
