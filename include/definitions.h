@@ -211,3 +211,4 @@ void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r);
 void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r);
 void fprintResultsFinalLocus(char *avgfile, record *r);
 void fprintSilacResultsFinalLocus(char *avgfile, record *r);
+

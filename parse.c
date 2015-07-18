@@ -35,6 +35,7 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
   p->alpha = 1.0;
   p->beta = 1.0; 
   p->firingThreshold = 1.0; 
+  p->PRC2inhibition = 1.0;
   p->startM = FALSE;
   p->startU = FALSE;
   p->randomSeed = TRUE;

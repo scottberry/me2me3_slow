@@ -23,6 +23,10 @@ void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *
   r->firing = i_vec_get(p->maxReact + 1);
   r->t_out = d_vec_get(p->samples);
   r->K27 = i_mat_get(c->sites,p->samples);
+
+  if (p->resultsTranscribing == TRUE)
+    r->transcribing = i_vec_get(p->maxReact + 1);
+
   return;
 }
 
@@ -42,6 +46,10 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
   i_mat_free(r->K27);
   d_vec_free(r->t);
   d_vec_free(r->t_out);
+
+  if (p->resultsTranscribing == TRUE)
+    i_vec_free(r->transcribing);
+
   return;
 }
 
