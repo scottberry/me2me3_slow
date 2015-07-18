@@ -1,5 +1,4 @@
 #include "definitions.h"
-#include "stochastic.h"
 
 int main(int argc, char *argv[]) {
   FILE *fptr, *parFile;
@@ -60,7 +59,7 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
-  p.stochasticAlpha = TRUE;
+  p.stochasticAlpha = FALSE;
   g.test = FALSE;
   
   /* Parse command line */
