@@ -12,9 +12,21 @@ void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *
   c->K27 = i_vec_get( c->sites );
   if (p->silacExperiment == TRUE)
     c->silac = i_vec_get( c->sites );
+
   g->methylate_index = i_vec_get( c->sites );
   g->transcribeDNA_index = i_vec_get( 1 );
-  g->propensity = d_vec_get( c->sites + 1 );
+
+  if (p->stochasticAlpha == TRUE) {
+    g->propensity = d_vec_get( c->sites + 5 );
+    g->increaseProtein_index = i_vec_get( 1 );
+    g->decreaseProtein_index = i_vec_get( 1 );
+    g->increaseRNA_index = i_vec_get( 1 );
+    g->decreaseRNA_index = i_vec_get( 1 );
+    r->transFactorProtein = i_vec_get( p->samples );
+  } else {
+    g->propensity = d_vec_get( c->sites + 1 );
+  }
+
   g->doReaction = malloc(g->propensity->len*sizeof( func_ptr_t ) );
   g->doReactionParam = i_vec_get( g->propensity->len );
   g->update = malloc(sizeof( flags ) );
@@ -36,6 +48,15 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
     i_vec_free(c->silac);
   i_vec_free(g->methylate_index);
   i_vec_free(g->transcribeDNA_index);
+
+  if (p->stochasticAlpha == TRUE) {
+    i_vec_free(g->increaseProtein_index);
+    i_vec_free(g->decreaseProtein_index);
+    i_vec_free(g->increaseRNA_index);
+    i_vec_free(g->decreaseRNA_index);
+    i_vec_free(r->transFactorProtein);
+  }  
+
   d_vec_free(g->propensity);
   free(g->doReaction);
   i_vec_free(g->doReactionParam);
@@ -137,7 +158,7 @@ void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
   g->doReaction[c->sites] = transcribeDNA; // transcribeDNA
   g->doReactionParam->el[c->sites] = 0;
   g->transcribeDNA_index->el[0] = c->sites;
-
+  
   if (g->test == TRUE) {
     fprintf(g->test_fptr,"Methylate index:\n");
     i_vec_print(g->test_fptr,g->methylate_index);
@@ -146,6 +167,29 @@ void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
     fprintf(g->test_fptr,"doReactionParam:\n");
     i_vec_print(g->test_fptr,g->doReactionParam); 
   }
+  return;
+}
+
+/* Called only once to initialise indices and function pointers */
+
+void initialiseGillespieFunctionsTransFactor(chromatin *c, gillespie *g) {
+
+  g->doReaction[c->sites+1] = decreaseProtein; // decreaseP
+  g->doReactionParam->el[c->sites+1] = 0;
+  g->decreaseProtein_index->el[0] = c->sites+1;
+
+  g->doReaction[c->sites+2] = increaseProtein; // increaseP
+  g->doReactionParam->el[c->sites+2] = 0;
+  g->increaseProtein_index->el[0] = c->sites+2;
+
+  g->doReaction[c->sites+3] = decreaseRNA; // decreaseR
+  g->doReactionParam->el[c->sites+3] = 0;
+  g->decreaseRNA_index->el[0] = c->sites+3;
+
+  g->doReaction[c->sites+4] = increaseRNA; // increaseR
+  g->doReactionParam->el[c->sites+4] = 0;
+  g->increaseRNA_index->el[0] = c->sites+4;
+
   return;
 }
 
@@ -263,6 +307,19 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
 
 /* Update the propensities based on change in system K27. */
 
+void updatePropensitiesTransFactor(parameters *p, gillespie *g) {
+
+  // update trans-regulator concentration
+  g->propensity->el[g->increaseProtein_index->el[0]] = p->k_p * p->transFactorRNA;
+  g->propensity->el[g->decreaseProtein_index->el[0]] = p->gamma_p * p->transFactorProtein;
+  g->propensity->el[g->increaseRNA_index->el[0]] = p->k_r;
+  g->propensity->el[g->decreaseRNA_index->el[0]] = p->gamma_r * p->transFactorRNA;
+
+  return;
+}
+
+/* Update the propensities based on change in system K27. */
+
 void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillespie *g) {
   int i;
   double f_me2_me3, PRC2activity;
@@ -339,6 +396,8 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   
   // update propensities
   updatePropensities(c,p,g);
+  if (p->stochasticAlpha == TRUE)
+    updatePropensitiesTransFactor(p,g);
   
   // calculate time step
   // (p_s also returns propensity sum for use in Gillespie reaction selection).

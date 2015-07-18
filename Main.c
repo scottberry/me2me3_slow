@@ -1,4 +1,5 @@
 #include "definitions.h"
+#include "stochastic.h"
 
 int main(int argc, char *argv[]) {
   FILE *fptr, *parFile;
@@ -9,7 +10,7 @@ int main(int argc, char *argv[]) {
   record r;
   quantification q;
   long i, j, locus;
-  double FIRING, P_DEMETHYLATE, P_METHYLATE;
+  double FIRING, P_DEMETHYLATE, P_METHYLATE, BURST, MEAN;
   int p1, p2, p3;
 
   /* Code timing */
@@ -59,6 +60,7 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
+  p.stochasticAlpha = TRUE;
   g.test = FALSE;
   
   /* Parse command line */
@@ -84,6 +86,8 @@ int main(int argc, char *argv[]) {
   /* allocate memory and initialise gillespie algorithm */
   allocateGillespieMemory(&c,&p,&g,&r);
   initialiseGillespieFunctions(&c,&g);
+  if (p.stochasticAlpha == TRUE)
+    initialiseGillespieFunctionsTransFactor(&c,&g);
 
   /* -------------------------- */
   /* Start loop over parameters */
@@ -141,6 +145,23 @@ int main(int argc, char *argv[]) {
         p.me2factor = 0.1; 
         p.me3factor = 1.0;
 
+        // Stochastic alpha
+        // ----------------
+        if (p.stochasticAlpha == TRUE) {
+          BURST = 2;
+          MEAN = 100;
+
+          /* <p> = k_r * burst / gamma_p,
+             where burst = k_p/gamma_r */
+          p.k_r = p.gamma_p * MEAN / BURST;
+          p.k_p = p.gamma_r * BURST;
+          p.gamma_r = 1.0/3600.0;
+          p.gamma_p = 1.0/(5.0*3600.0);
+
+          p.transFactorRNA = 1;
+          p.transFactorProtein = 1;
+        }
+        
         // Reset results to zero for each parameter set
         resetQuantification(&q);
 
@@ -174,11 +195,12 @@ int main(int argc, char *argv[]) {
           /* Reaction loop */
           for (i=0;i<p.maxReact && p.cellCycleCount <= p.cellCycles;i++) {
             if (p.reactCount % p.sampleFreq == 0) {
-              for (j=0;j<(c.sites);j++) {
-                r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
+              r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
+              r.t_outLastSample = p.sampleCount;
+              for (j=0;j<(c.sites);j++)
                 r.K27->el[j][p.sampleCount] = c.K27->el[j];
-                r.t_outLastSample = p.sampleCount;
-              }
+              if (p.stochasticAlpha == TRUE)
+                r.transFactorProtein->el[p.sampleCount] = p.transFactorProtein;
               p.sampleCount++;
             }
             r.tMax = r.t->el[p.reactCount];
@@ -200,6 +222,11 @@ int main(int argc, char *argv[]) {
   /* print final results */
   if (p.resultsFinalLocus == TRUE)
     fprintResultsFinalLocus(avgfile,&r);
+
+  if (p.stochasticAlpha == TRUE) {
+    strcpy(fname,"alpha_\0"); strcat(fname,avgfile);
+    fprint_transFactorProtein_nCycles(fname,&r);
+  }
 
   /* write log file */
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);

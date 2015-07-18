@@ -1045,4 +1045,15 @@ void fprintSilacResultsFinalLocus(char *avgfile, record *r) {
   return;
 }
 
-
+void fprint_transFactorProtein_nCycles(char *fname, record *r) {
+  FILE *fptr;
+  long unsigned i;
+  //fprintf(stderr,"%ld",r->t_outLastSample);
+  fptr = fopen(fname,"w");
+  fprintf(fptr,"time\tprotein\n");
+  for (i=0;i<r->t_outLastSample;i++) {
+    fprintf(fptr,"%0.4f\t%ld\n",r->t_out->el[i],r->transFactorProtein->el[i]);
+  }
+  fclose(fptr);
+  return;
+}

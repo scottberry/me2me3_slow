@@ -78,6 +78,9 @@ typedef struct {
   unsigned long optimSteps;
   logical DNAreplication, resultsLastHourOnly, resultsFinalLocus, resultsTranscribing;
   logical checkHistoneTurnover;
+  char id[128];
+  char executable[128];
+
   
   // silac parameters
   logical silacExperiment;
@@ -88,8 +91,11 @@ typedef struct {
   int SILAC_report;
   logical resultsSilacEachLocus;
 
-  char id[128];
-  char executable[128];
+  // transFactor parameters
+  logical stochasticAlpha;
+  long transFactorRNA;
+  long transFactorProtein;
+  double k_r, k_p, gamma_r, gamma_p;
   
 } parameters;
  
@@ -105,6 +111,12 @@ typedef struct {
   double t_nextRep, t_nextEndG2, t_nextEndTranscription;
   flags *update;
 
+  // transFactor parameters
+  I_VEC *decreaseProtein_index;
+  I_VEC *increaseProtein_index;
+  I_VEC *decreaseRNA_index;
+  I_VEC *increaseRNA_index;
+  
   // test parameters
   FILE *test_fptr;
   logical test;
@@ -123,6 +135,8 @@ typedef struct {
 
   D_VEC *silacResultsLight_0h, *silacResultsLight_10h, *silacResultsLight_24h, *silacResultsLight_48h;
   D_VEC *silacResultsHeavy_0h, *silacResultsHeavy_10h, *silacResultsHeavy_24h, *silacResultsHeavy_48h;
+
+  I_VEC *transFactorProtein;
   
 } record;
 
@@ -152,6 +166,10 @@ void methylate(chromatin *c, parameters *p, flags *update, int pos);
 void demethylate(chromatin *c, parameters *p, flags *update, int pos);
 void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos);
 void replicateDNA(chromatin *c, parameters *p, flags *update);
+void decreaseRNA(chromatin *c, parameters *p, flags *update, int pos);
+void increaseRNA(chromatin *c, parameters *p, flags *update, int pos);
+void decreaseProtein(chromatin *c, parameters *p, flags *update, int pos);
+void increaseProtein(chromatin *c, parameters *p, flags *update, int pos);
 
 // gillespie.c
 void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r);
@@ -163,12 +181,14 @@ void initialiseRandom(chromatin *c, parameters *p);
 void initialiseMixed(chromatin *c, parameters *p);
 double d_vec_sum(D_VEC *d);
 void initialiseGillespieFunctions(chromatin *c, gillespie *g);
+void initialiseGillespieFunctionsTransFactor(chromatin *c, gillespie *g);
 double frac(I_VEC *vec, int target);
 double fracControlRegion_me2me3(chromatin *c);
 double enzymaticFactor(chromatin *c, parameters *p, int pos);
 double neighboursK27factor(chromatin *c, parameters *p, int pos);
 double firingRate(parameters *p, double f_me2_me3);
 void updatePropensities(chromatin *c, parameters *p, gillespie *g);
+void updatePropensitiesTransFactor(parameters *p, gillespie *g);
 void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillespie *g);
 double gillespieTimeStep(parameters *p, gillespie *g, double *p_s);
 void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r);
@@ -213,4 +233,6 @@ void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r);
 void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r);
 void fprintResultsFinalLocus(char *avgfile, record *r);
 void fprintSilacResultsFinalLocus(char *avgfile, record *r);
+void fprint_transFactorProtein_nCycles(char *fname, record *r);
+
 
