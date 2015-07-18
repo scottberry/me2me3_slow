@@ -48,10 +48,14 @@ int main(int argc, char *argv[]) {
   p.cellCycleDuration = 22.0; // (hours)
   p.optimSteps = 1; 
 
+  /* SILAC specific parameters */
+  p.silacExperiment = FALSE;
+  p.silacLightCycles = 0;
+  p.silacHeavyCycles = 0;
+  
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.silacExperiment = FALSE;
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
@@ -142,6 +146,7 @@ int main(int argc, char *argv[]) {
         /* -------------- */
         /* loop over loci */
         /* -------------- */
+        
         for (locus=0;locus<p.loci;locus++) {
           // fprintf(stderr,"locus %ld\n",locus);
           if (p.startM == TRUE) {

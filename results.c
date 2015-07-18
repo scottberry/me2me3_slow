@@ -1,11 +1,62 @@
 #include "definitions.h"
 /* 
-   Output functions for calulating results and writing to file.
+   Output functions for calulating results and writing files.
    ============================================================
    Author: Scott Berry
    Institute: John Innes Centre
    ============================================================
 */
+
+void allocateSilacRecordMemory(chromatin *c, parameters *p, record *r) {
+
+  r->silac = i_mat_get(c->sites,p->samples);
+  p->SILAC_0h = (double)3600*p->cellCycleDuration*(p->silacLightCycles+1);
+  p->SILAC_10h = p->SILAC_0h + (double)3600*10;
+  p->SILAC_24h = p->SILAC_0h + (double)3600*24;
+  p->SILAC_48h = p->SILAC_0h + (double)3600*48;
+  
+  r->silacResultsLight_0h = d_vec_get(p->loci);
+  r->silacResultsLight_10h = d_vec_get(p->loci);
+  r->silacResultsLight_24h = d_vec_get(p->loci);
+  r->silacResultsLight_48h = d_vec_get(p->loci);
+  r->silacResultsHeavy_0h = d_vec_get(p->loci);
+  r->silacResultsHeavy_10h = d_vec_get(p->loci);
+  r->silacResultsHeavy_24h = d_vec_get(p->loci);
+  r->silacResultsHeavy_48h = d_vec_get(p->loci);
+
+  return;
+}
+
+void freeSilacRecordMemory(record *r) {
+
+  i_mat_free(r->silac);
+  d_vec_free(r->silacResultsLight_0h);
+  d_vec_free(r->silacResultsLight_10h);
+  d_vec_free(r->silacResultsLight_24h);
+  d_vec_free(r->silacResultsLight_48h);
+  d_vec_free(r->silacResultsHeavy_0h);
+  d_vec_free(r->silacResultsHeavy_10h);
+  d_vec_free(r->silacResultsHeavy_24h);
+  d_vec_free(r->silacResultsHeavy_48h);
+
+  return;
+}
+
+void incrementSilacReportPoint(parameters *p) {
+  if (p->SILAC_report == 1) {
+    p->SILAC_report = 2;
+    p->SILAC_nextReport = p->SILAC_10h;
+  } else if (p->SILAC_report == 2) {
+    p->SILAC_report = 3;
+    p->SILAC_nextReport = p->SILAC_24h;
+  } else if (p->SILAC_report == 3) {
+    p->SILAC_nextReport = p->SILAC_48h;
+    p->SILAC_report = 4;
+  } else if (p->SILAC_report == 4) {
+    p->SILAC_report = 5;
+  }
+  return;
+}
 
 void resetQuantification(quantification *q) {
   q->gap = 0.0;
@@ -952,3 +1003,41 @@ void fprintResultsFinalLocus(char *avgfile, record *r) {
 
   return;
 }
+
+void fprintSilacResultsFinalLocus(char *avgfile, record *r) {
+  char fname[256]="";
+
+  // light histones
+  strcpy(fname,"LIGHT_me0_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me0,r->silac,LIGHT,r);
+  strcpy(fname,"LIGHT_me1_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me1,r->silac,LIGHT,r);
+  strcpy(fname,"LIGHT_me2_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me2,r->silac,LIGHT,r);
+  strcpy(fname,"LIGHT_me3_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me3,r->silac,LIGHT,r);
+    
+  // heavy histones
+  strcpy(fname,"HEAVY_me0_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me0,r->silac,HEAVY,r);
+  strcpy(fname,"HEAVY_me1_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me1,r->silac,HEAVY,r);
+  strcpy(fname,"HEAVY_me2_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me2,r->silac,HEAVY,r);
+  strcpy(fname,"HEAVY_me3_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me3,r->silac,HEAVY,r);
+
+  // unlabelled histones
+  strcpy(fname,"UNLABELLED_me0_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me0,r->silac,UNLABELLED,r);
+  strcpy(fname,"UNLABELLED_me1_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me1,r->silac,UNLABELLED,r);
+  strcpy(fname,"UNLABELLED_me2_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me2,r->silac,UNLABELLED,r);
+  strcpy(fname,"UNLABELLED_me3_t_\0"); strcat(fname,avgfile);
+  fprint_silac_t_nCycles(fname,r->K27,me3,r->silac,UNLABELLED,r);    
+
+  return;
+}
+
+

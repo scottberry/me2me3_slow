@@ -2,22 +2,16 @@
 
 int main(int argc, char *argv[]) {
   FILE *fptr, *parFile, *silacAbsFile, *silacRelFile, *silacRelAvgFile;
-  char avgfile[256]="", fname[256]="", tmp[256]="", buffer[256]="";
-  char parameterSpace[256]="", ptmp[256]="", id[16]="";
+  char *avgfile, fname[256]="", parameterSpace[256]="";
   char silacAbs[256]="", silacRel[256]="", silacRelAvg[256]="";
-  char *decimal = ".", *underscore = "_";
   chromatin c;
   parameters p;
   gillespie g;
   record r;
-  signed char initial;
-  double gap, Mavg, tTot, tTotM, tTotU, tM, tU, lifetime, me3_end;
-  double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
-  long i, j, locus, fh, initM, initU, seed;
-  double probM, probU, bistability;
+  quantification q;
+  long i, j, locus;
   double FIRING, P_DEMETHYLATE, P_METHYLATE;
   int p1, p2, p3;
-  logical startM = FALSE, startU = FALSE, randomSeed = TRUE;
 
   /* Code timing */
 #ifdef __APPLE__
@@ -35,153 +29,71 @@ int main(int argc, char *argv[]) {
   /* Simulation setup  */
   /* -------------------------------------------------------------------------------- */
   
-  c.sites = 60;
-  c.controlSites = c.sites; // can be replaced via command line
-  
   /* Note: if sampling frequency is too low, data will not be
      collected in the last hour of each cell cycle, when parameter
      values are small. This will lead to program aborting due to
      Gap = NaN. For robustness in parameter searches use
      p.samples = p.maxReact. Also choose p.maxReact according to
      p.cellCycles so that sampling is frequent enough in relation to
-     cell cycle. For 50 cell cycles, p.maxReact = 100000 is a good
+     cell cycle. For 50 cell cycles, p.maxReact = 200000 is a good
      choice for a large parameter search. */
-  
+
+  c.sites = 60;
   p.loci = 1;
   p.maxReact = 30000;
   p.samples = 30000; 
   p.sampleFreq = p.maxReact/p.samples;
 
+  /* Set program run parameters */
   p.cellCycles = 20;
+  p.cellCycleDuration = 22.0; // (hours)
+  p.optimSteps = 1;
+
+  /* SILAC specific parameters */
+  p.silacExperiment = TRUE;
   p.silacLightCycles = 5;
   p.silacHeavyCycles = 1;
-  p.cellCycleDuration = 22.0; // (hours)
-  p.G2duration = 4.0;
-  p.alpha = 0.0; // can be replaced via command line
-  p.beta = 1.0; // can be replaced via command line
-  p.firingThreshold = 1.0; // can be replaced via command line
 
-  // fold-change from non-transcribing
-  p.PRC2inhibition = 1.0; // can be replaced via command line
-  
-  p.DNAreplication = TRUE;
+  /* Set program run type flags */
+  p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.silacExperiment = TRUE;
   p.resultsFinalLocus = TRUE;
-  p.resultsSilacEachLocus = FALSE;
-
-  p.optimSteps = 1; 
-  
-  // Test gillespie algorithm
+  p.checkHistoneTurnover = FALSE;
+  p.resultsTranscribing = FALSE;
   g.test = FALSE;
   
   /* Parse command line */
-  opterr = 0;
-  while ((j = getopt (argc, argv, "i:mug:t:")) != -1)
-    switch (j)
-      {
-      case 'i':
-        randomSeed = FALSE;
-        sprintf(id,"%s",optarg);
-        seed = atoi(id);
-        sprintf(id,"_%s",optarg);
-        break;
-
-      case 'm':
-        startM = TRUE;
-        break;
-
-      case 'u':
-        startU = TRUE;
-        break;
-
-      case 'g':
-        sprintf(buffer,"%s",optarg);
-        p.G2duration = atof(buffer);
-        break;
-        
-      case 't':
-        sprintf(buffer,"%s",optarg);
-        p.firingThreshold = atof(buffer);
-        break;
-        
-      default:
-        usage();
-      }
-  
+  parseCommandLine(argc,argv,&c,&p);
+    
   /* Seed RNG */
-  if (randomSeed == TRUE)
+  if (p.randomSeed == TRUE)
     rseed(&p);
   else
-    setseed(&p,time(0) + seed);
+    setseed(&p,time(0) + p.seed);
 
-  /* Handle filename using command line args */
-  sprintf(tmp,"s%ld",c.sites); strcat(avgfile,tmp); 
-  sprintf(tmp,"ctrl%ld",c.controlSites); strcat(avgfile,tmp);
-  sprintf(tmp,"cc%d",p.cellCycles); strcat(avgfile,tmp);
-  sprintf(tmp,"%0.2f",p.alpha);
-  sprintf(ptmp,"a%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"%0.2f",p.beta);
-  sprintf(ptmp,"b%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"%0.2f",p.firingThreshold);
-  sprintf(ptmp,"fir%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"%0.2f",p.G2duration);
-  sprintf(ptmp,"tau%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"st%ld",p.optimSteps); strcat(avgfile,tmp); 
-  strcat(avgfile,id);
-  strcat(avgfile,".txt\0");
+  /* create base filename from specified run parameters */
+  avgfile = parameterDependentBasename(&c,&p);
 
+  /* open results file and write header */
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
-
   parFile = fopen(parameterSpace,"w");
-  fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg       \
-\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
-  fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg       \
-\tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU        \
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
+  fprintParameterSpaceHeader(parFile);
 
   if (g.test==TRUE)
     g.test_fptr = fopen("TestGillespieFromMain.txt","w");
   
-  /* Memory allocation */
-  c.K27 = i_vec_get( c.sites );
-  c.silac = i_vec_get( c.sites );
-  g.methylate_index = i_vec_get( c.sites );
-  g.transcribeDNA_index = i_vec_get( 1 );
-  g.propensity = d_vec_get( c.sites + 1 );
-  g.doReaction = malloc(g.propensity->len*sizeof( func_ptr_t ) );
-  g.doReactionParam = i_vec_get( g.propensity->len );
-  g.update = malloc(sizeof( flags ) );
-
-  r.t = d_vec_get(p.maxReact + 1);
-  r.firing = i_vec_get(p.maxReact + 1);
-  r.t_out = d_vec_get(p.samples);
-  r.K27 = i_mat_get(c.sites,p.samples);
-  
-  /* Initialisation */
+  /* allocate memory and initialise gillespie algorithm */
+  allocateGillespieMemory(&c,&p,&g,&r);
   initialiseGillespieFunctions(&c,&g);
-
-  /* Silac initiation */
+  
+  /* allocate memory for SILAC results */  
   if (p.silacExperiment == TRUE) {
-    r.silac = i_mat_get(c.sites,p.samples);
+    allocateSilacRecordMemory(&c,&p,&r);
 
-    p.SILAC_0h = (double)3600*p.cellCycleDuration*(p.silacLightCycles+1);
-    p.SILAC_10h = p.SILAC_0h + (double)3600*10;
-    p.SILAC_24h = p.SILAC_0h + (double)3600*24;
-    p.SILAC_48h = p.SILAC_0h + (double)3600*48;
-
-    r.silacResultsLight_0h = d_vec_get(p.loci);
-    r.silacResultsLight_10h = d_vec_get(p.loci);
-    r.silacResultsLight_24h = d_vec_get(p.loci);
-    r.silacResultsLight_48h = d_vec_get(p.loci);
-    r.silacResultsHeavy_0h = d_vec_get(p.loci);
-    r.silacResultsHeavy_10h = d_vec_get(p.loci);
-    r.silacResultsHeavy_24h = d_vec_get(p.loci);
-    r.silacResultsHeavy_48h = d_vec_get(p.loci);
-
+    strcpy(silacRelAvg,"SilacRelAverage_\0"); strcat(silacRelAvg,avgfile); 
+    silacRelAvgFile = fopen(silacRelAvg,"w");
+    fprintf(silacRelAvgFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tFIRING_THRESHOLD\ttime\tmod\tlabel\tlevel\n");
+    
     if (p.resultsSilacEachLocus == TRUE) {
       strcpy(silacAbs,"SilacAbs_\0"); strcat(silacAbs,avgfile); 
       silacAbsFile = fopen(silacAbs,"w");
@@ -189,11 +101,7 @@ int main(int argc, char *argv[]) {
       strcpy(silacRel,"SilacRel_\0"); strcat(silacRel,avgfile); 
       silacRelFile = fopen(silacRel,"w");
       fprintf(silacRelFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tFIRING_THRESHOLD\tlocus\ttime\tmod\tlabel\tlevel\n");
-    }
-    
-    strcpy(silacRelAvg,"SilacRelAverage_\0"); strcat(silacRelAvg,avgfile); 
-    silacRelAvgFile = fopen(silacRelAvg,"w");
-    fprintf(silacRelAvgFile,"FIRING\tP_DEMETHYLATE\tP_METHYLATE\tFIRING_THRESHOLD\ttime\tmod\tlabel\tlevel\n");
+    }    
   }
 
   /* -------------------------------------------------------------------------------- */
@@ -203,8 +111,7 @@ int main(int argc, char *argv[]) {
     for (p2=p.optimSteps-1;p2<p.optimSteps;p2++) { // min 7
       for (p3=p.optimSteps-1;p3<p.optimSteps;p3++) { // min 12
 	  
-        // !!! Set seed for debugging - remove for simulations
-        // setseed(&p,0);
+        // setseed(&p,p.seed);
                       
         FIRING = 0.000277778*20;
         // P_DEMETHYLATE = pow(10,-0.15*(p2+4));
@@ -213,30 +120,35 @@ int main(int argc, char *argv[]) {
         // FIRING = 0.0256;
         P_DEMETHYLATE = 0.02;
         P_METHYLATE = 0.00003;
-        
-        // Transcription
-        // ------------------------------------------------------------
-        p.firingRateMin = 0.000277778; // Leave the repressed firing rate fixed at ~ every 60 min.
+
+                // Transcription
+        // -------------
+        /* Leave the repressed firing rate fixed at ~ every 60 min. */
+        p.firingRateMin = 0.000277778; 
         p.firingRateMax = FIRING; // Optimise
-        p.firingCap = 0.0166667; // Cap firing rate at ~ every minute.
-        p.transcription_demethylate = P_DEMETHYLATE; // (rate per site per transcription event)
-        p.transcription_turnover = 0.0; // (rate per site per transcription event)
+
+        /* Cap firing rate at ~ every minute. */
+        p.firingCap = 0.0166667;
+        p.transcription_demethylate = P_DEMETHYLATE; 
+        p.transcription_turnover = 0.0; 
+
         if (p.firingRateMax < p.firingRateMin) {
-          fprintf(stderr,"Error: Max firing rate less than min firing rate. Setting k_min = k_max\n");
+          fprintf(stderr,"Error: Max firing rate less than min firing rate.");
+          fprintf(stderr," Setting k_min = k_max\n");
           p.firingRateMin = p.firingRateMax;
         }
         
         // Methylation/demethylation
-        // ------------------------------------------------------------
+        // -------------------------
         /* 5% noise. Represents basal activity of unstimulated PRC2 */
-        p.noisy_me0_me1 = 9*P_METHYLATE/20.0;
-        p.noisy_me1_me2 = 6*P_METHYLATE/20.0;
+        p.noisy_me0_me1 = 9.0*P_METHYLATE/20.0;
+        p.noisy_me1_me2 = 6.0*P_METHYLATE/20.0;
         p.noisy_me2_me3 = P_METHYLATE/20.0;
         
         /* ratio of 9:6:1 in "specificity constant" k_cat/K_M
            \cite{McCabe:2012kk} \cite{Sneeringer:2010dj} */
-        p.me0_me1 = 9*P_METHYLATE; 
-        p.me1_me2 = 6*P_METHYLATE; 
+        p.me0_me1 = 9.0*P_METHYLATE; 
+        p.me1_me2 = 6.0*P_METHYLATE; 
         p.me2_me3 = P_METHYLATE;
         
         /* 2 - 2.5 fold lower Kd for K27me3 than K27me2, together with
@@ -245,44 +157,28 @@ int main(int argc, char *argv[]) {
            methyl addition on a nearby nucleosome.
            \cite{Margueron:2009el} */
         p.me2factor = 0.1; 
-        p.me3factor = 1;
+        p.me3factor = 1.0;
 
-        // Set results to zero for accumulation over each parameter set
-        // ------------------------------------------------------------        
-        gap = 0.0;
-        Mavg = 0.0;
-        me3_end = 0.0;
-        probM = 0.0;
-        probU = 0.0;
-        fh = 0;
-        tTot = tTotM = tTotU = 0.0;
-        initM = initU = 0;
-        firstPassageM = firstPassageU = 0.0;
+        // Reset results to zero for each parameter set
+        resetQuantification(&q);
         
-        /* -------------------------------------------------------------------------------- */
+        /* -------------- */
         /* loop over loci */
-        /* -------------------------------------------------------------------------------- */
+        /* -------------- */
         
         for (locus=0;locus<p.loci;locus++) {
           // fprintf(stderr,"locus %ld\n",locus);
-          if (argc > 1) {
-            if (startM == TRUE) {
-              initialiseRepressed(&c);
-	      } else if (startU == TRUE) {
-              initialiseActive(&c);
-            } else { 
-              if (locus < floor(p.loci/2))
-                initialiseRepressed(&c);
-              else
-                initialiseActive(&c);
-            }
+          if (p.startM == TRUE) {
+            initialiseRepressed(&c);
+          } else if (p.startU == TRUE) {
+            initialiseActive(&c);
           } else { 
             if (locus < floor(p.loci/2))
               initialiseRepressed(&c);
             else
               initialiseActive(&c);
           }
-
+          
           // reset counters
           p.reactCount = 0;
           p.sampleCount = 0;
@@ -312,110 +208,30 @@ int main(int argc, char *argv[]) {
             }
             r.tMax = r.t->el[p.reactCount];
 
-            // SILAC report points
+            // Silac report points
             if (r.t->el[p.reactCount] >= p.SILAC_nextReport && p.SILAC_report <= 4) {
               storeTripleSILAC_me3(locus,&p,&r);
-
               if (p.resultsSilacEachLocus == TRUE)
                 fprintTripleSILAC_eachLocus(silacAbsFile,silacRelFile,locus,&p,&r);
-              
-              if (p.SILAC_report == 1) {
-                p.SILAC_report = 2;
-                p.SILAC_nextReport = p.SILAC_10h;
-              } else if (p.SILAC_report == 2) {
-                p.SILAC_report = 3;
-                p.SILAC_nextReport = p.SILAC_24h;
-              } else if (p.SILAC_report == 3) {
-                p.SILAC_nextReport = p.SILAC_48h;
-                p.SILAC_report = 4;
-              } else if (p.SILAC_report == 4) {
-                p.SILAC_report = 5;
-              }
+              incrementSilacReportPoint(&p);
             }
 
             p.reactCount++;
+
+            // Update Silac Label
             if (p.cellCycleCount >= p.silacLightCycles)
               p.silacLabel = HEAVY;
             if (p.cellCycleCount >= p.silacLightCycles + p.silacHeavyCycles)
               p.silacLabel = UNLABELLED;
 
-            
             gillespieStep(&c,&p,&g,&r);
           }
 
-          if (p.resultsLastHourOnly == TRUE) {
-            gap += tAverageGap_lastHour_nCycles(&c,&p,&r);
-            Mavg += tAverage_me2_me3_lastHour_nCycles(&c,&p,&r);
-            me3_end += tAverage_me3_lastHour_nCycles(&c,&p,&r);
-            probM += prob_lowExpression_lastHour_nCycles(&c,&p,&r);
-            probU += prob_highExpression_lastHour_nCycles(&c,&p,&r);
-          } else {
-            gap += tAverageGap_nCycles(&c,&p,&r);
-            Mavg += tAverage_me2_me3_nCycles(&c,&p,&r);
-            probM += prob_me2_me3_nCycles(&c,&p,&r);
-            probU += prob_me0_me1_nCycles(&c,&p,&r);
-          }
-          fh += numberHistoneStateFlips(&r);
-          tTot += r.t->el[p.reactCount];
-
-          if (isnan(gap)) {
-            fprintf(stderr,"Error: gap is nan. Locus %ld\n",locus);
-            fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\tP_DEMETHYLATE\tP_METHYLATE\n");
-            fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f\n",
-                    p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,FIRING,P_DEMETHYLATE,P_METHYLATE);
-            exit(-1);
-          }
-
-          firstPassage = firstPassageTime(&r,&initial);
-          if (initial==-1) {
-            firstPassageM += firstPassage;
-            initM++;
-            tTotM += r.t->el[p.reactCount];
-          } else {
-            firstPassageU += firstPassage;
-            initU++;
-            tTotU += r.t->el[p.reactCount];
-          }
+          accumulateQuantification(&c,&p,&r,&q);
         } /* end loop over loci */
 
-        if (fh != 0) lifetime = tTot/fh;
-        else lifetime = -1.0;
-
-        bistability = 4*probM*probU/(p.loci*p.loci);
-
-        if (initM != 0) {
-          fpM = firstPassageM/initM;
-          tM = tTotM/initM;
-        } else {
-          fpM = -1.0;
-          tM = -1.0;
-        }
-
-        if (initU != 0) {
-          fpU= firstPassageU/initU;
-          tU = tTotU/initU;
-        } else {
-          fpU = -1.0;
-          tU = -1.0;
-        }
-
-                fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
-\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\
-\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\n",
-                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,p.firingThreshold,
-                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.alpha,p.G2duration,
-                gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
-                probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
-        fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
-%0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
-%0.4f  %0.4f  %0.4f  %0.4f  %0.6f\n",
-                p.me0_me1,p.me1_me2,p.me2_me3,p.me2factor,p.me3factor,
-                FIRING,p.firingThreshold,
-                P_DEMETHYLATE,P_METHYLATE,c.controlSites,p.alpha,p.G2duration,
-                gap/p.loci,Mavg/p.loci,lifetime,initM,fpM,tM,initU,fpU,tU,tTot/p.loci,
-                probM/p.loci,probU/p.loci,bistability,me3_end/p.loci);
-
+        averageQuantification(&c,&p,&r,&q);
+        fprintParameterSpaceResults(parFile,&p,&c,&q);
         fprintTripleSILAC_average(silacRelAvgFile,&p,&r);
       }
     }
@@ -424,93 +240,30 @@ int main(int argc, char *argv[]) {
   /* end loop over parameters */
   fclose(parFile);
   if (p.silacExperiment == TRUE) {
+    fclose(silacRelAvgFile);
     if (p.resultsSilacEachLocus == TRUE) {
       fclose(silacAbsFile);
       fclose(silacRelFile);
     }
-    fclose(silacRelAvgFile);
   }
 
-  /* -------------------------------------------------------------------------------- */
-  /* Tidy up and write results files */
-  /* -------------------------------------------------------------------------------- */
-
-  /* free all arrays */
-  i_vec_free(c.K27);
-  i_vec_free(c.silac);
-  i_vec_free(g.methylate_index);
-  i_vec_free(g.transcribeDNA_index);
-  d_vec_free(g.propensity);
-  free(g.doReaction);
-  i_vec_free(g.doReactionParam);
-  free(g.update);
-  rfree(&p);
-
+  /* print final results */
   if (p.resultsFinalLocus == TRUE) {
-    /* print results for final locus */
-    strcpy(fname,"t_\0"); strcat(fname,avgfile);
-    fprint_t_out_nCycles(fname,&r);
-    strcpy(fname,"me0_t_\0"); strcat(fname,avgfile);
-    fprint_t_nCycles(fname,r.K27,me0,&r);
-    strcpy(fname,"me1_t_\0"); strcat(fname,avgfile);
-    fprint_t_nCycles(fname,r.K27,me1,&r);
-    strcpy(fname,"me2_t_\0"); strcat(fname,avgfile);
-    fprint_t_nCycles(fname,r.K27,me2,&r);
-    strcpy(fname,"me3_t_\0"); strcat(fname,avgfile);
-    fprint_t_nCycles(fname,r.K27,me3,&r);
-    strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
-    fprint_firing_t_nCycles(fname,&r);
-
-    // light histones
-    strcpy(fname,"LIGHT_me0_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me0,r.silac,LIGHT,&r);
-    strcpy(fname,"LIGHT_me1_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me1,r.silac,LIGHT,&r);
-    strcpy(fname,"LIGHT_me2_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me2,r.silac,LIGHT,&r);
-    strcpy(fname,"LIGHT_me3_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me3,r.silac,LIGHT,&r);
-    
-    // heavy histones
-    strcpy(fname,"HEAVY_me0_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me0,r.silac,HEAVY,&r);
-    strcpy(fname,"HEAVY_me1_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me1,r.silac,HEAVY,&r);
-    strcpy(fname,"HEAVY_me2_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me2,r.silac,HEAVY,&r);
-    strcpy(fname,"HEAVY_me3_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me3,r.silac,HEAVY,&r);
-
-    // unlabelled histones
-    strcpy(fname,"UNLABELLED_me0_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me0,r.silac,UNLABELLED,&r);
-    strcpy(fname,"UNLABELLED_me1_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me1,r.silac,UNLABELLED,&r);
-    strcpy(fname,"UNLABELLED_me2_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me2,r.silac,UNLABELLED,&r);
-    strcpy(fname,"UNLABELLED_me3_t_\0"); strcat(fname,avgfile);
-    fprint_silac_t_nCycles(fname,r.K27,me3,r.silac,UNLABELLED,&r);    
+    fprintResultsFinalLocus(avgfile,&r);
+    if (p.silacExperiment == TRUE) {
+      fprintSilacResultsFinalLocus(avgfile,&r);
+    }
   }
-  
+
+  /* write log file */
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);
   fptr = fopen(fname,"w");
   writelog(fptr,&c,&p,&r);
 
-  i_vec_free(r.firing);
-  i_mat_free(r.K27);
-  d_vec_free(r.t);
-  d_vec_free(r.t_out);
-
+  /* free memory */
+  freeGillespieMemory(&c,&p,&g,&r);
   if (p.silacExperiment == TRUE) {
-    i_mat_free(r.silac);
-    d_vec_free(r.silacResultsLight_0h);
-    d_vec_free(r.silacResultsLight_10h);
-    d_vec_free(r.silacResultsLight_24h);
-    d_vec_free(r.silacResultsLight_48h);
-    d_vec_free(r.silacResultsHeavy_0h);
-    d_vec_free(r.silacResultsHeavy_10h);
-    d_vec_free(r.silacResultsHeavy_24h);
-    d_vec_free(r.silacResultsHeavy_48h);
+    freeSilacRecordMemory(&r);
   }
   
 #ifdef __APPLE__

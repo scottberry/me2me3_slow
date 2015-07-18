@@ -10,6 +10,8 @@
 
 void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
   c->K27 = i_vec_get( c->sites );
+  if (p->silacExperiment == TRUE)
+    c->silac = i_vec_get( c->sites );
   g->methylate_index = i_vec_get( c->sites );
   g->transcribeDNA_index = i_vec_get( 1 );
   g->propensity = d_vec_get( c->sites + 1 );
@@ -26,6 +28,8 @@ void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *
 
 void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
   i_vec_free(c->K27);
+  if (p->silacExperiment == TRUE)
+    i_vec_free(c->silac);
   i_vec_free(g->methylate_index);
   i_vec_free(g->transcribeDNA_index);
   d_vec_free(g->propensity);

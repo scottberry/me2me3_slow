@@ -173,6 +173,9 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r);
 void gillespieStepTranscriptionDelays(chromatin *c, parameters *p, gillespie *g, record *r);
 
 // results.c
+void allocateSilacRecordMemory(chromatin *c, parameters *p, record *r);
+void freeSilacRecordMemory(record *r);
+void incrementSilacReportPoint(parameters *p);
 void resetQuantification(quantification *q);
 void accumulateQuantification(chromatin *c, parameters *p, record *r, quantification *q);
 void averageQuantification(chromatin *c, parameters *p, record *r, quantification *q);
@@ -207,3 +210,4 @@ void storeTripleSILAC_me3(long locus, parameters *p, record *r);
 void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r);
 void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r);
 void fprintResultsFinalLocus(char *avgfile, record *r);
+void fprintSilacResultsFinalLocus(char *avgfile, record *r);
