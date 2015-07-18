@@ -50,6 +50,11 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
   if (p->resultsTranscribing == TRUE)
     i_vec_free(r->transcribing);
 
+  if (p->checkHistoneTurnover == TRUE) {
+    i_vec_free(c->turnover);  
+    d_mat_free(r->turnover);
+  }
+    
   return;
 }
 

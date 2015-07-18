@@ -132,6 +132,7 @@ typedef struct {
   double firstPassage, firstPassageM, firstPassageU, fpU, fpM;
   long fh, initM, initU;
   double probM, probU, bistability;
+  double totalHistoneTurnover;
 } quantification;
 
 /* Function prototypes */

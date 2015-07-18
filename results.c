@@ -68,7 +68,7 @@ void resetQuantification(quantification *q) {
   q->tTot = q->tTotM = q->tTotU = 0.0;
   q->initM = q->initU = 0;
   q->firstPassageM = q->firstPassageU = 0.0;
-
+  q->totalHistoneTurnover = 0.0;
   return;
 }
 
@@ -106,6 +106,7 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
     q->initU++;
     q->tTotU += r->t->el[p->reactCount];
   }
+  
   return;
 }
 
@@ -171,31 +172,31 @@ void fprintParameterSpaceHeader(FILE *parFile) {
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
 \tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
 \tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\n");
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\n");
   return;
 }
 
 void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, quantification *q) {        
   fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
-\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\n",
+\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\t%0.10f\n",
           p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
           p->firingRateMax,p->firingThreshold,
           p->transcription_demethylate,p->me2_me3,c->controlSites,p->alpha,p->G2duration,
           q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
-          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci);
+          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci);
   fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
-%0.4f  %0.4f  %0.4f  %0.4f  %0.6f\n",
+%0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.10f\n",
           p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
           p->firingRateMax,p->firingThreshold,
           p->transcription_demethylate,p->me2_me3,c->controlSites,p->alpha,p->G2duration,
           q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
-          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci);
+          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci);
   return;
 }
 
