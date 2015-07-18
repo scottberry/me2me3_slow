@@ -41,7 +41,8 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
   p->randomSeed = TRUE;
   p->seed = 0;
   strcpy(p->id,"\0");
-
+  sprintf(p->executable,"%s",argv[0]);
+  
   /* parse command line args */
   opterr = 0;
   while ((j = getopt (argc, argv, "c:a:b:i:smurg:p:t:")) != -1)

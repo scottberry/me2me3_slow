@@ -89,6 +89,7 @@ typedef struct {
   logical resultsSilacEachLocus;
 
   char id[128];
+  char executable[128];
   
 } parameters;
  

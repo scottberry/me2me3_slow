@@ -149,7 +149,7 @@ char *parameterDependentBasename(chromatin *c, parameters *p) {
   sprintf(tmp,"%0.2f",p->beta);
   sprintf(ptmp,"b%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.2f",p->firingThreshold);
-  sprintf(ptmp,"fir%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(ptmp,"thresh%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.2f",p->G2duration);
   sprintf(ptmp,"tau%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.2f",p->PRC2inhibition);
@@ -788,8 +788,10 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
 
   curtime = time (NULL);
   loctime = localtime (&curtime);
-
   fputs (asctime (loctime), fptr);
+
+  fprintf(fptr,"Program name: %s\n",p->executable);
+
 #ifdef __APPLE__
   fprintf(fptr,"Operating system: Mac OS\n");
 #else
@@ -813,7 +815,8 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"SILAC:");
   if (p->silacExperiment == TRUE) {
     fprintf(fptr," TRUE\n");
-    fprintf(fptr," silacLightCycles = %ld \n",p->silacLightCycles);
+    fprintf(fptr,"SilacLightCycles = %ld \n",p->silacLightCycles);
+    fprintf(fptr,"SilacHeavyCycles = %ld \n",p->silacHeavyCycles);
   } else
     fprintf(fptr," FALSE\n");
   fprintf(fptr,"cellCycleDuration: %0.2f hours\n", p->cellCycleDuration);
@@ -830,7 +833,8 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"alpha: %0.4f\n", p->alpha);
   fprintf(fptr,"beta: %0.4f\n", p->beta);
   fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
-
+  fprintf(fptr,"transcription_turnover: %0.6f\n", p->transcription_turnover);
+  
   return(1);
 }
 
