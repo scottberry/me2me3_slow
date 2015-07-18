@@ -16,8 +16,8 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ = random.o modifications.o gillespie.o results.o parse.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-_OBJP = random.o modificationsProcK27me2.o gillespie.o results.o parse.o
-OBJP = $(patsubst %,$(ODIR)/%,$(_OBJP))
+_OBJPROCESSIVE = random.o modificationsProcK27me2.o gillespie.o results.o parse.o
+OBJPROCESSIVE = $(patsubst %,$(ODIR)/%,$(_OBJPROCESSIVE))
 
 all: $(STATLIB) $(OBJ) me2me3 Dynamic HistoneTurnover TranscriptionInhibit ProcK27me2 Silac Tests ConstTimeInterpolate
 
@@ -45,7 +45,7 @@ HistoneTurnover: $(ODIR)/HistoneTurnover.o $(STATLIB) $(OBJ)
 TranscriptionInhibit: $(ODIR)/TranscriptionInhibit.o $(STATLIB) $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
-ProcK27me2: $(ODIR)/Main.o $(STATLIB) $(OBJP)
+ProcK27me2: $(ODIR)/Main.o $(STATLIB) $(OBJPROCESSIVE)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 Silac: $(ODIR)/Silac.o $(STATLIB) $(OBJ)
