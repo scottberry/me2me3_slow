@@ -99,10 +99,10 @@ int main(int argc, char *argv[]) {
         
         // FIRING = 0.000277778*pow(2,p1);
         // P_DEMETHYLATE = pow(10,-0.15*(p2+4));
-        P_METHYLATE = pow(10,-0.12*(p3+26));
+        // P_METHYLATE = pow(10,-0.12*(p3+26));
              
-        FIRING = 0.000277778*10;
-        P_DEMETHYLATE = 0.0006;
+        FIRING = 0.000277778*20;
+        P_DEMETHYLATE = 0.00005;
         P_METHYLATE = 0.000008;
         
         // Transcription
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 
           /* <p> = k_r * burst / gamma_p,
              where burst = k_p/gamma_r */
-          p.gamma_r = 1.0/(4.0*3600.0);
+          p.gamma_r = 1.0/(2.0*3600.0);
           p.gamma_p = 1.0/(12.0*3600.0);
           p.k_r = p.gamma_p * MEAN / BURST;
           p.k_p = p.gamma_r * BURST;

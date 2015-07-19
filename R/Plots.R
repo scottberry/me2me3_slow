@@ -13,10 +13,10 @@ ctrl <- 60
 cc <- 20
 a <- 1.0
 b <- 1.0
-f <- 1.0
-tau <- 0.0
+f <- 0.4
+tau <- 4.0
 prc2 <- 1.0
-rep <- "NoRep"
+rep <- "Rep"
 st <- 1
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
