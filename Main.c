@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
-  p.stochasticAlpha = FALSE;
+  p.stochasticAlpha = TRUE;
   g.test = FALSE;
   
   /* Parse command line */
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
         // P_METHYLATE = pow(10,-0.12*(p3+26));
              
         FIRING = 0.000277778*20;
-        P_DEMETHYLATE = 0.00005;
+        P_DEMETHYLATE = 0.005;
         P_METHYLATE = 0.000008;
         
         // Transcription
