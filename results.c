@@ -92,9 +92,10 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
   q->me3_end += tAverage_me3_lastHour_nCycles(c,p,r);
   q->fh += numberHistoneStateFlips(r);
   q->tTot += r->t->el[p->reactCount];
-  q->alphaMean += tAverageAlpha(r)/p->loci;
-  q->alphaSD += tAverageAlphaSD(r,q->alphaMean)/p->loci;
-  
+  if (p->stochasticAlpha == TRUE) {
+    q->alphaMean += tAverageAlpha(r)/p->loci;
+    q->alphaSD += tAverageAlphaSD(r,q->alphaMean)/p->loci;
+  }
   // Note: this metric works best when threshold = 1.0
   // q->firstPassage = firstPassageTime(r,&q->initial);
 
@@ -1080,20 +1081,6 @@ double tAverageAlpha(record *r) {
   
   return(mean/tLast);
 }
-
-/*
-double tAverageAlphaSD(record *r, double mean) {
-  double var = 0.0, tLast;
-  long t;
-
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) { 
-    var += pow(mean - r->alpha->el[t],2) * (double)(r->t_out->el[t]-r->t_out->el[t-1]);
-    tLast = r->t_out->el[t];
-  }
-  
-  return(sqrt(var/tLast));
-}
-*/
 
 double tAverageAlphaSD(record *r, double mean) {
   double var = 0.0, samplePoint = 0.0, sampleFreq;

@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 100;
+  p.loci = 10;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
-  p.stochasticAlpha = TRUE;
+  p.stochasticAlpha = FALSE;
   g.test = FALSE;
   
   /* Parse command line */
@@ -98,12 +98,12 @@ int main(int argc, char *argv[]) {
         //setseed(&p,p.seed);
         
         // FIRING = 0.000277778*pow(2,p1);
-        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        // P_DEMETHYLATE = pow(10,-0.15*(p2+4));
         P_METHYLATE = pow(10,-0.12*(p3+26));
              
         FIRING = 0.000277778*10;
-        // P_DEMETHYLATE = 0.0005;
-        // P_METHYLATE = 0.00005;
+        P_DEMETHYLATE = 0.0006;
+        P_METHYLATE = 0.000008;
         
         // Transcription
         // -------------
