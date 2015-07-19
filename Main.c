@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 4;
+  p.loci = 100;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
-  p.stochasticAlpha = FALSE;
+  p.stochasticAlpha = TRUE;
   g.test = FALSE;
   
   /* Parse command line */
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-  for (p1=0;p1<6;p1++) { // 7
+  for (p1=0;p1<1;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
@@ -147,18 +147,18 @@ int main(int argc, char *argv[]) {
         // Stochastic alpha
         // ----------------
         if (p.stochasticAlpha == TRUE) {
-          BURST = 2;
-          MEAN = 100;
+          BURST = 100.0;
+          MEAN = 1000.0;
 
           /* <p> = k_r * burst / gamma_p,
              where burst = k_p/gamma_r */
+          p.gamma_r = 1.0/(4.0*3600.0);
+          p.gamma_p = 1.0/(12.0*3600.0);
           p.k_r = p.gamma_p * MEAN / BURST;
           p.k_p = p.gamma_r * BURST;
-          p.gamma_r = 1.0/3600.0;
-          p.gamma_p = 1.0/(5.0*3600.0);
 
-          p.transFactorRNA = 1;
-          p.transFactorProtein = 1;
+          p.transFactorRNA = floor(p.k_r/p.gamma_r);
+          p.transFactorProtein = floor(MEAN);
         }
         
         // Reset results to zero for each parameter set
@@ -198,8 +198,11 @@ int main(int argc, char *argv[]) {
               r.t_outLastSample = p.sampleCount;
               for (j=0;j<(c.sites);j++)
                 r.K27->el[j][p.sampleCount] = c.K27->el[j];
-              if (p.stochasticAlpha == TRUE)
+              if (p.stochasticAlpha == TRUE) {
                 r.transFactorProtein->el[p.sampleCount] = p.transFactorProtein;
+                r.transFactorRNA->el[p.sampleCount] = p.transFactorRNA;
+                r.alpha->el[p.sampleCount] = p.alpha;
+              }
               p.sampleCount++;
             }
             r.tMax = r.t->el[p.reactCount];

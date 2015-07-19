@@ -69,6 +69,8 @@ void resetQuantification(quantification *q) {
   q->initM = q->initU = 0;
   q->firstPassageM = q->firstPassageU = 0.0;
   q->totalHistoneTurnover = 0.0;
+  q->alphaSD = 0.0;
+  q->alphaMean = 0.0;
   return;
 }
 
@@ -90,7 +92,9 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
   q->me3_end += tAverage_me3_lastHour_nCycles(c,p,r);
   q->fh += numberHistoneStateFlips(r);
   q->tTot += r->t->el[p->reactCount];
-          
+  q->alphaMean += tAverageAlpha(r)/p->loci;
+  q->alphaSD += tAverageAlphaSD(r,q->alphaMean)/p->loci;
+  
   // Note: this metric works best when threshold = 1.0
   // q->firstPassage = firstPassageTime(r,&q->initial);
 
@@ -170,11 +174,13 @@ char *parameterDependentBasename(chromatin *c, parameters *p) {
 
 void fprintParameterSpaceHeader(FILE *parFile) {
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg\
+\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\talphaMean\
+\talphaSD\tbeta\ttau\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
-\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\ttau\tgap\tMavg\
+\tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tcontrolSites\talpha\talphaMean\
+\talphaSD\tbeta\ttau\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\n");
   return;
@@ -182,19 +188,21 @@ void fprintParameterSpaceHeader(FILE *parFile) {
 
 void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, quantification *q) {        
   fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
-\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
+\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
 \t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\t%0.10f\n",
           p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
           p->firingRateMax,p->firingThreshold,
-          p->transcription_demethylate,p->me2_me3,c->controlSites,p->alpha,p->G2duration,
+          p->transcription_demethylate,p->me2_me3,c->controlSites,p->alpha,q->alphaMean,q->alphaSD,
+          p->beta,p->G2duration,
           q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
           q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci);
   fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
-%0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
+%0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
 %0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.10f\n",
           p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
           p->firingRateMax,p->firingThreshold,
-          p->transcription_demethylate,p->me2_me3,c->controlSites,p->alpha,p->G2duration,
+          p->transcription_demethylate,p->me2_me3,c->controlSites,p->alpha,q->alphaMean,q->alphaSD,
+          p->beta,p->G2duration,
           q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
           q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci);
   return;
@@ -1050,10 +1058,58 @@ void fprint_transFactorProtein_nCycles(char *fname, record *r) {
   long unsigned i;
   //fprintf(stderr,"%ld",r->t_outLastSample);
   fptr = fopen(fname,"w");
-  fprintf(fptr,"time\tprotein\n");
+  fprintf(fptr,"time\tprotein\tRNA\talpha\n");
   for (i=0;i<r->t_outLastSample;i++) {
-    fprintf(fptr,"%0.4f\t%ld\n",r->t_out->el[i],r->transFactorProtein->el[i]);
+    fprintf(fptr,"%0.4f\t",r->t_out->el[i]);
+    fprintf(fptr,"%ld\t",r->transFactorProtein->el[i]);
+    fprintf(fptr,"%ld\t",r->transFactorRNA->el[i]);
+    fprintf(fptr,"%0.4f\n",r->alpha->el[i]);
   }
   fclose(fptr);
   return;
 }
+
+double tAverageAlpha(record *r) {
+  double mean = 0.0, tLast;
+  long t;
+
+  for (t=0;t<r->K27->cols && t<r->t_outLastSample;t++) { 
+    mean += r->alpha->el[t]*(double)(r->t_out->el[t]-r->t_out->el[t-1]);
+    tLast = r->t_out->el[t];
+  }
+  
+  return(mean/tLast);
+}
+
+/*
+double tAverageAlphaSD(record *r, double mean) {
+  double var = 0.0, tLast;
+  long t;
+
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) { 
+    var += pow(mean - r->alpha->el[t],2) * (double)(r->t_out->el[t]-r->t_out->el[t-1]);
+    tLast = r->t_out->el[t];
+  }
+  
+  return(sqrt(var/tLast));
+}
+*/
+
+double tAverageAlphaSD(record *r, double mean) {
+  double var = 0.0, samplePoint = 0.0, sampleFreq;
+  long reaction = 0, nSamples;
+
+  // sample the distribution points evenly spaced in time
+  nSamples = 10000;
+  sampleFreq = r->tMax/(double)nSamples;
+
+  while (samplePoint < r->tMax) {
+    var += pow(mean - r->alpha->el[reaction],2.0);
+    samplePoint += sampleFreq;
+    while (r->t_out->el[reaction] <= samplePoint && reaction < r->t_out->len)
+      reaction++;
+  }
+
+  return(sqrt(var/(double)nSamples));
+}
+

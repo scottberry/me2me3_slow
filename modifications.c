@@ -124,13 +124,13 @@ void increaseRNA(chromatin *c, parameters *p, flags *update, int pos) {
 }
 
 void decreaseProtein(chromatin *c, parameters *p, flags *update, int pos) {
-  p->transFactorProtein++;
+  p->transFactorProtein--;
   update->histone = TRUE;
   return;  
 }
 
 void increaseProtein(chromatin *c, parameters *p, flags *update, int pos) {
-  p->transFactorProtein--;
+  p->transFactorProtein++;
   update->histone = TRUE;
   return;  
 }

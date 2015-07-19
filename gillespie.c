@@ -23,6 +23,8 @@ void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *
     g->increaseRNA_index = i_vec_get( 1 );
     g->decreaseRNA_index = i_vec_get( 1 );
     r->transFactorProtein = i_vec_get( p->samples );
+    r->transFactorRNA = i_vec_get( p->samples );
+    r->alpha = d_vec_get( p->samples );
   } else {
     g->propensity = d_vec_get( c->sites + 1 );
   }
@@ -55,6 +57,8 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
     i_vec_free(g->increaseRNA_index);
     i_vec_free(g->decreaseRNA_index);
     i_vec_free(r->transFactorProtein);
+    i_vec_free(r->transFactorRNA);
+    d_vec_free(r->alpha);
   }  
 
   d_vec_free(g->propensity);
@@ -281,7 +285,10 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
   if (g->update->histone==TRUE) {
     f_me2_me3 = fracControlRegion_me2me3(c);
     //f_me2_me3 = frac(c->K27,me2) + frac(c->K27,me3);
-     
+
+    if (p->stochasticAlpha==TRUE)
+      p->alpha = (double)p->transFactorProtein/1000.0;
+    
     for (i=0;i<c->sites;i++) {
       // fprintf(stderr,"i = %d, neighboursK27factor = %0.2f\n",i,neighboursK27factor(c,p,i));
       if (c->K27->el[i] == me0) { // methylate
@@ -310,11 +317,11 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
 void updatePropensitiesTransFactor(parameters *p, gillespie *g) {
 
   // update trans-regulator concentration
-  g->propensity->el[g->increaseProtein_index->el[0]] = p->k_p * p->transFactorRNA;
-  g->propensity->el[g->decreaseProtein_index->el[0]] = p->gamma_p * p->transFactorProtein;
-  g->propensity->el[g->increaseRNA_index->el[0]] = p->k_r;
-  g->propensity->el[g->decreaseRNA_index->el[0]] = p->gamma_r * p->transFactorRNA;
+  g->propensity->el[g->decreaseProtein_index->el[0]] = p->gamma_p * (double)p->transFactorProtein;
+  g->propensity->el[g->increaseProtein_index->el[0]] = p->k_p * (double)p->transFactorRNA;
 
+  g->propensity->el[g->decreaseRNA_index->el[0]] = p->gamma_r * (double)p->transFactorRNA;
+  g->propensity->el[g->increaseRNA_index->el[0]] = p->k_r;
   return;
 }
 
@@ -326,8 +333,10 @@ void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillesp
    
   if (g->update->histone==TRUE) {
     f_me2_me3 = fracControlRegion_me2me3(c);
-    //f_me2_me3 = frac(c->K27,me2) + frac(c->K27,me3);
 
+    if (p->stochasticAlpha==TRUE)
+      p->alpha = (double)p->transFactorProtein/1000.0;
+    
     if (c->transcribing == TRUE)
       PRC2activity = 1.0/p->PRC2inhibition;
     else
@@ -398,7 +407,10 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   updatePropensities(c,p,g);
   if (p->stochasticAlpha == TRUE)
     updatePropensitiesTransFactor(p,g);
-  
+
+  /*  for (i=0;i<g->propensity->len;i++)
+    fprintf(stderr,"%ld,%0.10f\n",i,g->propensity->el[i]);
+  */
   // calculate time step
   // (p_s also returns propensity sum for use in Gillespie reaction selection).
   delta_t = gillespieTimeStep(p,g,&p_s);

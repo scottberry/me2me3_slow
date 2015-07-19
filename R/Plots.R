@@ -15,19 +15,22 @@ a <- 1.0
 b <- 1.0
 f <- 1.0
 tau <- 0.0
+prc2 <- 1.0
+rep <- "NoRep"
 st <- 1
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
-fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
 taustr <- paste('tau',gsub("\\.", "_",sprintf("%0.2f",tau)),sep="")
+pstr <- paste('p',gsub("\\.", "_",sprintf("%0.2f",prc2)),sep="")
 
-time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-tDep_me0_file <- paste("me0_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-tDep_me1_file <- paste("me1_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-tDep_me2_file <- paste("me2_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
+time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,".txt",sep="")
+tDep_me0_file <- paste("me0_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,".txt",sep="")
+tDep_me1_file <- paste("me1_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,".txt",sep="")
+tDep_me2_file <- paste("me2_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,".txt",sep="")
+tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,".txt",sep="")
+tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,".txt",sep="")
 
 time <- read.table(time_file) ; colnames(time) <- "time"
 me0 <- read.table(tDep_me0_file) ; colnames(me0) <- "level"
@@ -45,3 +48,13 @@ hist(Firing$V1/(3600*22),seq(0,(max(Firing)/(3600*22) + 1/22),by=1/22),ylab="Fir
 mtext("time (cell cycles)",side=1,line=0,outer=TRUE)
 mtext("modification level",side=2,line=0,outer=TRUE)
 
+
+## Plot alpha
+
+alpha_file <- paste("alpha_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,".txt",sep="")
+stochasticAlpha <- read.table(alpha_file,header=TRUE)
+
+par(mfrow=c(3,1),oma=c(0,0,0,0))
+plot(protein ~ time, data=stochasticAlpha,ylim=c(0,max(stochasticAlpha$protein*1.02)),type="l")
+plot(RNA ~ time, data=stochasticAlpha,ylim=c(0,max(stochasticAlpha$RNA*1.02)),type="l")
+plot(alpha ~ time, data=stochasticAlpha,ylim=c(0,max(stochasticAlpha$alpha*1.02)),type="l")

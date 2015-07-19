@@ -136,7 +136,8 @@ typedef struct {
   D_VEC *silacResultsLight_0h, *silacResultsLight_10h, *silacResultsLight_24h, *silacResultsLight_48h;
   D_VEC *silacResultsHeavy_0h, *silacResultsHeavy_10h, *silacResultsHeavy_24h, *silacResultsHeavy_48h;
 
-  I_VEC *transFactorProtein;
+  I_VEC *transFactorProtein, *transFactorRNA;
+  D_VEC *alpha;
   
 } record;
 
@@ -147,6 +148,7 @@ typedef struct {
   long fh, initM, initU;
   double probM, probU, bistability;
   double totalHistoneTurnover;
+  double alphaSD, alphaMean;
 } quantification;
 
 /* Function prototypes */
@@ -234,5 +236,6 @@ void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r);
 void fprintResultsFinalLocus(char *avgfile, record *r);
 void fprintSilacResultsFinalLocus(char *avgfile, record *r);
 void fprint_transFactorProtein_nCycles(char *fname, record *r);
-
+double tAverageAlpha(record *r);
+double tAverageAlphaSD(record *r, double mean);
 
