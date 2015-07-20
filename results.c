@@ -841,12 +841,14 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"firingRateMax: %0.10f\n", p->firingRateMax);
   fprintf(fptr,"firingRateMin: %0.10f\n", p->firingRateMin);
   fprintf(fptr,"firingThreshold: %0.10f\n", p->firingThreshold);
-  fprintf(fptr,"alpha: %0.4f\n", p->alpha);
   fprintf(fptr,"stochasticAlpha:");
-  if (p->stochasticAlpha == TRUE)
+  if (p->stochasticAlpha == TRUE) {
     fprintf(fptr," TRUE\n");
-  else
+    fprintf(fptr,"stochasticTranslationEfficiency: %ld\n",p->stochasticTranslationEfficiency);    
+  } else {
     fprintf(fptr," FALSE\n");
+    fprintf(fptr,"alpha: %0.4f\n", p->alpha);
+  }
   fprintf(fptr,"beta: %0.4f\n", p->beta);
   fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
   fprintf(fptr,"transcription_turnover: %0.6f\n", p->transcription_turnover);
@@ -1077,7 +1079,7 @@ void fprint_transFactorProtein_nCycles(char *fname, record *r) {
 }
 
 double tAverageAlpha(record *r) {
-  double mean = 0.0, tLast;
+  double mean = 0.0, tLast = 0.0;
   long t;
 
   for (t=0;t<r->K27->cols && t<r->t_outLastSample;t++) { 

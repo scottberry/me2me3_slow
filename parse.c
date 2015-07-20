@@ -22,6 +22,7 @@ void usage(void)
   printf(" -r (DNA replication ON)\n");
   printf(" -m (start in K27me3 state)\n");
   printf(" -u (start in unmodified state)\n");
+  printf(" -n <translation efficiency (noise)>\n");
   exit (8);
 }
 
@@ -40,12 +41,13 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
   p->startU = FALSE;
   p->randomSeed = TRUE;
   p->seed = 0;
+  p->stochasticTranslationEfficiency = 1;
   strcpy(p->id,"\0");
   sprintf(p->executable,"%s",argv[0]);
   
   /* parse command line args */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:b:i:smurg:p:t:")) != -1)
+  while ((j = getopt (argc, argv, "c:a:b:i:smurg:p:t:n:")) != -1)
     switch (j)
       {
       case 'c':
@@ -99,7 +101,12 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
         sprintf(buffer,"%s",optarg);
         p->firingThreshold = atof(buffer);
         break;
-        
+
+      case 'n':
+        sprintf(buffer,"%s",optarg);
+        p->stochasticTranslationEfficiency = atoi(buffer);
+        break;
+                
       default:
         usage();
       }

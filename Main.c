@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 10; 
+  p.optimSteps = 5; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-  for (p1=0;p1<4;p1++) { // 7
+  for (p1=0;p1<1;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
         // Stochastic alpha
         // ----------------
         if (p.stochasticAlpha == TRUE) {
-          BURST = pow(10,p1);
+          BURST = p.stochasticTranslationEfficiency;
           MEAN = 1000.0;
 
           /* <p> = k_r * burst / gamma_p,

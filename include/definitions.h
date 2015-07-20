@@ -93,6 +93,7 @@ typedef struct {
 
   // transFactor parameters
   logical stochasticAlpha;
+  long stochasticTranslationEfficiency;
   long transFactorRNA;
   long transFactorProtein;
   double k_r, k_p, gamma_r, gamma_p;
