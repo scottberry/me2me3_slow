@@ -6,27 +6,26 @@ source("~/local/Thesis/R/ThesisTheme.R")
 # Set the working directory
 setwd("~/local/Modelling/me2me3_slow/")
 
-# ctrl5_file = "ParamOptimRes_s60ctrl5cc50st16.txt"
-# ctrl10_file = "ParamOptimRes_s60ctrl10cc50st16.txt"
-# ctrl20_file = "ParamOptimRes_s60ctrl20cc50st16.txt"
-# ctrl30_file = "ParamOptimRes_s60ctrl30cc50st16.txt"
-ctrl60_file = "ParamOptimRes_s60cc20a1_00p4_00st20.txt"
 
-# parameterSpace_ctrl5 <- read.table(ctrl5_file,header = TRUE)
-# parameterSpace_ctrl10 <- read.table(ctrl10_file,header = TRUE)
-# parameterSpace_ctrl20 <- read.table(ctrl20_file,header = TRUE)
-# parameterSpace_ctrl30 <- read.table(ctrl30_file,header = TRUE)
-parameterSpace_ctrl60 <- read.table(ctrl60_file,header = TRUE)
+s <- 60
+ctrl <- 60
+cc <- 50
+a <- 1.0
+b <- 1.0
+f <- 0.4
+tau <- 4.0
+prc2 <- 1.0
+rep <- "Rep"
+st <- 10
 
-# parameterSpace <- rbind(parameterSpace_ctrl5,
-#                         parameterSpace_ctrl10,
-#                         parameterSpace_ctrl20,
-#                         parameterSpace_ctrl30,
-#                         parameterSpace_ctrl60)
+astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
+bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+taustr <- paste('tau',gsub("\\.", "_",sprintf("%0.2f",tau)),sep="")
+pstr <- paste('p',gsub("\\.", "_",sprintf("%0.2f",prc2)),sep="")
 
-parameterSpace <- parameterSpace_ctrl60
-parameterSpace$controlSites <- factor(parameterSpace$controlSites)
-
+parameterSpace_file <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,".txt",sep="")
+parameterSpace <- read.table(parameterSpace_file,header=TRUE)
 min_sim_time <- min(parameterSpace$avgInitM,parameterSpace$avgInitU)/3600
 
 labeller_FIRING <- function(variable,value) {
@@ -38,8 +37,13 @@ labeller_FIRING <- function(variable,value) {
 scientific_10 <- function(x) {
   parse(text=gsub("e", " %*% 10^", scientific_format()(x)))
 }
+
+ggplot(subset(parameterSpace,FIRING < 0.02),aes(x=alphaSD,y=bistability)) + geom_line() + 
+  facet_grid(P_METHYLATE ~ P_DEMETHYLATE)
+
+
 ## Bistability
-p1 <- ggplot(subset(parameterSpace,controlSites==60 & FIRING < 0.02),aes(x=P_DEMETHYLATE,y=P_METHYLATE))
+p1 <- ggplot(subset(parameterSpace,FIRING < 0.02),aes(x=P_DEMETHYLATE,y=P_METHYLATE))
 p1 <- p1 + geom_tile(aes(fill=bistability)) + 
   scale_y_log10("Methylation rate",
                 labels = trans_format("log10", math_format(10^.x))) +

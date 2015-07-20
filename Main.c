@@ -38,15 +38,15 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 10;
-  p.maxReact = 200000;
-  p.samples = 200000; 
+  p.loci = 2;
+  p.maxReact = 1000000;
+  p.samples = 1000000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 20;
+  p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 1; 
+  p.optimSteps = 10; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
   p.stochasticAlpha = TRUE;
@@ -91,19 +91,19 @@ int main(int argc, char *argv[]) {
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-  for (p1=0;p1<1;p1++) { // 7
+  for (p1=0;p1<4;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         //setseed(&p,p.seed);
         
         // FIRING = 0.000277778*pow(2,p1);
-        // P_DEMETHYLATE = pow(10,-0.15*(p2+4));
-        // P_METHYLATE = pow(10,-0.12*(p3+26));
+        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        P_METHYLATE = pow(10,-0.15*(p3+21));
              
         FIRING = 0.000277778*20;
-        P_DEMETHYLATE = 0.005;
-        P_METHYLATE = 0.000008;
+        // P_DEMETHYLATE = 0.005; // 0.005 or 0.01
+        // P_METHYLATE = 0.000008; // 0.000008 or 0.00002
         
         // Transcription
         // -------------
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
         // Stochastic alpha
         // ----------------
         if (p.stochasticAlpha == TRUE) {
-          BURST = 100.0;
+          BURST = pow(10,p1);
           MEAN = 1000.0;
 
           /* <p> = k_r * burst / gamma_p,
@@ -222,14 +222,14 @@ int main(int argc, char *argv[]) {
   fclose(parFile);
 
   /* print final results */
-  if (p.resultsFinalLocus == TRUE)
+  if (p.resultsFinalLocus == TRUE) {
     fprintResultsFinalLocus(avgfile,&r);
 
-  if (p.stochasticAlpha == TRUE) {
-    strcpy(fname,"alpha_\0"); strcat(fname,avgfile);
-    fprint_transFactorProtein_nCycles(fname,&r);
+    if (p.stochasticAlpha == TRUE) {
+      strcpy(fname,"alpha_\0"); strcat(fname,avgfile);
+      fprint_transFactorProtein_nCycles(fname,&r);
+    }
   }
-
   /* write log file */
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);
   fptr = fopen(fname,"w");

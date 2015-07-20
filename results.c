@@ -812,6 +812,7 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"loci: %ld\n", p->loci);
   fprintf(fptr,"maxReact: %ld\n", p->maxReact);
   fprintf(fptr,"samples: %ld\n", p->samples);
+  fprintf(fptr,"optimSteps: %ld\n", p->optimSteps);
   fprintf(fptr,"DNAreplication:");
   if (p->DNAreplication == TRUE)
     fprintf(fptr," TRUE\n");
@@ -841,6 +842,11 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"firingRateMin: %0.10f\n", p->firingRateMin);
   fprintf(fptr,"firingThreshold: %0.10f\n", p->firingThreshold);
   fprintf(fptr,"alpha: %0.4f\n", p->alpha);
+  fprintf(fptr,"stochasticAlpha:");
+  if (p->stochasticAlpha == TRUE)
+    fprintf(fptr," TRUE\n");
+  else
+    fprintf(fptr," FALSE\n");
   fprintf(fptr,"beta: %0.4f\n", p->beta);
   fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
   fprintf(fptr,"transcription_turnover: %0.6f\n", p->transcription_turnover);
