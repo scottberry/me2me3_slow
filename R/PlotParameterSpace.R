@@ -16,7 +16,7 @@ f <- 0.4
 tau <- 4.0
 prc2 <- 1.0
 rep <- "Rep"
-st <- 10
+st <- 5
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
@@ -37,11 +37,7 @@ labeller_FIRING <- function(variable,value) {
 scientific_10 <- function(x) {
   parse(text=gsub("e", " %*% 10^", scientific_format()(x)))
 }
-
-ggplot(subset(parameterSpace,FIRING < 0.02),aes(x=alphaSD,y=bistability)) + geom_line() + 
-  facet_grid(P_METHYLATE ~ P_DEMETHYLATE)
-
-
+para
 ## Bistability
 p1 <- ggplot(subset(parameterSpace,FIRING < 0.02),aes(x=P_DEMETHYLATE,y=P_METHYLATE))
 p1 <- p1 + geom_tile(aes(fill=bistability)) + 
