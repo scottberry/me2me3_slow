@@ -23,6 +23,7 @@ void usage(void)
   printf(" -m (start in K27me3 state)\n");
   printf(" -u (start in unmodified state)\n");
   printf(" -n <translation efficiency (noise)>\n");
+  printf(" -h <histone turnover rate (per histone per transcription)>\n");
   exit (8);
 }
 
@@ -42,12 +43,13 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
   p->randomSeed = TRUE;
   p->seed = 0;
   p->stochasticTranslationEfficiency = 1;
+  p->transcription_turnover = 0.004;
   strcpy(p->id,"\0");
   sprintf(p->executable,"%s",argv[0]);
   
   /* parse command line args */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:b:i:smurg:p:t:n:")) != -1)
+  while ((j = getopt (argc, argv, "c:a:b:i:smurg:p:t:n:h:")) != -1)
     switch (j)
       {
       case 'c':
@@ -106,7 +108,12 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
         sprintf(buffer,"%s",optarg);
         p->stochasticTranslationEfficiency = atoi(buffer);
         break;
-                
+
+      case 'h':
+        sprintf(buffer,"%s",optarg);
+        p->transcription_turnover = atof(buffer);
+        break;
+              
       default:
         usage();
       }

@@ -14,10 +14,11 @@ void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *
     c->silac = i_vec_get( c->sites );
 
   g->methylate_index = i_vec_get( c->sites );
+  g->demethylate_index = i_vec_get( c->sites );
   g->transcribeDNA_index = i_vec_get( 1 );
 
   if (p->stochasticAlpha == TRUE) {
-    g->propensity = d_vec_get( c->sites + 5 );
+    g->propensity = d_vec_get( 2*c->sites + 5 );
     g->increaseProtein_index = i_vec_get( 1 );
     g->decreaseProtein_index = i_vec_get( 1 );
     g->increaseRNA_index = i_vec_get( 1 );
@@ -26,7 +27,7 @@ void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *
     r->transFactorRNA = i_vec_get( p->samples );
     r->alpha = d_vec_get( p->samples );
   } else {
-    g->propensity = d_vec_get( c->sites + 1 );
+    g->propensity = d_vec_get( 2*c->sites + 1 );
   }
 
   g->doReaction = malloc(g->propensity->len*sizeof( func_ptr_t ) );
@@ -49,6 +50,7 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
   if (p->silacExperiment == TRUE)
     i_vec_free(c->silac);
   i_vec_free(g->methylate_index);
+  i_vec_free(g->demethylate_index);
   i_vec_free(g->transcribeDNA_index);
 
   if (p->stochasticAlpha == TRUE) {
@@ -159,13 +161,20 @@ void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
     g->doReactionParam->el[i] = i;
     g->methylate_index->el[i] = i;
   }
-  g->doReaction[c->sites] = transcribeDNA; // transcribeDNA
-  g->doReactionParam->el[c->sites] = 0;
-  g->transcribeDNA_index->el[0] = c->sites;
+  for (i=c->sites;i<2*c->sites;i++) { // demethylate
+    g->doReaction[i] = demethylate;
+    g->doReactionParam->el[i] = i-c->sites;
+    g->demethylate_index->el[i-c->sites] = i;
+  }
+  g->doReaction[2*c->sites] = transcribeDNA; // transcribeDNA
+  g->doReactionParam->el[2*c->sites] = 0;
+  g->transcribeDNA_index->el[0] = 2*c->sites;
   
   if (g->test == TRUE) {
     fprintf(g->test_fptr,"Methylate index:\n");
     i_vec_print(g->test_fptr,g->methylate_index);
+    fprintf(g->test_fptr,"Demethylate index:\n");
+    i_vec_print(g->test_fptr,g->demethylate_index);
     fprintf(g->test_fptr,"Transcribe index:\n");
     i_vec_print(g->test_fptr,g->transcribeDNA_index); 
     fprintf(g->test_fptr,"doReactionParam:\n");
@@ -178,21 +187,21 @@ void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
 
 void initialiseGillespieFunctionsTransFactor(chromatin *c, gillespie *g) {
 
-  g->doReaction[c->sites+1] = decreaseProtein; // decreaseP
-  g->doReactionParam->el[c->sites+1] = 0;
-  g->decreaseProtein_index->el[0] = c->sites+1;
+  g->doReaction[2*c->sites+1] = decreaseProtein; // decreaseP
+  g->doReactionParam->el[2*c->sites+1] = 0;
+  g->decreaseProtein_index->el[0] = 2*c->sites+1;
 
-  g->doReaction[c->sites+2] = increaseProtein; // increaseP
-  g->doReactionParam->el[c->sites+2] = 0;
-  g->increaseProtein_index->el[0] = c->sites+2;
+  g->doReaction[2*c->sites+2] = increaseProtein; // increaseP
+  g->doReactionParam->el[2*c->sites+2] = 0;
+  g->increaseProtein_index->el[0] = 2*c->sites+2;
 
-  g->doReaction[c->sites+3] = decreaseRNA; // decreaseR
-  g->doReactionParam->el[c->sites+3] = 0;
-  g->decreaseRNA_index->el[0] = c->sites+3;
+  g->doReaction[2*c->sites+3] = decreaseRNA; // decreaseR
+  g->doReactionParam->el[2*c->sites+3] = 0;
+  g->decreaseRNA_index->el[0] = 2*c->sites+3;
 
-  g->doReaction[c->sites+4] = increaseRNA; // increaseR
-  g->doReactionParam->el[c->sites+4] = 0;
-  g->increaseRNA_index->el[0] = c->sites+4;
+  g->doReaction[2*c->sites+4] = increaseRNA; // increaseR
+  g->doReactionParam->el[2*c->sites+4] = 0;
+  g->increaseRNA_index->el[0] = 2*c->sites+4;
 
   return;
 }
@@ -293,17 +302,23 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
       // fprintf(stderr,"i = %d, neighboursK27factor = %0.2f\n",i,neighboursK27factor(c,p,i));
       if (c->K27->el[i] == me0) { // methylate
         g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me0_me1 + p->me0_me1*(neighboursK27factor(c,p,i)));
+        g->propensity->el[g->demethylate_index->el[i]] = 0.0;
       } else if (c->K27->el[i] == me1) {
         g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me1_me2 + p->me1_me2*(neighboursK27factor(c,p,i)));
+        g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
       } else if (c->K27->el[i] == me2) {
         g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me2_me3 + p->me2_me3*(neighboursK27factor(c,p,i)));
+        g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
       } else {
         g->propensity->el[g->methylate_index->el[i]] = 0.0;
+        g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
       }
     }
    
     // transcribeDNA
     g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * p->alpha * firingRate(p,f_me2_me3);
+
+    // cap the firing rate 
     if (g->propensity->el[g->transcribeDNA_index->el[0]] > p->firingCap)
       g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingCap;
 
@@ -346,12 +361,16 @@ void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillesp
       // fprintf(stderr,"i = %d, neighboursK27factor = %0.2f\n",i,neighboursK27factor(c,p,i));
       if (c->K27->el[i] == me0) { // methylate
         g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me0_me1 + p->me0_me1*(neighboursK27factor(c,p,i))*PRC2activity);
+        g->propensity->el[g->demethylate_index->el[i]] = 0.0;
       } else if (c->K27->el[i] == me1) {
         g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me1_me2 + p->me1_me2*(neighboursK27factor(c,p,i))*PRC2activity);
+        g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
       } else if (c->K27->el[i] == me2) {
         g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me2_me3 + p->me2_me3*(neighboursK27factor(c,p,i))*PRC2activity);
+        g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
       } else {
         g->propensity->el[g->methylate_index->el[i]] = 0.0;
+        g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
       }
     }
    

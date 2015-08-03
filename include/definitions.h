@@ -57,6 +57,7 @@ typedef struct {
 
   // PRC2 / transcription parameters
   double noisy_me0_me1, noisy_me1_me2, noisy_me2_me3;
+  double noisy_demethylate;
   double me0_me1, me1_me2, me2_me3;
   double me2factor, me3factor;
   double firingRateMax, firingRateMin, transcription_demethylate, transcription_turnover;
@@ -81,7 +82,6 @@ typedef struct {
   char id[128];
   char executable[128];
 
-  
   // silac parameters
   logical silacExperiment;
   int silacLabel;
@@ -107,6 +107,7 @@ typedef struct {
   D_VEC *propensity;
   I_VEC *doReactionParam;
   I_VEC *methylate_index;
+  I_VEC *demethylate_index;
   I_VEC *transcribeDNA_index;
   func_ptr_t *doReaction;
   double t_nextRep, t_nextEndG2, t_nextEndTranscription;

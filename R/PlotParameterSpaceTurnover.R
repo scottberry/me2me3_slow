@@ -6,27 +6,8 @@ source("~/local/Thesis/R/ThesisTheme.R")
 # Set the working directory
 setwd("~/local/Modelling/me2me3_slow/")
 
-# ctrl5_file = "ParamOptimRes_s60ctrl5cc50st16.txt"
-# ctrl10_file = "ParamOptimRes_s60ctrl10cc50st16.txt"
-# ctrl20_file = "ParamOptimRes_s60ctrl20cc50st16.txt"
-# ctrl30_file = "ParamOptimRes_s60ctrl30cc50st16.txt"
-ctrl60_file = "ParamOptimRes_s60ctrl60cc20a1_00b1_00fir1_00tau4_00st30.txt"
-
-# parameterSpace_ctrl5 <- read.table(ctrl5_file,header = TRUE)
-# parameterSpace_ctrl10 <- read.table(ctrl10_file,header = TRUE)
-# parameterSpace_ctrl20 <- read.table(ctrl20_file,header = TRUE)
-# parameterSpace_ctrl30 <- read.table(ctrl30_file,header = TRUE)
-parameterSpace_ctrl60 <- read.table(ctrl60_file,header = TRUE)
-
-# parameterSpace <- rbind(parameterSpace_ctrl5,
-#                         parameterSpace_ctrl10,
-#                         parameterSpace_ctrl20,
-#                         parameterSpace_ctrl30,
-#                         parameterSpace_ctrl60)
-
-parameterSpace <- parameterSpace_ctrl60
-parameterSpace$controlSites <- factor(parameterSpace$controlSites)
-
+parameterSpace_file = "ParamOptimRes_s60ctrl60cc20a1_00b1_00thresh0_40tau0_00p1_00Rep_st20.txt"
+parameterSpace <- read.table(parameterSpace_file,header = TRUE)
 min_sim_time <- min(parameterSpace$avgInitM,parameterSpace$avgInitU)/3600
 
 labeller_FIRING <- function(variable,value) {
@@ -45,9 +26,9 @@ p1 <- p1 + geom_tile(aes(fill=bistability)) +
                 labels = trans_format("log10", math_format(10^.x))) +
   scale_x_log10("Demethylation probability",
                 labels = trans_format("log10", math_format(10^.x))) +
-  coord_fixed(ratio=0.2/0.15) +
-  scale_fill_gradientn(name="Bistability",colours=rev(rainbow(3)),limits=c(0,1),breaks=seq(0,1,by=0.5)) + 
-  facet_grid(. ~ P_TURNOVER) + 
+  coord_fixed(ratio=0.15/0.12) +
+  scale_fill_gradientn(name="",colours=rev(rainbow(3)),limits=c(0,1),breaks=seq(0,1,by=0.5)) + 
+  facet_grid(. ~ FIRING) + 
   theme_bw(7) + theme_thesis_multiplanel +
   theme(plot.title = element_text(lineheight=.8, face="bold"),
         panel.margin=unit(0,"lines"),
@@ -55,11 +36,11 @@ p1 <- p1 + geom_tile(aes(fill=bistability)) +
         axis.text.x = element_text(angle=0),
         #strip.text.x = element_text(size=7, angle=0),
         #strip.text.y = element_text(size=7, angle=0),
-        strip.background = element_blank(),
-        strip.text.x = element_blank(),
+        #strip.background = element_blank(),
+        #strip.text.y = element_blank(),
         legend.key.size = unit(0.3, "cm"))
 p1
-ggsave(plot=p1,file="Bistability.pdf",width=14,height=4,units="cm")
+ggsave(plot=p1,file="Bistability.pdf",width=16,height=3,units="cm")
 
 
 ## Histone Lifetime
@@ -69,9 +50,9 @@ p1 <- p1 + geom_tile(aes(fill=1/(3600*totTurnover))) +
                 labels = trans_format("log10", math_format(10^.x))) +
   scale_x_log10("Demethylation probability",
                 labels = trans_format("log10", math_format(10^.x))) +
-  coord_fixed(ratio=0.2/0.15) +
-  scale_fill_gradientn(name="Histone Lifetime (hours)",colours=rev(rainbow(3)),trans="log") + 
-  facet_grid(. ~ P_TURNOVER) + 
+  coord_fixed(ratio=0.15/0.12) +
+  scale_fill_gradientn(name="",colours=c("red","white","blue"),trans="log",breaks=c(1,10,100,1000)) + 
+  facet_grid(. ~ FIRING) + 
   theme_bw(7) + theme_thesis_multiplanel +
   theme(plot.title = element_text(lineheight=.8, face="bold"),
         panel.margin=unit(0,"lines"),
@@ -83,5 +64,5 @@ p1 <- p1 + geom_tile(aes(fill=1/(3600*totTurnover))) +
         #strip.text.x = element_blank(),
         legend.key.size = unit(0.3, "cm"))
 p1
-ggsave(plot=p1,file="HistoneLifetime.pdf",width=14,height=4,units="cm")
+ggsave(plot=p1,file="HistoneLifetime.pdf",width=16,height=3,units="cm")
 
