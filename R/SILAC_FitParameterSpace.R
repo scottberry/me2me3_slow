@@ -4,25 +4,32 @@ rm(list=ls())
 source("~/local/Thesis/R/ThesisTheme.R")
 library(grid)
 library(gtable)
+library(DEoptim)
 
 # Set the working directory
-setwd("~/Network/group-share/berrys/me2me3_slow/")
+setwd("~/local/Modelling/me2me3_slow/")
 
 ## Note: Run simulations twice:
-# 1. with -m -t $threshold for Silac results
-# 2. with -i bal -t $threshold for parameter space results
+# 1. with -m for Silac results
+# 2. with -i bal for parameter space results
 
 s <- 60
 ctrl <- 60
 cc <- 20
-a <- 0.0
+a <- 1.0
 b <- 1.0
-tau <- 4.0
-st <- 22
+f <- 0.4
+tau <- 0.0
+prc2 <- 1.0
+rep <- "Rep"
+st <- 20
+id <- ""
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
 taustr <- paste('tau',gsub("\\.", "_",sprintf("%0.2f",tau)),sep="")
+pstr <- paste('p',gsub("\\.", "_",sprintf("%0.2f",prc2)),sep="")
 
 scientific_10 <- function(x) {
   parse(text=gsub("e", " %*% 10^", scientific_format()(x)))
@@ -37,59 +44,65 @@ scientific_labeller_factor <- function(variable,value) {
 }
 
 f <- 0.2
-fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
-silacAvg_file_0_2 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_2 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_2_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_bal.txt",sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+
+silacAvg_file_0_2 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_2 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_2_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,"_bal.txt",sep="")
 f <- 0.3
-fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
-silacAvg_file_0_3 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_3 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_3_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_bal.txt",sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+silacAvg_file_0_3 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_3 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_3_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,"_bal.txt",sep="")
 f <- 0.4
-fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
-silacAvg_file_0_4 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_4 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_4_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_bal.txt",sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+silacAvg_file_0_4 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_4 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_4_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,"_bal.txt",sep="")
 f <- 0.6
-fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
-silacAvg_file_0_6 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_6 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_6_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_bal.txt",sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+silacAvg_file_0_6 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_6 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_6_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,"_bal.txt",sep="")
 f <- 0.8
-fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
-silacAvg_file_0_8 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_8 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_0_8_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_bal.txt",sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+silacAvg_file_0_8 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_8 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_0_8_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,"_bal.txt",sep="")
 f <- 1.0
-fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
-silacAvg_file_1_0 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_1_0 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,".txt",sep="")
-parameterSpace_file_1_0_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_bal.txt",sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
+silacAvg_file_1_0 <- paste("SilacRelAverage_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_1_0 <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,".txt",sep="")
+parameterSpace_file_1_0_bal <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,id,"_bal.txt",sep="")
 
 
-silacAvg_0_2 <- read.table(silacAvg_file_0_2,header = TRUE)
-parameterSpace_0_2 <- read.table(parameterSpace_file_0_2,header = TRUE)
-parameterSpace_0_2_bal <- read.table(parameterSpace_file_0_2_bal,header = TRUE)
-silacAvg_0_3 <- read.table(silacAvg_file_0_3,header = TRUE)
-parameterSpace_0_3 <- read.table(parameterSpace_file_0_3,header = TRUE)
-parameterSpace_0_3_bal <- read.table(parameterSpace_file_0_3_bal,header = TRUE)
+# silacAvg_0_2 <- read.table(silacAvg_file_0_2,header = TRUE)
+# parameterSpace_0_2 <- read.table(parameterSpace_file_0_2,header = TRUE)
+# parameterSpace_0_2_bal <- read.table(parameterSpace_file_0_2_bal,header = TRUE)
+# silacAvg_0_3 <- read.table(silacAvg_file_0_3,header = TRUE)
+# parameterSpace_0_3 <- read.table(parameterSpace_file_0_3,header = TRUE)
+# parameterSpace_0_3_bal <- read.table(parameterSpace_file_0_3_bal,header = TRUE)
 silacAvg_0_4 <- read.table(silacAvg_file_0_4,header = TRUE)
 parameterSpace_0_4 <- read.table(parameterSpace_file_0_4,header = TRUE)
 parameterSpace_0_4_bal <- read.table(parameterSpace_file_0_4_bal,header = TRUE)
-silacAvg_0_6 <- read.table(silacAvg_file_0_6,header = TRUE)
-parameterSpace_0_6 <- read.table(parameterSpace_file_0_6,header = TRUE)
-parameterSpace_0_6_bal <- read.table(parameterSpace_file_0_6_bal,header = TRUE)
-silacAvg_0_8 <- read.table(silacAvg_file_0_8,header = TRUE)
-parameterSpace_0_8 <- read.table(parameterSpace_file_0_8,header = TRUE)
-parameterSpace_0_8_bal <- read.table(parameterSpace_file_0_8_bal,header = TRUE)
-silacAvg_1_0 <- read.table(silacAvg_file_1_0,header = TRUE)
-parameterSpace_1_0 <- read.table(parameterSpace_file_1_0,header = TRUE)
-parameterSpace_1_0_bal <- read.table(parameterSpace_file_1_0_bal,header = TRUE)
+# silacAvg_0_6 <- read.table(silacAvg_file_0_6,header = TRUE)
+# parameterSpace_0_6 <- read.table(parameterSpace_file_0_6,header = TRUE)
+# parameterSpace_0_6_bal <- read.table(parameterSpace_file_0_6_bal,header = TRUE)
+# silacAvg_0_8 <- read.table(silacAvg_file_0_8,header = TRUE)
+# parameterSpace_0_8 <- read.table(parameterSpace_file_0_8,header = TRUE)
+# parameterSpace_0_8_bal <- read.table(parameterSpace_file_0_8_bal,header = TRUE)
+#silacAvg_1_0 <- read.table(silacAvg_file_1_0,header = TRUE)
+#parameterSpace_1_0 <- read.table(parameterSpace_file_1_0,header = TRUE)
+#parameterSpace_1_0_bal <- read.table(parameterSpace_file_1_0_bal,header = TRUE)
 
-silacAvg <- rbind(silacAvg_0_2,silacAvg_0_3,silacAvg_0_4,silacAvg_0_6,silacAvg_0_8,silacAvg_1_0)
-parameterSpace <- rbind(parameterSpace_0_2,parameterSpace_0_3,parameterSpace_0_4,parameterSpace_0_6,parameterSpace_0_8,parameterSpace_1_0)
-parameterSpace_bal <- rbind(parameterSpace_0_2_bal,parameterSpace_0_3_bal,parameterSpace_0_4_bal,parameterSpace_0_6_bal,parameterSpace_0_8_bal,parameterSpace_1_0_bal)
+#silacAvg <- rbind(silacAvg_0_2,silacAvg_0_3,silacAvg_0_4,silacAvg_0_6,silacAvg_0_8,silacAvg_1_0)
+#parameterSpace <- rbind(parameterSpace_0_2,parameterSpace_0_3,parameterSpace_0_4,parameterSpace_0_6,parameterSpace_0_8,parameterSpace_1_0)
+#parameterSpace_bal <- rbind(parameterSpace_0_2_bal,parameterSpace_0_3_bal,parameterSpace_0_4_bal,parameterSpace_0_6_bal,parameterSpace_0_8_bal,parameterSpace_1_0_bal)
+
+silacAvg <- silacAvg_0_4
+parameterSpace <- parameterSpace_0_4
+parameterSpace_bal <- parameterSpace_0_4_bal
 
 ## Extract the cell-cycle-end K27me3 level for this parameter set (over all cell cycles)
 endVal <- subset(parameterSpace,select=c(FIRING,P_DEMETHYLATE,P_METHYLATE,FIRING_THRESHOLD,me3_end))
@@ -99,7 +112,7 @@ adjustedSILAC <- merge(silacAvg,endVal,by=c("FIRING","P_DEMETHYLATE","P_METHYLAT
 adjustedSILAC$adjusted_level <- adjustedSILAC$level/adjustedSILAC$me3_end
 
 ## Read experimental data file and adjust names
-K27me3_Alabert <- readRDS(file = "R/K27me3_SILAC_expt.rds")
+K27me3_Alabert <- readRDS(file = "./R/K27me3_SILAC_expt.rds")
 K27me3_Alabert$Time <- as.numeric(as.character(K27me3_Alabert$Time))
 colnames(K27me3_Alabert) <- c("mod","time","label","level")
 K27me3_Alabert$mod <- revalue(K27me3_Alabert$mod,c("K27me3"="me3"))
@@ -241,7 +254,7 @@ ggsave(file="ParameterSpaceFit_fir1_0.pdf",width=13.5,height=9,units="cm")
 
 
 ggplot(data=K27me3_Alabert_Dummy) + 
-  geom_rect(data = subset(parameterSpace_baltoPlotFits,FIRING_THRESHOLD==0.3),
+  geom_rect(data = subset(parameterSpace_baltoPlotFits,FIRING_THRESHOLD==0.4),
             aes(fill = bistability),
             xmin = -Inf,xmax = Inf,ymin = -Inf,ymax = Inf,alpha = 0.3) +
   scale_fill_gradientn(name="Bistability",colours=c("white","#95BA79"),breaks=c(0,0.5,1),limits=c(0,1)) +  
@@ -252,14 +265,14 @@ ggplot(data=K27me3_Alabert_Dummy) +
                             ymin=adjusted_level-adjusted_sd,
                             ymax=adjusted_level+adjusted_sd)) +
   facet_grid(P_METHYLATE ~ P_DEMETHYLATE, labeller = scientific_labeller_factor, as.table = FALSE) + 
-  geom_line(data=subset(SILACtoPlotFits,FIRING_THRESHOLD==0.3),
+  geom_line(data=subset(SILACtoPlotFits,FIRING_THRESHOLD==0.4),
             aes(x=time,y=adjusted_level,col=label,group=label),size=0.4) + 
   scale_color_manual(values=c("blue2","orange"),name="Histones",
                      breaks=c("LIGHT", "HEAVY"),
                      labels=c("Old", "New")) + 
   theme_thesis_multiplanel
 
-ggsave(file="ParameterSpaceFit_fir0_3.pdf",width=13.5,height=9,units="cm")
+ggsave(file="ParameterSpaceFit_fir0_4.pdf",width=13.5,height=9,units="cm")
 
 # geom_rect(data = tp,aes(fill = day),xmin = -Inf,xmax = Inf,
 #           ymin = -Inf,ymax = Inf,alpha = 0.3)

@@ -854,6 +854,7 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"beta: %0.4f\n", p->beta);
   fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
   fprintf(fptr,"transcription_turnover: %0.6f\n", p->transcription_turnover);
+  fprintf(fptr,"noisy_demethylate: %0.6f\n", p->noisy_demethylate);
   
   return(1);
 }
@@ -1005,7 +1006,7 @@ void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r) {
   fprintf(fptr,"me2\t%0.12f\n",turn_me2/p->loci);
   fprintf(fptr,"me3\t%0.12f\n",turn_me3/p->loci);
   fprintf(fptr,"total\t%0.12f\n",(turn_me0 + turn_me1 + turn_me2 + turn_me3)/p->loci);
-  
+  return; 
 }
 
 void fprintResultsFinalLocus(char *avgfile, record *r) {

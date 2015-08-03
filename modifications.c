@@ -65,6 +65,18 @@ void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
         }
         c->K27->el[i] = me0;
         c->K27->el[i+1] = me0;
+        if (p->silacExperiment == TRUE) {
+          if (p->silacLabel == LIGHT) {
+            c->silac->el[pos] = LIGHT;
+            c->silac->el[pos+1] = LIGHT;
+          } else if (p->silacLabel == HEAVY) {
+            c->silac->el[pos] = HEAVY;
+            c->silac->el[pos+1] = HEAVY;
+          } else {
+            c->silac->el[pos] = UNLABELLED;
+            c->silac->el[pos+1] = UNLABELLED;
+          }
+        }
         update->histone = TRUE;
       } else { // odd histone
         if (p->checkHistoneTurnover==TRUE) {
@@ -79,6 +91,18 @@ void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
         }
         c->K27->el[i] = me0;
         c->K27->el[i-1] = me0;
+        if (p->silacExperiment == TRUE) {
+          if (p->silacLabel == LIGHT) {
+            c->silac->el[pos] = LIGHT;
+            c->silac->el[pos-1] = LIGHT;
+          } else if (p->silacLabel == HEAVY) {
+            c->silac->el[pos] = HEAVY;
+            c->silac->el[pos-1] = HEAVY;
+          } else {
+            c->silac->el[pos] = UNLABELLED;
+            c->silac->el[pos-1] = UNLABELLED;
+          }
+        }
         update->histone = TRUE;
       }
     }

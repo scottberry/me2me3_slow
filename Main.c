@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
         // Transcription
         // -------------
         /* Leave the repressed firing rate fixed at ~ every 60 min. */
-        p.firingRateMin = 0.000277778; 
+        p.firingRateMin = 0.0001; 
         p.firingRateMax = FIRING; // Optimise
 
         /* Cap firing rate at ~ every minute. */
@@ -160,7 +160,10 @@ int main(int argc, char *argv[]) {
           p.transFactorRNA = floor(p.k_r/p.gamma_r);
           p.transFactorProtein = floor(MEAN);
         }
-        
+
+        /* noisy demethylation independent of transcription */
+        p.noisy_demethylate = 0.0;
+
         // Reset results to zero for each parameter set
         resetQuantification(&q);
 

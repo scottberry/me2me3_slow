@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 1;
+  p.loci = 20;
   p.maxReact = 30000;
   p.samples = 30000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 1;
+  p.optimSteps = 20;
 
   /* SILAC specific parameters */
   p.silacExperiment = TRUE;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
   g.test = FALSE;
@@ -108,29 +108,29 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<1;p1++) { // 7
-    for (p2=p.optimSteps-1;p2<p.optimSteps;p2++) { // min 7
-      for (p3=p.optimSteps-1;p3<p.optimSteps;p3++) { // min 12
+    for (p2=7;p2<p.optimSteps;p2++) { // min 7
+      for (p3=12;p3<p.optimSteps;p3++) { // min 12
 	  
         // setseed(&p,p.seed);
                       
-        FIRING = 0.000277778*20;
-        // P_DEMETHYLATE = pow(10,-0.15*(p2+4));
-        // P_METHYLATE = pow(10,-0.12*(p3+26));
+        FIRING = 0.0001*40;
+        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        P_METHYLATE = pow(10,-0.13*(p3+24));
         
         // FIRING = 0.0256;
-        P_DEMETHYLATE = 0.02;
-        P_METHYLATE = 0.00003;
+        // P_DEMETHYLATE = 0.02;
+        // P_METHYLATE = 0.00003;
 
-                // Transcription
+        // Transcription
         // -------------
-        /* Leave the repressed firing rate fixed at ~ every 60 min. */
-        p.firingRateMin = 0.000277778; 
+        /* Leave the repressed firing rate fixed at ~ every 2.8 hours. */
+        p.firingRateMin = 0.0001; 
         p.firingRateMax = FIRING; // Optimise
 
         /* Cap firing rate at ~ every minute. */
         p.firingCap = 0.0166667;
         p.transcription_demethylate = P_DEMETHYLATE; 
-        p.transcription_turnover = 0.0; 
+        // p.transcription_turnover = 0.0; 
         p.transcriptionDelay = 0.0;
         
         if (p.firingRateMax < p.firingRateMin) {
@@ -159,6 +159,9 @@ int main(int argc, char *argv[]) {
            \cite{Margueron:2009el} */
         p.me2factor = 0.1; 
         p.me3factor = 1.0;
+
+        /* noisy demethylation independent of transcription */
+        p.noisy_demethylate = p.noisy_me2_me3;
 
         // Reset results to zero for each parameter set
         resetQuantification(&q);
@@ -218,13 +221,6 @@ int main(int argc, char *argv[]) {
             }
 
             p.reactCount++;
-
-            // Update Silac Label
-            if (p.cellCycleCount >= p.silacLightCycles)
-              p.silacLabel = HEAVY;
-            if (p.cellCycleCount >= p.silacLightCycles + p.silacHeavyCycles)
-              p.silacLabel = UNLABELLED;
-
             gillespieStep(&c,&p,&g,&r);
           }
 

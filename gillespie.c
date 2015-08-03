@@ -448,9 +448,17 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
     // ------------------------------
 
     // increment counters and record new system time
-    p->cellCycleCount++;    
+    p->cellCycleCount++;
     r->t->el[step] = g->t_nextRep;
 
+    // Update Silac Label
+    if (p->silacExperiment == TRUE) {
+      if (p->cellCycleCount > p->silacLightCycles)
+        p->silacLabel = HEAVY;
+      if (p->cellCycleCount > p->silacLightCycles + p->silacHeavyCycles)
+        p->silacLabel = UNLABELLED;
+    }
+    
     // replicate DNA and instigate G2 transcriptional inhibition
     if (p->DNAreplication == TRUE)  {
       replicateDNA(c,p,g->update);
