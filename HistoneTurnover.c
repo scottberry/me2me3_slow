@@ -38,13 +38,13 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 2;
+  p.loci = 100;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 20;
+  p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
   p.optimSteps = 20; 
 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
   p.checkHistoneTurnover = TRUE;
   p.resultsTranscribing = FALSE;
   g.test = FALSE;

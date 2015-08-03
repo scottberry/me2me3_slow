@@ -156,8 +156,8 @@ char *parameterDependentBasename(chromatin *c, parameters *p) {
   sprintf(ptmp,"b%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.2f",p->firingThreshold);
   sprintf(ptmp,"thresh%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"%0.2f",p->G2duration);
-  sprintf(ptmp,"tau%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
+  sprintf(tmp,"%0.8f",p->transcription_turnover);
+  sprintf(ptmp,"turn%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.2f",p->PRC2inhibition);
   sprintf(ptmp,"p%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   if (p->DNAreplication == TRUE) {
@@ -852,9 +852,9 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
     fprintf(fptr,"alpha: %0.4f\n", p->alpha);
   }
   fprintf(fptr,"beta: %0.4f\n", p->beta);
-  fprintf(fptr,"transcription_demethylate: %0.6f\n", p->transcription_demethylate);
-  fprintf(fptr,"transcription_turnover: %0.6f\n", p->transcription_turnover);
-  fprintf(fptr,"noisy_demethylate: %0.6f\n", p->noisy_demethylate);
+  fprintf(fptr,"transcription_demethylate: %0.10f\n", p->transcription_demethylate);
+  fprintf(fptr,"transcription_turnover: %0.10f\n", p->transcription_turnover);
+  fprintf(fptr,"noisy_demethylate: %0.10f\n", p->noisy_demethylate);
   
   return(1);
 }
