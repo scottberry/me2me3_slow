@@ -79,10 +79,10 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
   if (p->resultsLastHourOnly == TRUE) {
     q->gap += tAverageGap_lastHour_nCycles(c,p,r);
     q->Mavg += tAverage_me2_me3_lastHour_nCycles(c,p,r);
-    // q->probM += prob_lowExpression_lastHour_nCycles(c,p,r);
-    // q->probU += prob_highExpression_lastHour_nCycles(c,p,r);
-    q->probM += prob_me2_me3_lastHour_nCycles(c,p,r);
-    q->probU += prob_me0_me1_lastHour_nCycles(c,p,r);
+    q->probM += prob_lowExpression_lastHour_nCycles(c,p,r);
+    q->probU += prob_highExpression_lastHour_nCycles(c,p,r);
+    // q->probM += prob_me2_me3_lastHour_nCycles(c,p,r);
+    // q->probU += prob_me0_me1_lastHour_nCycles(c,p,r);
   } else {
     q->gap += tAverageGap_nCycles(c,p,r);
     q->Mavg += tAverage_me2_me3_nCycles(c,p,r);

@@ -11,16 +11,19 @@ setwd("~/local/Modelling/me2me3_slow/")
 s <- 60
 ctrl <- 60
 cc <- 20
-a <- 0.0
+a <- 1.0
 b <- 1.0
-f <- 1.0
-tau <- 4.0
+turn <- 0.0015
+f <- 0.4
+prc2 <- 1.0
+rep <- "Rep_"
 st <- 1
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
-fstr <- paste('fir',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
-taustr <- paste('tau',gsub("\\.", "_",sprintf("%0.2f",tau)),sep="")
+turnstr <- paste('turn',gsub("\\.", "_",sprintf("%0.8f",turn)),sep="")
+pstr <- paste('p',gsub("\\.", "_",sprintf("%0.2f",prc2)),sep="")
+fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
 
 # Wrapper for compliled c code to interpolate gillespie algorithm output
 interpolateGillespie <- function(tFile,
@@ -39,11 +42,11 @@ interpolateGillespie <- function(tFile,
 interpolate_me3 <- function(id,steps=50) {
   astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
   bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
-  time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
-  tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
-  tDep_me3_LIGHT_file <- paste("LIGHT_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
-  tDep_me3_HEAVY_file <- paste("HEAVY_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
-  tDep_me3_UNLABELLED_file <- paste("UNLABELLED_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+  time_file <- paste("t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,pstr,rep,"st",st,"_",id,".txt",sep="")
+  tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,pstr,rep,"st",st,"_",id,".txt",sep="")
+  tDep_me3_LIGHT_file <- paste("LIGHT_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,pstr,rep,"st",st,"_",id,".txt",sep="")
+  tDep_me3_HEAVY_file <- paste("HEAVY_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,pstr,rep,"st",st,"_",id,".txt",sep="")
+  tDep_me3_UNLABELLED_file <- paste("UNLABELLED_me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,pstr,rep,"st",st,"_",id,".txt",sep="")
   total <- interpolateGillespie(time_file,tDep_me3_file,steps=steps)
   total$species <- "Total"
   light <- interpolateGillespie(time_file,tDep_me3_LIGHT_file,steps=steps)
@@ -58,26 +61,37 @@ interpolate_me3 <- function(id,steps=50) {
   return(dat)
 }
 
-g <- interpolate_me3(1,200)
-for (i in seq(2,20)) {
-  g <- rbind(g,interpolate_me3(i,200))
+glist <- vector("list", length=20)
+
+for (i in seq(1,length(glist))) {
+  glist[[i]] <- interpolate_me3(i,200)
 }
+g <- rbind.fill(glist)
 
 g$species <- factor(g$species,levels=c("Old","New","Unlabelled","Total"),ordered = TRUE)
 
 ggplot(data=g,aes(x=time/(3600*22),y=level,col=species)) + 
-  geom_line(aes(group=id),size=0.4,alpha=0.2) + 
+  geom_line(aes(group=id),size=0.2,alpha=0.2) + 
   facet_grid(species ~ .) + 
-  scale_color_manual(values=c("orange","blue2","grey60","darkgreen")) +
+  scale_color_manual(values=c("orange","blue2","grey60","#F15A22")) +
   scale_y_continuous(name="K27me3 (proportion of total histone)",limits=c(0,1.02),breaks=c(0,1)) +
   scale_x_continuous(name="Time (cell cycles)",limits=c(0,13),breaks=c(0,6,12)) + 
   theme_thesis_multiplanel + theme(legend.position="none")
 
-ggsave("Threshold0_3_SILAC_timecourses.png",width=8,height=6,units="cm",dpi=600)
+ggsave("Threshold0_4_SILAC_timecourses.png",width=7,height=5.5,units="cm",dpi=600)
 
 ## Average time-courses around SILAC experiment with experimental data
 
-g_sub <- subset(g,species %in% c("Old","New") & time > 22*6*3600 & time < 22*9*3600)
+glist <- vector("list", length=100)
+
+for (i in seq(1,length(glist))) {
+  glist[[i]] <- interpolate_me3(i,200)
+}
+g <- rbind.fill(glist)
+
+
+g$species <- factor(g$species,levels=c("Old","New","Unlabelled","Total"),ordered = TRUE)
+g_sub <- subset(g,species %in% c("Old","New") & time > 22*6*3600 & time < (22*6+60)*3600)
 g_sub$time <- round(g_sub$time/3600)-(6*22)
 agg <- aggregate(g_sub$level,by=list(g_sub$species,
                                      g_sub$time),
@@ -89,7 +103,7 @@ ends <- c(22*3600*5:10)
 sim_end_val <- mean(subset(g,time %in% ends & species=="Total")$level)
 
 ## Read experimental data file and adjust names
-K27me3_Alabert <- readRDS(file = "R/K27me3_SILAC_expt.rds")
+K27me3_Alabert <- readRDS(file = "~/local/Manuscripts/TranscriptionOpposing2015/ExperimentalData/K27me3_SILAC_expt.rds")
 K27me3_Alabert$Time <- as.numeric(as.character(K27me3_Alabert$Time))
 colnames(K27me3_Alabert) <- c("mod","time","label","level")
 K27me3_Alabert$mod <- revalue(K27me3_Alabert$mod,c("K27me3"="me3"))
@@ -133,7 +147,7 @@ colnames(K27me3_Alabert_summary) <- c("mod","time","species","mean","sd")
 p_silac_avg <- ggplot(data=agg,aes(x=time,y=mean,col=species)) + 
   geom_line() + 
   scale_color_manual(values = c("orange","blue2")) + 
-  scale_y_continuous("K27me3 (proportion of total)") +
+  scale_y_continuous("K27me3",limits=c(0,0.7)) +
   theme_thesis_multiplanel + 
   geom_point(data=K27me3_Alabert_summary,size=1) + 
   geom_errorbar(data=K27me3_Alabert_summary,aes(ymin=mean-sd,ymax=mean+sd),width=2,size=0.5) +
@@ -145,15 +159,15 @@ p_silac_avg <- ggplot(data=agg,aes(x=time,y=mean,col=species)) +
 
 id <- 1
 binwidth <- 1800
-loci <- 20
+loci <- 100
 brks <- seq(0,22*10*3600,by=binwidth)
-tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,pstr,rep,"st",st,"_",id,".txt",sep="")
 Firing <- t(read.table(tDep_firing_file))
 Firing <- Firing[Firing<22*10*3600]
 binned <- findInterval(Firing,brks)
 
 for (id in seq(2,loci)) {
-  tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,"st",st,"_",id,".txt",sep="")
+  tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,pstr,rep,"st",st,"_",id,".txt",sep="")
   Firing <- t(read.table(tDep_firing_file))
   Firing <- Firing[Firing<22*10*3600]
   binned <- c(binned,findInterval(Firing,brks))
@@ -169,14 +183,14 @@ firingCounts$t <- firingCounts$t/3600 - 6*22
 
 p_firing <- ggplot(data=firingCounts, aes(x=t, y=count)) +
   geom_bar(stat="identity",fill="#149F49",width=binwidth/(3600)) + theme_thesis_multiplanel + 
-  scale_x_continuous(name="Time (hours)") + scale_y_continuous(name="Firing",breaks=c(0,2,4)) +
+  scale_x_continuous(name="Time (hours)") + scale_y_continuous(name="Firing",breaks=c(0,2,4),limits=c(0,5)) +
   theme(plot.margin = unit(c(-0.3,0.5,0.5,0.5), "lines"))
 
 gp1<- ggplotGrob(p_silac_avg)
 gp2<- ggplotGrob(p_firing)
 gp2$widths <- gp1$widths
 
-pdf(file="test.pdf",width=7*0.393700787,height=6*0.393700787)
+pdf(file="Threshold0_4_AvgSimWithData.pdf",width=7*0.393700787,height=4.5*0.393700787)
 grid.arrange(gp1,gp2,ncol=1, heights=c(1,0.5))
 dev.off()
 
