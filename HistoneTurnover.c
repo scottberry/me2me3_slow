@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 50;
+  p.loci = 200;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 20; 
+  p.optimSteps = 30; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -94,19 +94,19 @@ int main(int argc, char *argv[]) {
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-  for (p1=0;p1<1;p1++) { // 7
+  for (p1=1;p1<7;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=p.optimSteps-1;p3<p.optimSteps;p3++) {
+      for (p3=0;p3<p.optimSteps;p3++) {
 	  
         //setseed(&p,p.seed);
 
-        // FIRING = 0.0001*pow(2,p1);
-        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
-        // P_METHYLATE = pow(10,-0.12*(p3+26));
+        FIRING = 0.0001*pow(2,p1);
+        P_DEMETHYLATE = pow(10,-0.1*(p2+6));
+        P_METHYLATE = pow(10,-0.1*(p3+25));
 
-        FIRING = 0.0001*40.0;
+        // FIRING = 0.0001*40.0;
         // P_DEMETHYLATE = 0.0005;
-        P_METHYLATE = 0.000008;
+        // P_METHYLATE = 0.000008;
         
         // Transcription
         // -------------
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
         p.me3factor = 1.0;
 
         /* noisy demethylation independent of transcription */
-        p.noisy_demethylate = p.noisy_me2_me3;
+        p.noisy_demethylate = P_DEMETHYLATE*p.firingRateMin;
         
         // Reset results to zero for each parameter set
         resetQuantification(&q);
