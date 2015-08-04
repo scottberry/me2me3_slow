@@ -2,7 +2,7 @@
 
 for i in `seq 1 100`;
 do
-    ./Silac -r -m -s -i $i -t0.4 -h0.0015 > $i.out 2>&1 &
+    ./Silac -r -m -s -i $i -t1.0 -h0.001 > $i.out 2>&1 &
     NPROC=$(($NPROC+1))
     if [ "$NPROC" -ge 4 ]; then
         wait

@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 200;
+  p.loci = 1;
   p.maxReact = 30000;
   p.samples = 30000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 30;
+  p.optimSteps = 1;
 
   /* SILAC specific parameters */
   p.silacExperiment = TRUE;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = FALSE;
+  p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
   g.test = FALSE;
@@ -108,17 +108,17 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<1;p1++) { // 7
-    for (p2=10;p2<p.optimSteps;p2++) { // min 7
-      for (p3=12;p3<p.optimSteps;p3++) { // min 12
+    for (p2=p.optimSteps-1;p2<p.optimSteps;p2++) { // min 7
+      for (p3=p.optimSteps-1;p3<p.optimSteps;p3++) { // min 12
 	  
         // setseed(&p,p.seed);
                       
-        P_DEMETHYLATE = pow(10,-0.1*(p2+5));
-        P_METHYLATE = pow(10,-0.1*(p3+25));
+         P_DEMETHYLATE = pow(10,-0.1*(p2+5));
+         P_METHYLATE = pow(10,-0.1*(p3+25));
 
         FIRING = 0.0001*40;
-        // P_DEMETHYLATE = 0.0025;
-        // P_METHYLATE = 0.000009;
+        P_DEMETHYLATE = 0.02;
+        P_METHYLATE = 0.00003;
 
         // Transcription
         // -------------

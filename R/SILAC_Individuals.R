@@ -13,8 +13,8 @@ ctrl <- 60
 cc <- 20
 a <- 1.0
 b <- 1.0
-turn <- 0.0015
-f <- 0.4
+turn <- 0.001
+f <- 1.0
 prc2 <- 1.0
 rep <- "Rep_"
 st <- 1
@@ -78,7 +78,7 @@ ggplot(data=g,aes(x=time/(3600*22),y=level,col=species)) +
   scale_x_continuous(name="Time (cell cycles)",limits=c(0,13),breaks=c(0,6,12)) + 
   theme_thesis_multiplanel + theme(legend.position="none")
 
-ggsave("Threshold0_4_SILAC_timecourses.png",width=7,height=5.5,units="cm",dpi=600)
+ggsave("Threshold1_0_SILAC_timecourses.png",width=7,height=5.5,units="cm",dpi=600)
 
 ## Average time-courses around SILAC experiment with experimental data
 
@@ -190,7 +190,7 @@ gp1<- ggplotGrob(p_silac_avg)
 gp2<- ggplotGrob(p_firing)
 gp2$widths <- gp1$widths
 
-pdf(file="Threshold0_4_AvgSimWithData.pdf",width=7*0.393700787,height=4.5*0.393700787)
+pdf(file="Threshold1_0_AvgSimWithData.pdf",width=7*0.393700787,height=4.5*0.393700787)
 grid.arrange(gp1,gp2,ncol=1, heights=c(1,0.5))
 dev.off()
 
