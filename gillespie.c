@@ -80,6 +80,8 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
   if (p->checkHistoneTurnover == TRUE) {
     i_vec_free(c->turnover);  
     d_mat_free(r->turnover);
+    i_vec_free(c->variant);
+    i_mat_free(r->variant);
   }
     
   return;
@@ -105,6 +107,14 @@ void initialiseSilacLight(chromatin *c) {
   int i;
   for (i=0;i<c->sites;i++) {
     c->silac->el[i] = LIGHT;
+  }
+  return;
+}
+
+void initialiseH3_1(chromatin *c) {
+  int i;
+  for (i=0;i<c->sites;i++) {
+    c->variant->el[i] = H3_1;
   }
   return;
 }

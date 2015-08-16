@@ -69,6 +69,8 @@ void resetQuantification(quantification *q) {
   q->initM = q->initU = 0;
   q->firstPassageM = q->firstPassageU = 0.0;
   q->totalHistoneTurnover = 0.0;
+  q->fracH3_1 = 0.0;
+  q->fracH3_3 = 0.0;
   q->alphaSD = 0.0;
   q->alphaMean = 0.0;
   return;
@@ -92,10 +94,17 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
   q->me3_end += tAverage_me3_lastHour_nCycles(c,p,r);
   q->fh += numberHistoneStateFlips(r);
   q->tTot += r->t->el[p->reactCount];
+
   if (p->stochasticAlpha == TRUE) {
     q->alphaMean += tAverageAlpha(r)/p->loci;
     q->alphaSD += tAverageAlphaSD(r,q->alphaMean)/p->loci;
   }
+
+  if (p->checkHistoneTurnover == TRUE) {
+    q->fracH3_1 += tAverageVariant_lastHour_nCycles(c,p,r,H3_1);
+    q->fracH3_3 += tAverageVariant_lastHour_nCycles(c,p,r,H3_3);
+  }
+    
   // Note: this metric works best when threshold = 1.0
   // q->firstPassage = firstPassageTime(r,&q->initial);
 
@@ -296,6 +305,24 @@ void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r) {
   return;
 }
 
+void fprint_variant_t_nCycles(char *fname, record *r, int variant_target) {
+  FILE *fptr;
+  long unsigned count, i, j;
+  
+  fptr = fopen(fname,"w");
+  for (i=0;i<r->variant->cols && i < r->t_outLastSample;i++) {
+    count = 0;
+    for (j=0;j<r->variant->rows;j++) {
+      if (r->variant->el[j][i] == variant_target) {
+        count++;
+      }
+    }
+    fprintf(fptr,"%0.4f\n",(double)count/(double)j);
+  }
+  fclose(fptr);
+  return;
+}
+
 /* Average results over time and print a time-dependent results 
    vector. Length depends directly on r.tMax, which is 
    determined by p.cellCycles. */
@@ -397,6 +424,28 @@ double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
     fprintf(stderr,"Error: tAverageGap_lastHour_nCycles. No samples for last hour of cell cycle.\n");
 
   return(gapSum/time_total);
+}
+
+double tAverageVariant_lastHour_nCycles(chromatin *c, parameters *p, record *r, int variant_target) {
+  long sum = 0, t, pos;
+  double frac = 0.0, time_total = 0.0;
+
+  for (t=1;t<r->variant->cols && t<r->t_outLastSample;t++) {
+    if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
+      sum = 0;
+      for (pos=0;pos<r->variant->rows;pos++) {
+        if (r->variant->el[pos][t]==variant_target)
+          sum++;
+      }
+      frac += (double)sum/(double)r->variant->rows;
+      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+    }
+  }
+
+  if (time_total == 0.0)
+    fprintf(stderr,"Error: tAverageVariant_lastHour_nCycles. No samples for last hour of cell cycle.\n");
+
+  return(frac/time_total);
 }
 
 /* Calculate the probability over time of being in the me2/me3 
@@ -1025,6 +1074,17 @@ void fprintResultsFinalLocus(char *avgfile, record *r) {
   fprint_t_nCycles(fname,r->K27,me3,r);
   strcpy(fname,"Firing_t_\0"); strcat(fname,avgfile);
   fprint_firing_t_nCycles(fname,r);
+
+  return;
+}
+
+void fprintVariantResultsFinalLocus(char *avgfile, record *r) {
+  char fname[256]="";
+
+  strcpy(fname,"H3_1_t_\0"); strcat(fname,avgfile);
+  fprint_variant_t_nCycles(fname,r,H3_1);
+  strcpy(fname,"H3_3_t_\0"); strcat(fname,avgfile);
+  fprint_variant_t_nCycles(fname,r,H3_3);
 
   return;
 }

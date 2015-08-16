@@ -38,15 +38,15 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 200;
+  p.loci = 1000;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 50;
+  p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 30; 
+  p.optimSteps = 1; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -89,24 +89,26 @@ int main(int argc, char *argv[]) {
   if (p.checkHistoneTurnover == TRUE) {
     c.turnover = i_vec_get(4);
     r.turnover = d_mat_get(p.loci,4);
+    c.variant = i_vec_get(c.sites);
+    r.variant = i_mat_get(c.sites,p.samples);
   }
   
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-  for (p1=1;p1<7;p1++) { // 7
+  for (p1=1;p1<2;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         //setseed(&p,p.seed);
 
-        FIRING = 0.0001*pow(2,p1);
-        P_DEMETHYLATE = pow(10,-0.1*(p2+6));
-        P_METHYLATE = pow(10,-0.1*(p3+25));
+        // FIRING = 0.0001*pow(2,p1);
+        // P_DEMETHYLATE = pow(10,-0.1*(p2+6));
+        // P_METHYLATE = pow(10,-0.1*(p3+25));
 
-        // FIRING = 0.0001*40.0;
-        // P_DEMETHYLATE = 0.0005;
-        // P_METHYLATE = 0.000008;
+        FIRING = 0.0001*40.0;
+        P_DEMETHYLATE = 0.02;
+        P_METHYLATE = 0.00003;
         
         // Transcription
         // -------------
@@ -169,7 +171,10 @@ int main(int argc, char *argv[]) {
             else
               initialiseActive(&c);
           }
-          
+
+          if (p.checkHistoneTurnover == TRUE)
+            initialiseH3_1(&c);
+              
           /* reset counters */
           p.reactCount = 0;
           p.sampleCount = 0;
@@ -190,6 +195,9 @@ int main(int argc, char *argv[]) {
               for (j=0;j<(c.sites);j++) {
                 r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
                 r.K27->el[j][p.sampleCount] = c.K27->el[j];
+                if (p.checkHistoneTurnover == TRUE) {
+                  r.variant->el[j][p.sampleCount] = c.variant->el[j];
+                }
                 r.t_outLastSample = p.sampleCount;
               }
               p.sampleCount++;
@@ -221,15 +229,23 @@ int main(int argc, char *argv[]) {
   fclose(parFile);
 
   /* print final results */
-  if (p.resultsFinalLocus == TRUE)
+  if (p.resultsFinalLocus == TRUE) {
     fprintResultsFinalLocus(avgfile,&r);
-
+    if (p.checkHistoneTurnover == TRUE)
+      fprintVariantResultsFinalLocus(avgfile,&r);
+  }
+    
   /* Print histone turnover results */
   if (p.checkHistoneTurnover == TRUE) {
     strcpy(fname,"turnover_\0"); strcat(fname,avgfile);
     turnPtr = fopen(fname,"w");
     fprintHistoneTurnover(turnPtr,&p,&r);
     fclose(turnPtr);
+    strcpy(fname,"variant_\0"); strcat(fname,avgfile);
+    turnPtr = fopen(fname,"w");
+    fprintf(turnPtr,"H3_1\tH3_3\n");
+    fprintf(turnPtr,"%0.4f\t%0.4f\n",q.fracH3_1/p.loci,q.fracH3_3/p.loci);
+    fclose(turnPtr);    
   }
 
   /* write log file */
@@ -239,7 +255,7 @@ int main(int argc, char *argv[]) {
 
   /* free memory */
   freeGillespieMemory(&c,&p,&g,&r);
-  
+
 #ifdef __APPLE__
   timeElapsed = mach_absolute_time() - start;
   timeElapsed *= info.numer;

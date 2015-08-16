@@ -35,6 +35,9 @@
 #define HEAVY 1
 #define UNLABELLED 2
 
+#define H3_1 1
+#define H3_3 3
+
 typedef unsigned char logical;
 
 typedef struct {
@@ -44,6 +47,7 @@ typedef struct {
   I_VEC *silac;
   logical transcribing;
   I_VEC *turnover;
+  I_VEC *variant;
 } chromatin;
 
 typedef struct {
@@ -128,6 +132,7 @@ typedef struct {
 typedef struct {
   I_MAT *K27;
   I_MAT *silac;
+  I_MAT *variant;
   I_VEC *firing;
   I_VEC *transcribing;
   D_MAT *turnover;
@@ -151,6 +156,7 @@ typedef struct {
   double probM, probU, bistability;
   double totalHistoneTurnover;
   double alphaSD, alphaMean;
+  double fracH3_1, fracH3_3;
 } quantification;
 
 /* Function prototypes */
@@ -181,6 +187,7 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r);
 void initialiseRepressed(chromatin *c);
 void initialiseActive(chromatin *c);
 void initialiseSilacLight(chromatin *c);
+void initialiseH3_1(chromatin *c);
 void initialiseRandom(chromatin *c, parameters *p);
 void initialiseMixed(chromatin *c, parameters *p);
 double d_vec_sum(D_VEC *d);
@@ -211,11 +218,13 @@ void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, qua
 char *str_replace(char *orig, char *rep, char *with);
 void fprint_t_out_nCycles(char *fname, record *r);
 void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r);
+void fprint_variant_t_nCycles(char *fname, record *r, int variant_target);
 void fprint_silac_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, int silac_target, record *r);
 void fprint_firing_t_nCycles(char *fname, record *r);
 void fprint_transcribing_t_nCycles(char *fname, record *r);
 double tAverageGap_nCycles(chromatin *c, parameters *p, record *r);
 double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r);
+double tAverageVariant_lastHour_nCycles(chromatin *c, parameters *p, record *r, int variant_target);
 double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r);
 double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r);
 double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r);
@@ -236,6 +245,7 @@ void storeTripleSILAC_me3(long locus, parameters *p, record *r);
 void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r);
 void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r);
 void fprintResultsFinalLocus(char *avgfile, record *r);
+void fprintVariantResultsFinalLocus(char *avgfile, record *r);
 void fprintSilacResultsFinalLocus(char *avgfile, record *r);
 void fprint_transFactorProtein_nCycles(char *fname, record *r);
 double tAverageAlpha(record *r);

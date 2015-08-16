@@ -62,19 +62,21 @@ void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
           if (c->K27->el[i+1]==me2) c->turnover->el[2]++;
           if (c->K27->el[i]==me3) c->turnover->el[3]++;
           if (c->K27->el[i+1]==me3) c->turnover->el[3]++;
+          c->variant->el[i] = H3_3;
+          c->variant->el[i+1] = H3_3;
         }
         c->K27->el[i] = me0;
         c->K27->el[i+1] = me0;
         if (p->silacExperiment == TRUE) {
           if (p->silacLabel == LIGHT) {
-            c->silac->el[pos] = LIGHT;
-            c->silac->el[pos+1] = LIGHT;
+            c->silac->el[i] = LIGHT;
+            c->silac->el[i+1] = LIGHT;
           } else if (p->silacLabel == HEAVY) {
-            c->silac->el[pos] = HEAVY;
-            c->silac->el[pos+1] = HEAVY;
+            c->silac->el[i] = HEAVY;
+            c->silac->el[i+1] = HEAVY;
           } else {
-            c->silac->el[pos] = UNLABELLED;
-            c->silac->el[pos+1] = UNLABELLED;
+            c->silac->el[i] = UNLABELLED;
+            c->silac->el[i+1] = UNLABELLED;
           }
         }
         update->histone = TRUE;
@@ -88,19 +90,21 @@ void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos) {
           if (c->K27->el[i-1]==me2) c->turnover->el[2]++;
           if (c->K27->el[i]==me3) c->turnover->el[3]++;
           if (c->K27->el[i-1]==me3) c->turnover->el[3]++;
+          c->variant->el[i] = H3_3;
+          c->variant->el[i-1] = H3_3;
         }
         c->K27->el[i] = me0;
         c->K27->el[i-1] = me0;
         if (p->silacExperiment == TRUE) {
           if (p->silacLabel == LIGHT) {
-            c->silac->el[pos] = LIGHT;
-            c->silac->el[pos-1] = LIGHT;
+            c->silac->el[i] = LIGHT;
+            c->silac->el[i-1] = LIGHT;
           } else if (p->silacLabel == HEAVY) {
-            c->silac->el[pos] = HEAVY;
-            c->silac->el[pos-1] = HEAVY;
+            c->silac->el[i] = HEAVY;
+            c->silac->el[i-1] = HEAVY;
           } else {
-            c->silac->el[pos] = UNLABELLED;
-            c->silac->el[pos-1] = UNLABELLED;
+            c->silac->el[i] = UNLABELLED;
+            c->silac->el[i-1] = UNLABELLED;
           }
         }
         update->histone = TRUE;
@@ -117,6 +121,10 @@ void replicateDNA(chromatin *c, parameters *p, flags *update) {
     if(runif(p->gsl_r)<=0.5) {
       c->K27->el[pos] = me0;
       c->K27->el[pos+1] = me0;
+      if (p->checkHistoneTurnover==TRUE) {
+        c->variant->el[pos] = H3_1;
+        c->variant->el[pos+1] = H3_1;
+      }
       if (p->silacExperiment == TRUE) {
         if (p->silacLabel == LIGHT) {
           c->silac->el[pos] = LIGHT;
