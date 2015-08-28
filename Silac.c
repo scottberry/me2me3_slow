@@ -248,6 +248,7 @@ int main(int argc, char *argv[]) {
     fprintResultsFinalLocus(avgfile,&r);
     if (p.silacExperiment == TRUE) {
       fprintSilacResultsFinalLocus(avgfile,&r);
+      fprintSilacResultsRelativeFinalLocus(avgfile,&r);
     }
   }
 

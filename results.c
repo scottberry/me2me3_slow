@@ -345,6 +345,32 @@ void fprint_silac_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, i
   return;
 }
 
+void fprint_silacRelative_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, int silac_target, record *r) {
+  FILE *fptr;
+  long unsigned countMod, countAll, i, j;
+  
+  fptr = fopen(fname,"w");
+  for (i=0;i<mat->cols && i < r->t_outLastSample;i++) {
+    countMod = 0;
+    countAll = 0;
+    for (j=0;j<mat->rows;j++) {
+      if (silac->el[j][i] == silac_target) {
+        countAll++;
+        if (mat->el[j][i] == target) {
+          countMod++;
+        }
+      }
+    }
+    if (countAll > 0)
+      fprintf(fptr,"%0.4f\n",(double)countMod/(double)countAll);
+    else
+      fprintf(fptr,"%0.4f\n",0.0);
+  }
+  fclose(fptr);
+  return;
+}
+
+
 /* Print absolute time of each firing event.
    Length depends directly on r.tMax, which is 
    determined by p.cellCycles. */
@@ -1121,6 +1147,42 @@ void fprintSilacResultsFinalLocus(char *avgfile, record *r) {
   fprint_silac_t_nCycles(fname,r->K27,me2,r->silac,UNLABELLED,r);
   strcpy(fname,"UNLABELLED_me3_t_\0"); strcat(fname,avgfile);
   fprint_silac_t_nCycles(fname,r->K27,me3,r->silac,UNLABELLED,r);    
+
+  return;
+}
+
+void fprintSilacResultsRelativeFinalLocus(char *avgfile, record *r) {
+  char fname[256]="";
+
+  // light histones
+  strcpy(fname,"LIGHT_rel_me0_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me0,r->silac,LIGHT,r);
+  strcpy(fname,"LIGHT_rel_me1_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me1,r->silac,LIGHT,r);
+  strcpy(fname,"LIGHT_rel_me2_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me2,r->silac,LIGHT,r);
+  strcpy(fname,"LIGHT_rel_me3_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me3,r->silac,LIGHT,r);
+    
+  // heavy histones
+  strcpy(fname,"HEAVY_rel_me0_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me0,r->silac,HEAVY,r);
+  strcpy(fname,"HEAVY_rel_me1_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me1,r->silac,HEAVY,r);
+  strcpy(fname,"HEAVY_rel_me2_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me2,r->silac,HEAVY,r);
+  strcpy(fname,"HEAVY_rel_me3_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me3,r->silac,HEAVY,r);
+
+  // unlabelled histones
+  strcpy(fname,"UNLABELLED_rel_me0_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me0,r->silac,UNLABELLED,r);
+  strcpy(fname,"UNLABELLED_rel_me1_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me1,r->silac,UNLABELLED,r);
+  strcpy(fname,"UNLABELLED_rel_me2_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me2,r->silac,UNLABELLED,r);
+  strcpy(fname,"UNLABELLED_rel_me3_t_\0"); strcat(fname,avgfile);
+  fprint_silacRelative_t_nCycles(fname,r->K27,me3,r->silac,UNLABELLED,r);    
 
   return;
 }
