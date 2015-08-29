@@ -1,8 +1,8 @@
 #!/bin/bash
 
-for thresh in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 1.0;
+for thresh in 0.2 0.4 0.6 0.8 1.0;
 do
-    ./Silac -m -t $thresh > silac$thresh.txt 2>&1 &
+    ./Silac -m -t $thresh -r -h 0.0004 > silac$thresh.txt 2>&1 &
     NPROC=$(($NPROC+1))
     if [ "$NPROC" -ge 4 ]; then
         wait
@@ -10,9 +10,9 @@ do
     fi
 done
 
-for thresh in 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 1.0;
+for thresh in 0.2 0.4 0.6 0.8 1.0;
 do
-    ./Silac -t $thresh -i bal > bal$thresh.txt 2>&1 &
+    ./Silac -t $thresh -i bal -r -h 0.0001 > bal$thresh.txt 2>&1 &
     NPROC=$(($NPROC+1))
     if [ "$NPROC" -ge 4 ]; then
         wait
