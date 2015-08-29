@@ -250,6 +250,7 @@ void fprintVariantResultsFinalLocus(char *avgfile, record *r);
 void fprintSilacResultsFinalLocus(char *avgfile, record *r);
 void fprintSilacResultsRelativeFinalLocus(char *avgfile, record *r);
 void fprint_transFactorProtein_nCycles(char *fname, record *r);
+void fprint_alphaOnly_nCycles(char *fname, record *r);
 double tAverageAlpha(record *r);
 double tAverageAlphaSD(record *r, double mean);
 

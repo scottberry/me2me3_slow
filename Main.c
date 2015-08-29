@@ -101,9 +101,9 @@ int main(int argc, char *argv[]) {
         // P_DEMETHYLATE = pow(10,-0.15*(p2+4));
         // P_METHYLATE = pow(10,-0.15*(p3+21));
              
-        FIRING = 0.000277778*20;
-        P_DEMETHYLATE = 0.005; // 0.005 or 0.05
-        P_METHYLATE = 0.000008; // 0.000008 or 0.00002
+        FIRING = 0.0001*40.0;
+        P_DEMETHYLATE = 0.02; // 0.005 or 0.05
+        P_METHYLATE = 0.00005; // 0.000008 or 0.00002
         
         // Transcription
         // -------------
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
         /* Cap firing rate at ~ every minute. */
         p.firingCap = 0.0166667;
         p.transcription_demethylate = P_DEMETHYLATE; 
-        p.transcription_turnover = 0.0;
+        // p.transcription_turnover = P_TURNOVER/2.0; (defined in parse.c)
         p.transcriptionDelay = 0.0;
 
         if (p.firingRateMax < p.firingRateMin) {
@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
         }
 
         /* noisy demethylation independent of transcription */
-        p.noisy_demethylate = 0.0;
+        p.noisy_demethylate = P_DEMETHYLATE*p.firingRateMin;
 
         // Reset results to zero for each parameter set
         resetQuantification(&q);
@@ -231,6 +231,8 @@ int main(int argc, char *argv[]) {
     if (p.stochasticAlpha == TRUE) {
       strcpy(fname,"alpha_\0"); strcat(fname,avgfile);
       fprint_transFactorProtein_nCycles(fname,&r);
+      strcpy(fname,"alphaOnly_\0"); strcat(fname,avgfile);
+      fprint_alphaOnly_nCycles(fname,&r);
     }
   }
   /* write log file */

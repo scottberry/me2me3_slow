@@ -1203,11 +1203,23 @@ void fprint_transFactorProtein_nCycles(char *fname, record *r) {
   return;
 }
 
+void fprint_alphaOnly_nCycles(char *fname, record *r) {
+  FILE *fptr;
+  long unsigned i;
+  //fprintf(stderr,"%ld",r->t_outLastSample);
+  fptr = fopen(fname,"w");
+  for (i=0;i<r->t_outLastSample;i++) {
+    fprintf(fptr,"%0.4f\n",r->alpha->el[i]);
+  }
+  fclose(fptr);
+  return;
+}
+
 double tAverageAlpha(record *r) {
   double mean = 0.0, tLast = 0.0;
   long t;
 
-  for (t=0;t<r->K27->cols && t<r->t_outLastSample;t++) { 
+  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) { 
     mean += r->alpha->el[t]*(double)(r->t_out->el[t]-r->t_out->el[t-1]);
     tLast = r->t_out->el[t];
   }
@@ -1219,7 +1231,7 @@ double tAverageAlphaSD(record *r, double mean) {
   double var = 0.0, samplePoint = 0.0, sampleFreq;
   long reaction = 0, nSamples;
 
-  // sample the distribution points evenly spaced in time
+  // sample the distribution at points evenly spaced in time
   nSamples = 10000;
   sampleFreq = r->tMax/(double)nSamples;
 
