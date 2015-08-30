@@ -45,8 +45,8 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 20;
-  p.initialCellCycles = 9;
+  p.cellCycles = 16;
+  p.initialCellCycles = 5;
   p.cellCycleDuration = 22.0; // (hours)
   p.optimSteps = 1; 
 
@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
+  p.stochasticAlpha = FALSE;
   g.test = FALSE;
   
   /* Parse command line */
@@ -72,6 +73,9 @@ int main(int argc, char *argv[]) {
   else
     setseed(&p,time(0) + p.seed); 
 
+  /* create base filename from specified run parameters */
+  avgfile = parameterDependentBasename(&c,&p);
+  
   /* After initial cell cycles, alpha and beta are switched to the
      values specified on the command line. Store these command line
      alpha and beta for later dynamic changes, then reset p.alpha and
@@ -80,9 +84,6 @@ int main(int argc, char *argv[]) {
   BETA = p.beta;
   p.alpha = ALPHA_INITIAL;
   p.beta = BETA_INITIAL;
-
-  /* create base filename from specified run parameters */
-  avgfile = parameterDependentBasename(&c,&p);
 
   /* open results file and write header */
   strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
@@ -113,20 +114,20 @@ int main(int argc, char *argv[]) {
         // ALPHA = 0.2*(p2+1);
         // BETA = 1.0 + 0.05*(p3-5); 
         
-        FIRING = 0.000277778*10;
-        P_DEMETHYLATE = 0.006;
+        FIRING = 0.0001*40;
+        P_DEMETHYLATE = 0.008;
         P_METHYLATE = 0.000008;
 
         // Transcription
         // -------------
         /* Leave the repressed firing rate fixed at ~ every 60 min. */
-        p.firingRateMin = 0.000277778; 
+        p.firingRateMin = 0.0001; 
         p.firingRateMax = FIRING; // Optimise
 
         /* Cap firing rate at ~ every minute. */
         p.firingCap = 0.0166667;
         p.transcription_demethylate = P_DEMETHYLATE; 
-        p.transcription_turnover = 0.0;
+        // p.transcription_turnover = 0.0; (defined in parse.c)
         p.transcriptionDelay = 0.0;
 
         if (p.firingRateMax < p.firingRateMin) {
