@@ -73,6 +73,7 @@ void resetQuantification(quantification *q) {
   q->fracH3_3 = 0.0;
   q->alphaSD = 0.0;
   q->alphaMean = 0.0;
+  q->firingEvents = 0;
   return;
 }
 
@@ -104,7 +105,10 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
     q->fracH3_1 += tAverageVariant_lastHour_nCycles(c,p,r,H3_1);
     q->fracH3_3 += tAverageVariant_lastHour_nCycles(c,p,r,H3_3);
   }
-    
+
+  if (p->countFiringEvents==TRUE)
+    q->firingEvents += countFiringEventsLastCellCycle(p,r);
+  
   // Note: this metric works best when threshold = 1.0
   // q->firstPassage = firstPassageTime(r,&q->initial);
 
@@ -146,6 +150,7 @@ void averageQuantification(chromatin *c, parameters *p, record *r, quantificatio
     q->fpU = -1.0;
     q->tU = -1.0;
   }
+
   return;
 }
 
@@ -188,35 +193,37 @@ void fprintParameterSpaceHeader(FILE *parFile) {
 \tcontrolSites\talpha\talphaMean\
 \talphaSD\tbeta\ttau\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\n");
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\tfiringEvents\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
 \tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tP_TURNOVER\
 \tcontrolSites\talpha\talphaMean\
 \talphaSD\tbeta\ttau\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\n");
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\tfiringEvents\n");
   return;
 }
 
 void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, quantification *q) {        
   fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%0.10f\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
-\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\t%0.10f\n",
+\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\t%0.10f\t%0.10Lf\n",
           p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
           p->firingRateMax,p->firingThreshold,
           p->transcription_demethylate,p->me2_me3,p->transcription_turnover,c->controlSites,p->alpha,q->alphaMean,q->alphaSD,
           p->beta,p->G2duration,
           q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
-          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci);
+          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci,
+          (long double)q->firingEvents/(double)p->loci);
   fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
-%0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.10f\n",
+%0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.10f  %0.10Lf\n",
           p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
           p->firingRateMax,p->firingThreshold,
           p->transcription_demethylate,p->me2_me3,p->transcription_turnover,c->controlSites,p->alpha,q->alphaMean,q->alphaSD,
           p->beta,p->G2duration,
           q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
-          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci);
+          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci,
+          (long double)q->firingEvents/(double)p->loci);
   return;
 }
 
@@ -1245,3 +1252,30 @@ double tAverageAlphaSD(record *r, double mean) {
   return(sqrt(var/(double)nSamples));
 }
 
+long countFiringEventsLastCellCycle(parameters *p, record *r) {
+  long i, count = 0;
+  double start, end;
+
+  // find start time for last cell cycle
+  start = r->tMax - 3600*p->cellCycleDuration;
+  end = r->tMax;
+
+  //fprintf(stderr,"start = %0.2f, end = %0.2f\n",start,end);
+  
+  for(i=0;i<r->t->len;i++) {
+    if(r->t->el[i] > start && r->t->el[i] < end && r->firing->el[i]==TRUE) {
+      //fprintf(stderr,"r->t->el[i] = %0.4f\n",r->t->el[i]);
+      count++;
+    }
+  }
+
+  //fprintf(stderr,"count = %ld\n",count);
+  return(count);
+}
+
+void resetFiringRecord(record *r) {
+  long i;
+  for (i=0;i<r->firing->len;i++)
+    r->firing->el[i]=FALSE;
+  return;
+}

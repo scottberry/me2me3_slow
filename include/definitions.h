@@ -82,7 +82,7 @@ typedef struct {
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
   logical DNAreplication, resultsLastHourOnly, resultsFinalLocus, resultsTranscribing;
-  logical checkHistoneTurnover;
+  logical checkHistoneTurnover, countFiringEvents;
   char id[128];
   char executable[128];
 
@@ -157,6 +157,7 @@ typedef struct {
   double totalHistoneTurnover;
   double alphaSD, alphaMean;
   double fracH3_1, fracH3_3;
+  long long firingEvents;
 } quantification;
 
 /* Function prototypes */
@@ -253,4 +254,5 @@ void fprint_transFactorProtein_nCycles(char *fname, record *r);
 void fprint_alphaOnly_nCycles(char *fname, record *r);
 double tAverageAlpha(record *r);
 double tAverageAlphaSD(record *r, double mean);
-
+long countFiringEventsLastCellCycle(parameters *p, record *r);
+void resetFiringRecord(record *r);

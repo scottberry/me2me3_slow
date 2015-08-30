@@ -39,13 +39,13 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 1;
+  p.loci = 100;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 16;
+  p.cellCycles = 10;
   p.initialCellCycles = 5;
   p.cellCycleDuration = 22.0; // (hours)
   p.optimSteps = 1; 
@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
   p.checkHistoneTurnover = FALSE;
   p.resultsTranscribing = FALSE;
   p.stochasticAlpha = FALSE;
+  p.countFiringEvents = TRUE;
   g.test = FALSE;
   
   /* Parse command line */
@@ -165,7 +166,7 @@ int main(int argc, char *argv[]) {
         /* -------------- */
         
         for (locus=0;locus<p.loci;locus++) {
-                    // fprintf(stderr,"locus %ld\n",locus);
+          // fprintf(stderr,"locus %ld\n",locus);
           if (p.startM == TRUE) {
             initialiseRepressed(&c);
           } else if (p.startU == TRUE) {
@@ -181,7 +182,8 @@ int main(int argc, char *argv[]) {
           p.reactCount = 0;
           p.sampleCount = 0;
           p.cellCycleCount = 0;
-
+          resetFiringRecord(&r);
+          
           // reset alpha/beta
           p.alpha = ALPHA_INITIAL;
           p.beta = BETA_INITIAL;
