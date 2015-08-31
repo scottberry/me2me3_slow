@@ -424,13 +424,13 @@ double tAverageGap_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double gapSum = 0;
 
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
         sumM++;
     }
-    gapSum += (double)labs(2*sumM-c->sites)*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
+    gapSum += (double)labs(2*sumM-c->sites)*(r->t_out->el[t+1]-r->t_out->el[t])/(c->sites);
   }
   return(gapSum/r->t_out->el[r->t_outLastSample]);
 }
@@ -441,15 +441,15 @@ double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM = 0, t, pos;
   double gapSum = 0.0, time_total = 0.0;
 
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
       for (pos=0;pos<r->K27->rows;pos++) {
         if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
           sumM++;
       }
-      gapSum += (double)labs(2*sumM-c->sites)*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
-      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+      gapSum += (double)labs(2*sumM-c->sites)*(r->t_out->el[t+1]-r->t_out->el[t])/(c->sites);
+      time_total += r->t_out->el[t+1] - r->t_out->el[t];
     }
   }
 
@@ -463,7 +463,7 @@ double tAverageVariant_lastHour_nCycles(chromatin *c, parameters *p, record *r, 
   long sum = 0, t, pos;
   double frac = 0.0, time_total = 0.0;
 
-  for (t=1;t<r->variant->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->variant->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sum = 0;
       for (pos=0;pos<r->variant->rows;pos++) {
@@ -471,7 +471,7 @@ double tAverageVariant_lastHour_nCycles(chromatin *c, parameters *p, record *r, 
           sum++;
       }
       frac += (double)sum/(double)r->variant->rows;
-      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+      time_total += r->t_out->el[t+1] - r->t_out->el[t];
     }
   }
 
@@ -488,14 +488,14 @@ double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0;
 
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
         sumM++;
     }
     if (4*sumM > 3*c->sites)
-      time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+      time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
   }
 
   return(time_in_M/r->t_out->el[r->t_outLastSample]);
@@ -510,7 +510,7 @@ double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
 
   lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
   
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
@@ -518,7 +518,7 @@ double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
     }
     f_me2_me3 = (double)sumM/(double)c->sites;
     if (firingRate(p,f_me2_me3) <= lower_quartile)
-      time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+      time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
   }
 
   return(time_in_M/r->t_out->el[r->t_outLastSample]);
@@ -533,7 +533,7 @@ double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   double time_in_M = 0.0;
   double time_total = 0.0;
 
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
       for (pos=0;pos<r->K27->rows;pos++) {
@@ -542,9 +542,9 @@ double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
       }
       
       if (4*sumM > 3*c->sites) {
-        time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+        time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
       }
-      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+      time_total += r->t_out->el[t+1] - r->t_out->el[t];
     }
   }
   
@@ -567,7 +567,7 @@ double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *
     
   // fprintf(stderr,"lower_quartile = %0.10f \n",lower_quartile);
   
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
       for (pos=0;pos<r->K27->rows;pos++) {
@@ -577,9 +577,9 @@ double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *
       f_me2_me3 = (double)sumM/(double)c->sites;
       // fprintf(stderr,"f_me2_me3 = %0.4f, firing %0.4f\n",f_me2_me3,firingRate(p,f_me2_me3));
       if (firingRate(p,f_me2_me3) <= lower_quartile) {
-        time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+        time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
       }
-      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+      time_total += r->t_out->el[t+1] - r->t_out->el[t];
     }
   }
   
@@ -596,14 +596,14 @@ double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r) {
   long sumU, t, pos;
   double time_in_U = 0;
   
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     sumU = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me0 || r->K27->el[pos][t]==me1)
         sumU++;
     }
     if (4*sumU > 3*c->sites)
-      time_in_U += r->t_out->el[t] - r->t_out->el[t-1];
+      time_in_U += r->t_out->el[t+1] - r->t_out->el[t];
   }
 
   return(time_in_U/r->t_out->el[r->t_outLastSample]);
@@ -618,7 +618,7 @@ double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
 
   upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
   
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
@@ -626,7 +626,7 @@ double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
     }
     f_me2_me3 = (double)sumM/(double)c->sites;
     if (firingRate(p,f_me2_me3) > upper_quartile)
-      time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+      time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
   }
 
   return(time_in_M/r->t_out->el[r->t_outLastSample]);
@@ -641,7 +641,7 @@ double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   double time_in_U = 0.0;
   double time_total = 0.0;
 
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample-1;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumU = 0;
       for (pos=0;pos<r->K27->rows;pos++) {
@@ -649,9 +649,9 @@ double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
           sumU++;
       }
       if (4*sumU > 3*c->sites) {
-        time_in_U += r->t_out->el[t] - r->t_out->el[t-1];
+        time_in_U += r->t_out->el[t+1] - r->t_out->el[t];
       }
-      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+      time_total += r->t_out->el[t+1] - r->t_out->el[t];
     }
   }
   
@@ -672,7 +672,7 @@ double prob_highExpression_lastHour_nCycles(chromatin *c, parameters *p, record 
 
   upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
   
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
       for (pos=0;pos<r->K27->rows;pos++) {
@@ -681,9 +681,9 @@ double prob_highExpression_lastHour_nCycles(chromatin *c, parameters *p, record 
       }
       f_me2_me3 = (double)sumM/(double)c->sites;
       if (firingRate(p,f_me2_me3) >= upper_quartile) {
-        time_in_M += r->t_out->el[t] - r->t_out->el[t-1];
+        time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
       }
-      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+      time_total += r->t_out->el[t+1] - r->t_out->el[t];
     }
   }
   
@@ -700,13 +700,13 @@ double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double Mavg = 0;
 
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     sumM = 0;
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
         sumM++;
     }
-    Mavg += (double)sumM*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
+    Mavg += (double)sumM*(r->t_out->el[t+1]-r->t_out->el[t])/(c->sites);
   }
   return(Mavg/r->t_out->el[r->t_outLastSample-1]);
 }
@@ -717,15 +717,15 @@ double tAverage_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r)
   long sumM = 0, t, pos;
   double Mavg = 0.0, time_total = 0.0;
 
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
       for (pos=0;pos<r->K27->rows;pos++) {
         if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3)
           sumM++;
       }
-      Mavg += (double)sumM*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
-      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+      Mavg += (double)sumM*(r->t_out->el[t+1]-r->t_out->el[t])/(c->sites);
+      time_total += r->t_out->el[t+1] - r->t_out->el[t];
     }
   }
 
@@ -739,15 +739,15 @@ double tAverage_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM = 0, t, pos;
   double Mavg = 0.0, time_total = 0.0;
 
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) {
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
       for (pos=0;pos<r->K27->rows;pos++) {
         if (r->K27->el[pos][t]==me3)
           sumM++;
       }
-      Mavg += (double)sumM*(r->t_out->el[t]-r->t_out->el[t-1])/(c->sites);
-      time_total += r->t_out->el[t] - r->t_out->el[t-1];
+      Mavg += (double)sumM*(r->t_out->el[t+1]-r->t_out->el[t])/(c->sites);
+      time_total += r->t_out->el[t+1] - r->t_out->el[t];
     }
   }
 
@@ -1226,8 +1226,8 @@ double tAverageAlpha(record *r) {
   double mean = 0.0, tLast = 0.0;
   long t;
 
-  for (t=1;t<r->K27->cols && t<r->t_outLastSample;t++) { 
-    mean += r->alpha->el[t]*(double)(r->t_out->el[t]-r->t_out->el[t-1]);
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) { 
+    mean += r->alpha->el[t+1]*(double)(r->t_out->el[t]-r->t_out->el[t]);
     tLast = r->t_out->el[t];
   }
   

@@ -44,9 +44,9 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 20;
+  p.cellCycles = 1000;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 1; 
+  p.optimSteps = 41; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -104,6 +104,8 @@ int main(int argc, char *argv[]) {
         FIRING = 0.0001*20.0;
         P_DEMETHYLATE = 0.008; // 0.005 or 0.05
         P_METHYLATE = 0.000008; // 0.000008 or 0.00002
+
+        p.alpha = 100.0*pow(10,-0.1*p2);
         
         // Transcription
         // -------------
