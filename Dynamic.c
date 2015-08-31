@@ -39,13 +39,13 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 100;
-  p.maxReact = 200000;
-  p.samples = 200000; 
+  p.loci = 1000;
+  p.maxReact = 400000;
+  p.samples = 400000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 10;
+  p.cellCycles = 25;
   p.initialCellCycles = 5;
   p.cellCycleDuration = 22.0; // (hours)
   p.optimSteps = 1; 
@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
         // ALPHA = 0.2*(p2+1);
         // BETA = 1.0 + 0.05*(p3-5); 
         
-        FIRING = 0.0001*40;
+        FIRING = 0.0001*20;
         P_DEMETHYLATE = 0.008;
         P_METHYLATE = 0.000008;
 

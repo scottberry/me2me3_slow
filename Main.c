@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
         P_DEMETHYLATE = 0.008; // 0.005 or 0.05
         P_METHYLATE = 0.000008; // 0.000008 or 0.00002
 
-        p.alpha = 100.0*pow(10,-0.1*p2);
+        p.alpha = 100.0*pow(10,-0.05*p2);
         
         // Transcription
         // -------------

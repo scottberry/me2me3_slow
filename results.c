@@ -1269,7 +1269,7 @@ long countFiringEventsLastCellCycle(parameters *p, record *r) {
     }
   }
 
-  //fprintf(stderr,"count = %ld\n",count);
+  // fprintf(stderr,"count = %ld\n",count);
   return(count);
 }
 
