@@ -12,9 +12,8 @@ void usage(void)
 {
   printf("Usage:\n");
   printf(" -c <control region>\n");
-  printf(" -a <alpha>\n");
+  printf(" -a <alpha>\n"); 
   printf(" -b <beta>\n");
-  printf(" -g <G2 duration>\n");
   printf(" -t <firing threshold>\n");
   printf(" -i <identifier>\n");
   printf(" -s (seed based on identifier)\n");
@@ -49,7 +48,7 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
   while ((j = getopt (argc, argv, "c:a:b:i:smurt:n:h:")) != -1)
     switch (j)
       {
-      case 'c':
+      case 'c': 
         sprintf(buffer,"%s",optarg);
         c->controlSites = atoi(buffer);
         break;

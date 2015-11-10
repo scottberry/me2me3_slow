@@ -455,9 +455,8 @@ void fprint_firing_t_nCycles(char *fname, record *r) {
 
 /* Calculate the "Gap" parameter, as defined in Dodd et al. 2007:
    |M-A|/(M+A). Average over time for a single locus. Note that
-   function evaluation accounts for non-constant time-step using 
-   a discrete "rectangular" integration approach. Average between
-   samples 1 and r.t_outLastSample. Determined by whether 
+   function evaluation accounts for non-constant time-step. Average
+   between samples 1 and r.t_outLastSample. Determined by whether 
    p.maxReact or steps required to simulate p.cellCycles is 
    greater. */
 
@@ -523,8 +522,7 @@ double tAverageVariant_lastHour_nCycles(chromatin *c, parameters *p, record *r, 
 }
 
 /* Calculate the probability over time of being in the me2/me3 
-   K27. */
-
+   K27 state */
 double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0;
@@ -542,9 +540,8 @@ double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   return(time_in_M/r->t_out->el[r->t_outLastSample]);
 }
 
-/* Calculate the probability over time of being in the low expression
-   state. */
-
+/* Calculate the probability over time of being in the lower
+   expression quartile */
 double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0, f_me2_me3, lower_quartile;
@@ -568,7 +565,6 @@ double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
 /* Calculate the probability over time of being in the me2/me3 
    K27 (for the last hour of each cell cycle only). Do not 
    try to include results beyond p.cellCycles. */
-
 double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM = 0, t, pos;
   double time_in_M = 0.0;
@@ -597,7 +593,6 @@ double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
 
 /* Calculate the probability over time of being in low expression
    state. (for the last hour of each cell cycle only) */
-
 double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM = 0, t, pos;
   double time_in_M = 0.0;
@@ -606,8 +601,6 @@ double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *
 
   lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
     
-  // fprintf(stderr,"lower_quartile = %0.10f \n",lower_quartile);
-  
   for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
@@ -616,7 +609,6 @@ double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *
           sumM++;
       }
       f_me2_me3 = (double)sumM/(double)c->sites;
-      // fprintf(stderr,"f_me2_me3 = %0.4f, firing %0.4f\n",f_me2_me3,firingRate(p,f_me2_me3));
       if (firingRate(p,f_me2_me3) <= lower_quartile) {
         time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
       }
@@ -631,8 +623,7 @@ double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *
 }
 
 /* Calculate the probability over time of being in the me0/me1 
-   K27. */
-
+   K27 state */
 double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r) {
   long sumU, t, pos;
   double time_in_U = 0;
@@ -651,8 +642,7 @@ double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r) {
 }
 
 /* Calculate the probability over time of being in the high expression
-   state. */
-
+   quartile */
 double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0, f_me2_me3, upper_quartile;
@@ -676,7 +666,6 @@ double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
 /* Calculate the probability over time of being in the me2/me3 
    K27 (for the last hour of each cell cycle only). Do not 
    try to include results beyond p.cellCycles. */
-
 double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   long sumU = 0, t, pos;
   double time_in_U = 0.0;
@@ -704,7 +693,6 @@ double prob_me0_me1_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
 
 /* Calculate the probability over time of being in high expression
    state. (for the last hour of each cell cycle only) */
-
 double prob_highExpression_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM = 0, t, pos;
   double time_in_M = 0.0;
@@ -736,7 +724,6 @@ double prob_highExpression_lastHour_nCycles(chromatin *c, parameters *p, record 
 
 /* Calculate the average number of histones in me2/me3 over time do
    not try to include results beyond p.cellCycles. */
-
 double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double Mavg = 0;
@@ -753,7 +740,6 @@ double tAverage_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
 }
 
 /* See above - but for last hour of each cell cycle only */
-
 double tAverage_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM = 0, t, pos;
   double Mavg = 0.0, time_total = 0.0;
@@ -776,31 +762,38 @@ double tAverage_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r)
   return(Mavg/time_total);
 }
 
+/* Calculate average cell-cycle end value of me3 */
 double tAverage_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
-  long sumM = 0, t, pos;
-  double Mavg = 0.0, time_total = 0.0;
+  long sumM = 0, sample, lastSample, pos, cycle;
+  double Mavg = 0.0, t_end;
 
-  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
-    if (fmod(r->t_out->el[t],p->cellCycleDuration*3600) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
-      sumM = 0;
-      for (pos=0;pos<r->K27->rows;pos++) {
-        if (r->K27->el[pos][t]==me3)
-          sumM++;
-      }
-      Mavg += (double)sumM*(r->t_out->el[t+1]-r->t_out->el[t])/(c->sites);
-      time_total += r->t_out->el[t+1] - r->t_out->el[t];
+  cycle = 1;
+  t_end = (double)cycle * p->cellCycleDuration * 3600;
+  while (t_end < r->t_outLastSample-1) { // check t_end in range
+    // find last sample in each cell cycle
+    sample = lastSample = 0;
+    while (r->t_out->el[sample] < t_end) {
+      lastSample = sample;
+      sample++;
     }
-  }
+    // calculate me3 level for the last sample
+    sumM = 0;
+    for (pos=0;pos<r->K27->rows;pos++) {
+      if (r->K27->el[pos][lastSample]==me3)
+        sumM++;
+    }
+    Mavg += (double)sumM/c->sites;
 
-  if (time_total == 0.0)
-    fprintf(stderr,"Error: tAverage_me2_me3_lastHour_nCycles. No samples for last hour of cell cycle.\n");
+    // increment cycle and t_end
+    cycle++;
+    t_end = (double)cycle * p->cellCycleDuration * 3600;
+  }
   
-  return(Mavg/time_total);
+  return(Mavg/(cycle-1));
 }
 
 /* Calculate the number of times the K27 switches from high me0/me1
    to high me2/me3. */
-
 unsigned long numberHistoneStateFlips(record *r) {
   signed char newState = 0, oldState = 0;
   unsigned long t, pos, flips=0, m=0, u=0;;
@@ -838,7 +831,6 @@ unsigned long numberHistoneStateFlips(record *r) {
 
 /* Calculate the first passage time (taking care not to exceed
    p.t_outLastSample. */
-
 double firstPassageTime(record *r, signed char *initial) {
   long unsigned m=0, u=0, pos,t=0;
   double fpt = 0.0;
@@ -915,8 +907,7 @@ double firstPassageTimeExpression(record *r, parameters *p, signed char *initial
   return(fpt);
 }
 
-/* Write the log file. */
-
+/* Print log file */
 int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   time_t curtime;
   struct tm *loctime;
@@ -981,6 +972,9 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   return(1);
 }
 
+/* Print to file the time-dependent methylation states for each report
+   point separated by SILAC label. Both absolute measures and also
+   measured relative to total amount of HEAVY and LIGHT labelled histone */
 void fprintTripleSILAC_eachLocus(FILE *fptrAbs, FILE *fptrRel, long locus, parameters *p, record *r) {
   int count_me0_LIGHT = 0;
   int count_me0_HEAVY = 0;
@@ -1034,6 +1028,8 @@ void fprintTripleSILAC_eachLocus(FILE *fptrAbs, FILE *fptrRel, long locus, param
   return;
 } 
 
+/* Save H3K27me3 report points for LIGHT and HEAVY Silac labels for
+   later averaging */
 void storeTripleSILAC_me3(long locus, parameters *p, record *r) {
   int count_me3_LIGHT = 0;
   int count_me3_HEAVY = 0;
@@ -1078,7 +1074,8 @@ void storeTripleSILAC_me3(long locus, parameters *p, record *r) {
   return;
 } 
 
-
+/* Average H3K27me3 report points for LIGHT and HEAVY Silac labels
+   and print to file */
 void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r) {
   double L0, L10, L24, L48;
   double H0, H10, H24, H48;
@@ -1110,6 +1107,8 @@ void fprintTripleSILAC_average(FILE *fptr, parameters *p, record *r) {
   return;
 }
 
+/* Print identity of histone modifications removed through
+   transcription-coupled histone exchange processes */
 void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r) {
   double turn_me0 = 0.0, turn_me1 = 0.0, turn_me2 = 0.0, turn_me3 = 0.0;
   long locus;
@@ -1131,6 +1130,8 @@ void fprintHistoneTurnover(FILE *fptr, parameters *p, record *r) {
   return; 
 }
 
+/* Interface for printing all time-dependent results files for the
+   final locus */
 void fprintResultsFinalLocus(char *avgfile, record *r) {
   char fname[256]="";
   
@@ -1151,6 +1152,8 @@ void fprintResultsFinalLocus(char *avgfile, record *r) {
   return;
 }
 
+/* Interface for printing time-dependent histone variant results files
+   for the final locus */
 void fprintVariantResultsFinalLocus(char *avgfile, record *r) {
   char fname[256]="";
 
@@ -1162,6 +1165,8 @@ void fprintVariantResultsFinalLocus(char *avgfile, record *r) {
   return;
 }
 
+/* Interface for printing time-dependent Silac results files
+   for the final locus. (Absolute levels) */
 void fprintSilacResultsFinalLocus(char *avgfile, record *r) {
   char fname[256]="";
 
@@ -1198,6 +1203,8 @@ void fprintSilacResultsFinalLocus(char *avgfile, record *r) {
   return;
 }
 
+/* Interface for printing time-dependent Silac results files
+   for the final locus. (Relative levels to total labelled histone) */
 void fprintSilacResultsRelativeFinalLocus(char *avgfile, record *r) {
   char fname[256]="";
 
@@ -1234,10 +1241,10 @@ void fprintSilacResultsRelativeFinalLocus(char *avgfile, record *r) {
   return;
 }
 
+/* Print time-dependent trans-factor protein levels */
 void fprint_transFactorProtein_nCycles(char *fname, record *r) {
   FILE *fptr;
   long unsigned i;
-  //fprintf(stderr,"%ld",r->t_outLastSample);
   fptr = fopen(fname,"w");
   fprintf(fptr,"time\tprotein\tRNA\talpha\n");
   for (i=0;i<r->t_outLastSample;i++) {
@@ -1250,10 +1257,10 @@ void fprint_transFactorProtein_nCycles(char *fname, record *r) {
   return;
 }
 
+/* Print time-dependent alpha level as a single unlabelled column */
 void fprint_alphaOnly_nCycles(char *fname, record *r) {
   FILE *fptr;
   long unsigned i;
-  //fprintf(stderr,"%ld",r->t_outLastSample);
   fptr = fopen(fname,"w");
   for (i=0;i<r->t_outLastSample;i++) {
     fprintf(fptr,"%0.4f\n",r->alpha->el[i]);
@@ -1262,6 +1269,7 @@ void fprint_alphaOnly_nCycles(char *fname, record *r) {
   return;
 }
 
+/* Calculate time-averaged value of alpha */
 double tAverageAlpha(record *r) {
   double mean = 0.0, tLast = 0.0;
   long t;
@@ -1274,12 +1282,13 @@ double tAverageAlpha(record *r) {
   return(mean/tLast);
 }
 
+/* Calculate standard deviation of alpha values over time */
 double tAverageAlphaSD(record *r, double mean) {
   double var = 0.0, samplePoint = 0.0, sampleFreq;
   long reaction = 0, nSamples;
 
   // sample the distribution at points evenly spaced in time
-  nSamples = 10000;
+  nSamples = 100000;
   sampleFreq = r->tMax/(double)nSamples;
 
   while (samplePoint < r->tMax) {
@@ -1292,6 +1301,7 @@ double tAverageAlphaSD(record *r, double mean) {
   return(sqrt(var/(double)nSamples));
 }
 
+/* Calculate the number of firing events in the last cell cycle */
 long countFiringEventsLastCellCycle(parameters *p, record *r) {
   long i, count = 0;
   double start, end;
@@ -1300,19 +1310,15 @@ long countFiringEventsLastCellCycle(parameters *p, record *r) {
   start = r->tMax - 3600*p->cellCycleDuration;
   end = r->tMax;
 
-  //fprintf(stderr,"start = %0.2f, end = %0.2f\n",start,end);
-  
   for(i=0;i<r->t->len;i++) {
     if(r->t->el[i] > start && r->t->el[i] < end && r->firing->el[i]==TRUE) {
-      //fprintf(stderr,"r->t->el[i] = %0.4f\n",r->t->el[i]);
       count++;
     }
   }
-
-  // fprintf(stderr,"count = %ld\n",count);
   return(count);
 }
 
+/* Reset the stored record of transcriptional firing times */
 void resetFiringRecord(record *r) {
   long i;
   for (i=0;i<r->firing->len;i++)

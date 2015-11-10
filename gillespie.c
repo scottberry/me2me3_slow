@@ -8,15 +8,27 @@
    ============================================================
 */
 
+/* Allocate memory for chromatin, records, gillespie objects, 
+   silac states and histone turnover records */
 void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
+
+  // Chromatin
   c->K27 = i_vec_get( c->sites );
+
+  // Records
+  r->t = d_vec_get(p->maxReact + 1);
+  r->firing = i_vec_get(p->maxReact + 1);
+  r->t_out = d_vec_get(p->samples);
+  r->K27 = i_mat_get(c->sites,p->samples);
+
+  // Silac
   if (p->silacExperiment == TRUE)
     c->silac = i_vec_get( c->sites );
 
+  // Gillespie objects
   g->methylate_index = i_vec_get( c->sites );
   g->demethylate_index = i_vec_get( c->sites );
   g->transcribeDNA_index = i_vec_get( 1 );
-
   if (p->stochasticAlpha == TRUE) {
     g->propensity = d_vec_get( 2*c->sites + 5 );
     g->increaseProtein_index = i_vec_get( 1 );
@@ -34,22 +46,37 @@ void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *
   g->doReactionParam = i_vec_get( g->propensity->len );
   g->update = malloc(sizeof( flags ) );
 
-  r->t = d_vec_get(p->maxReact + 1);
-  r->firing = i_vec_get(p->maxReact + 1);
-  r->t_out = d_vec_get(p->samples);
-  r->K27 = i_mat_get(c->sites,p->samples);
-
+  // Histone turnover
+  if (p->checkHistoneTurnover == TRUE) {
+    c->turnover = i_vec_get(4);
+    r->turnover = d_mat_get(p->loci,4);
+    c->variant = i_vec_get(c->sites);
+    r->variant = i_mat_get(c->sites,p->samples);
+  }
+  
   return;
 }
 
+/* Free memory associated with Gillespie simulation */
 void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
+
+  // Chromatin
   i_vec_free(c->K27);
+
+  // Records
+  i_vec_free(r->firing);
+  i_mat_free(r->K27);
+  d_vec_free(r->t);
+  d_vec_free(r->t_out);
+  
+  // Silac
   if (p->silacExperiment == TRUE)
     i_vec_free(c->silac);
+
+  // Gillespie objects
   i_vec_free(g->methylate_index);
   i_vec_free(g->demethylate_index);
   i_vec_free(g->transcribeDNA_index);
-
   if (p->stochasticAlpha == TRUE) {
     i_vec_free(g->increaseProtein_index);
     i_vec_free(g->decreaseProtein_index);
@@ -66,11 +93,7 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
   free(g->update);
   rfree(p);
 
-  i_vec_free(r->firing);
-  i_mat_free(r->K27);
-  d_vec_free(r->t);
-  d_vec_free(r->t_out);
-
+  // Histone turnover
   if (p->checkHistoneTurnover == TRUE) {
     i_vec_free(c->turnover);  
     d_mat_free(r->turnover);
@@ -152,8 +175,8 @@ double d_vec_sum(D_VEC *d) {
   return(sum);
 }
 
-/* Called only once to initialise indices and function pointers */
-
+/* Initialise Gillespie functions such as propensity vectors and
+   indices. Called only once to initialise indices and function pointers */
 void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
   int i;
   
@@ -187,8 +210,8 @@ void initialiseGillespieFunctions(chromatin *c, gillespie *g) {
   return;
 }
 
-/* Called only once to initialise indices and function pointers */
-
+/* Additional function to add trans-factor simulations to propensity
+   matrix */
 void initialiseGillespieFunctionsTransFactor(chromatin *c, gillespie *g) {
 
   g->doReaction[2*c->sites+1] = decreaseProtein; // decreaseP
@@ -210,8 +233,7 @@ void initialiseGillespieFunctionsTransFactor(chromatin *c, gillespie *g) {
   return;
 }
 
-/* Calculate the fraction of "target" reactants */
-
+/* Calculate the fraction of 'target' reactants */
 double frac(I_VEC *vec, int target) {
   unsigned long int count = 0;
   double f;
@@ -223,6 +245,8 @@ double frac(I_VEC *vec, int target) {
   return(f);
 }
 
+/* Calculate the fraction of 'target' reactants for a control
+   region of size specified in c->controlSites */
 double fracControlRegion_me2me3(chromatin *c) {
   unsigned long int count = 0;
   double f;
@@ -234,6 +258,8 @@ double fracControlRegion_me2me3(chromatin *c) {
   return(f);
 }
 
+/* Return the enzymatic activity factor for PRC2 associated with the
+   recruitment potential of an me2 or me3 histone mark */ 
 double enzymaticFactor(chromatin *c, parameters *p, int pos) {
   double s;
   
@@ -243,42 +269,41 @@ double enzymaticFactor(chromatin *c, parameters *p, int pos) {
     s = p->me3factor;
   else
     s = 0.0;
-
   return(s);
 }
 
-
-/* Find histone mods on neighbouring nucleosome */
+/* Find histone mods on neighbouring nucleosome and return the
+   relative activity of PRC2 for a particular histone position 'pos' */
 double neighboursK27factor(chromatin *c, parameters *p, int pos) {
   double n = 0;
 
-  if (pos % 2 == 0) { // (even) top histone tail
+  if (pos % 2 == 0) { // (even) left histone tail
     n += enzymaticFactor(c,p,pos+1); // other tail on same nucleosome
-    if (pos != 0) { // check not left-most nucleosome
-      n += enzymaticFactor(c,p,pos-1); // top tail on left neighbour nucleosome
-      n += enzymaticFactor(c,p,pos-2); // bottom tail on left neighbour nucleosome
+    if (pos != 0) { // check not left-most nucleosome in domain
+      n += enzymaticFactor(c,p,pos-1); // left tail on left neighbour nucleosome
+      n += enzymaticFactor(c,p,pos-2); // right tail on left neighbour nucleosome
     }
-    if (pos < c->sites - 3 ) { // check not right-most nucleosome
-      n += enzymaticFactor(c,p,pos+2); // top tail on right neighbour nucleosome
-      n += enzymaticFactor(c,p,pos+3); // bottom tail on right neighbour nucleosome    
+    if (pos < c->sites - 3 ) { // check not right-most nucleosome in domain
+      n += enzymaticFactor(c,p,pos+2); // left tail on right neighbour nucleosome
+      n += enzymaticFactor(c,p,pos+3); // right tail on right neighbour nucleosome    
     }
-  } else { // (odd) bottom histone tail
+  } else { // (odd) right histone tail
     n += enzymaticFactor(c,p,pos-1); // other tail on same nucleosome
-    if (pos != 1) { // check not left-most nucleosome
-      n += enzymaticFactor(c,p,pos-2); // top tail on left neighbour nucleosome
-      n += enzymaticFactor(c,p,pos-3); // bottom tail on left neighbour nucleosome
+    if (pos != 1) { // check not left-most nucleosome in domain
+      n += enzymaticFactor(c,p,pos-2); // left tail on left neighbour nucleosome
+      n += enzymaticFactor(c,p,pos-3); // right tail on left neighbour nucleosome
     }
-    if (pos < c->sites - 2) { // check not right-most nucleosome
-      n += enzymaticFactor(c,p,pos+1); // top tail on right neighbour nucleosome
-      n += enzymaticFactor(c,p,pos+2); // bottom tail on right neighbour nucleosome    
+    if (pos < c->sites - 2) { // check not right-most nucleosome in domain
+      n += enzymaticFactor(c,p,pos+1); // left tail on right neighbour nucleosome
+      n += enzymaticFactor(c,p,pos+2); // right tail on right neighbour nucleosome    
     }
   }
   return(n);
 }
 
-/* Define a firing function which is linear between f_max and f_min,
-   which occurs at f_me2_me3 = firingThreshold. */
-
+/* Transcriptional firing-rate function: linear between f_max and
+   f_min, which occurs at f_me2_me3 = firingThreshold. Above
+   firingThreshold f = f_min */
 double firingRate(parameters *p, double f_me2_me3) {
   double f;
   if (f_me2_me3 < p->firingThreshold) {
@@ -289,15 +314,13 @@ double firingRate(parameters *p, double f_me2_me3) {
   return(f);
 }
 
-/* Update the propensities based on change in system K27. */
-
+/* Update the propensities based on change in system */
 void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
   int i;
   double f_me2_me3;
    
   if (g->update->histone==TRUE) {
     f_me2_me3 = fracControlRegion_me2me3(c);
-    //f_me2_me3 = frac(c->K27,me2) + frac(c->K27,me3);
 
     if (p->stochasticAlpha==TRUE)
       p->alpha = (double)p->transFactorProtein/1000.0;
@@ -331,8 +354,8 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
   return;
 }
 
-/* Update the propensities based on change in system K27. */
-
+/* Update the propensities based on change in system, when including
+   variable activation through trans-factor simulations */
 void updatePropensitiesTransFactor(parameters *p, gillespie *g) {
 
   // update trans-regulator concentration
@@ -366,14 +389,13 @@ double gillespieTimeStep(parameters *p, gillespie *g, double *p_s) {
 /* Single iteration of the "direct" Gillespie algorithm. Note that
    this varies somewhat from a pure stochastic simulation with
    exponentially distributed waiting times because there are events
-   which occur at precise time points (DNA replication and release of
-   G2 transcriptional inhibition). Some time steps proposed by the
-   simulation algorithm are discarded as the system state has changed
-   between the two simulation steps. Consequently the algorithm is
-   non-Markovian. See \cite{Barrio:2006kb} for a description of the
-   problems with delays in SSA simulations. The following
-   implementation has been referred to as "delays as
-   duration" approach in \cite{Barbuti:2009ih} */
+   which occur at precise time points (i.e. DNA replication). 
+   Some time steps proposed by the simulation algorithm are discarded
+   as the system state has changed between the two simulation steps.
+   See \cite{Barrio:2006kb} for a description of the problems with
+   delays in SSA simulations. The following implementation has been
+   referred to as "delays as duration" approach in
+   \cite{Barbuti:2009ih} or altenatively \cite{Bratsun:2005cs}. */
 
 void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   double delta_t, sum, p_s, r2=0.0, scaled_r2=0.0, next_t;
@@ -390,8 +412,9 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   /*  for (i=0;i<g->propensity->len;i++)
     fprintf(stderr,"%ld,%0.10f\n",i,g->propensity->el[i]);
   */
-  // calculate time step
-  // (p_s also returns propensity sum for use in Gillespie reaction selection).
+  // Calculate time step
+  // (propensity sum returned through argument for use in Gillespie
+  // reaction selection).
   delta_t = gillespieTimeStep(p,g,&p_s);
   next_t = delta_t + r->t->el[step-1];
 
@@ -426,7 +449,7 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
     
     // fprintf(stderr,"replicate: t = %0.2f hours\n",r->t->el[step]/3600.0);
     
-  }  else {
+  } else {
     
     // Gillespie reaction selection.
     // ------------------------------

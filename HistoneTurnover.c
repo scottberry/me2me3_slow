@@ -61,7 +61,6 @@ int main(int argc, char *argv[]) {
   p.stochasticAlpha = FALSE;
   p.countFiringEvents = FALSE;
   g.test = FALSE;
-
   
   /* Parse command line */
   parseCommandLine(argc,argv,&c,&p);
@@ -86,14 +85,6 @@ int main(int argc, char *argv[]) {
   /* allocate memory and initialise gillespie algorithm */
   allocateGillespieMemory(&c,&p,&g,&r);
   initialiseGillespieFunctions(&c,&g);
-
-  /* allocate memory for histone turnover calculations */
-  if (p.checkHistoneTurnover == TRUE) {
-    c.turnover = i_vec_get(4);
-    r.turnover = d_mat_get(p.loci,4);
-    c.variant = i_vec_get(c.sites);
-    r.variant = i_mat_get(c.sites,p.samples);
-  }
   
   /* -------------------------- */
   /* Start loop over parameters */
