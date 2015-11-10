@@ -59,7 +59,6 @@ int main(int argc, char *argv[]) {
   p.resultsLastHourOnly = TRUE;
   p.resultsFinalLocus = FALSE;
   p.checkHistoneTurnover = FALSE;
-  p.resultsTranscribing = FALSE;
   g.test = FALSE;
   
   /* Parse command line */
@@ -130,7 +129,6 @@ int main(int argc, char *argv[]) {
         p.firingCap = 0.0166667;
         p.transcription_demethylate = P_DEMETHYLATE; 
         // p.transcription_turnover = 0.0; 
-        p.transcriptionDelay = 0.0;
         
         if (p.firingRateMax < p.firingRateMin) {
           fprintf(stderr,"Error: Max firing rate less than min firing rate.");
@@ -195,7 +193,6 @@ int main(int argc, char *argv[]) {
           
           // Schedule first instance of the fixed time reactions
           g.t_nextRep = p.cellCycleDuration*3600;
-          g.t_nextEndG2 = (p.cellCycleDuration + p.G2duration)*3600;
           p.firingFactor = 1.0;
           
           /* Reaction loop */

@@ -1,12 +1,13 @@
 #include "definitions.h"
 /* 
-   Output functions for calulating results and writing files.
+   Memory and output functions for calulating results and writing files.
    ============================================================
    Author: Scott Berry
    Institute: John Innes Centre
    ============================================================
 */
 
+/* Allocate memory to hold results of silac simulations */
 void allocateSilacRecordMemory(chromatin *c, parameters *p, record *r) {
 
   r->silac = i_mat_get(c->sites,p->samples);
@@ -27,6 +28,7 @@ void allocateSilacRecordMemory(chromatin *c, parameters *p, record *r) {
   return;
 }
 
+/* Free memory for results of silac simulations */
 void freeSilacRecordMemory(record *r) {
 
   i_mat_free(r->silac);
@@ -42,6 +44,7 @@ void freeSilacRecordMemory(record *r) {
   return;
 }
 
+/* Increment between set-time points for reporting silac values */
 void incrementSilacReportPoint(parameters *p) {
   if (p->SILAC_report == 1) {
     p->SILAC_report = 2;
@@ -58,6 +61,7 @@ void incrementSilacReportPoint(parameters *p) {
   return;
 }
 
+/* Reset all quantifications for different parameter sets */
 void resetQuantification(quantification *q) {
   q->gap = 0.0;
   q->Mavg = 0.0;
@@ -77,6 +81,8 @@ void resetQuantification(quantification *q) {
   return;
 }
 
+/* Accumulate quantified results for each locus, so specific
+   trajectories can be discarded and over-written in memory */
 void accumulateQuantification(chromatin *c, parameters *p, record *r, quantification *q) {  
 
   if (p->resultsLastHourOnly == TRUE) {
@@ -110,9 +116,11 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
     q->firingEvents += countFiringEventsLastCellCycle(p,r);
   
   // Note: this metric works best when threshold = 1.0
+  // (based on histone state)
   // q->firstPassage = firstPassageTime(r,&q->initial);
 
-  // Note: this metric requires firing rate changes to work
+  // Note: this metric requires firing rate changes
+  // (based on expression quartiles)
   q->firstPassage = firstPassageTimeExpression(r,p,&q->initial);
 
   if (q->initial==-1) {
@@ -172,8 +180,6 @@ char *parameterDependentBasename(chromatin *c, parameters *p) {
   sprintf(ptmp,"thresh%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   sprintf(tmp,"%0.8f",p->transcription_turnover);
   sprintf(ptmp,"turn%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
-  sprintf(tmp,"%0.2f",p->PRC2inhibition);
-  sprintf(ptmp,"p%s",str_replace(tmp,decimal,underscore)); strcat(avgfile,ptmp);
   if (p->DNAreplication == TRUE) {
     sprintf(tmp,"Rep"); strcat(avgfile,tmp);
   } else {
@@ -187,6 +193,7 @@ char *parameterDependentBasename(chromatin *c, parameters *p) {
   return(avgfile);
 }
 
+/* Print header for the results files */
 void fprintParameterSpaceHeader(FILE *parFile) {
   fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
 \tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tP_TURNOVER\
@@ -203,31 +210,82 @@ void fprintParameterSpaceHeader(FILE *parFile) {
   return;
 }
 
+/* Print accumulated results for each parameter set */
 void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, quantification *q) {        
   fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
-\t%0.10f\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
+\t%0.10f\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
 \t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\t%0.10f\t%0.10Lf\n",
-          p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
-          p->firingRateMax,p->firingThreshold,
-          p->transcription_demethylate,p->me2_me3,p->transcription_turnover,c->controlSites,p->alpha,q->alphaMean,q->alphaSD,
-          p->beta,p->G2duration,
-          q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
-          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci,
+          p->me0_me1,
+          p->me1_me2,
+          p->me2_me3,
+          p->me2factor,
+          p->me3factor,
+          p->firingRateMax,
+          p->firingThreshold,
+          p->transcription_demethylate,
+          p->me2_me3,
+          p->transcription_turnover,
+          c->controlSites,
+          p->alpha,
+          q->alphaMean,
+          q->alphaSD,
+          p->beta,
+          q->gap/p->loci,
+          q->Mavg/p->loci,
+          q->lifetime,
+          q->initM,
+          q->fpM,
+          q->tM,
+          q->initU,
+          q->fpU,
+          q->tU,
+          q->tTot/p->loci,
+          q->probM/p->loci,
+          q->probU/p->loci,
+          q->bistability,
+          q->me3_end/p->loci,
+          q->totalHistoneTurnover/p->loci,
           (long double)q->firingEvents/(double)p->loci);
   fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
-%0.10f %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
+%0.10f %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
 %0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.10f  %0.10Lf\n",
-          p->me0_me1,p->me1_me2,p->me2_me3,p->me2factor,p->me3factor,
-          p->firingRateMax,p->firingThreshold,
-          p->transcription_demethylate,p->me2_me3,p->transcription_turnover,c->controlSites,p->alpha,q->alphaMean,q->alphaSD,
-          p->beta,p->G2duration,
-          q->gap/p->loci,q->Mavg/p->loci,q->lifetime,q->initM,q->fpM,q->tM,q->initU,q->fpU,q->tU,q->tTot/p->loci,
-          q->probM/p->loci,q->probU/p->loci,q->bistability,q->me3_end/p->loci,q->totalHistoneTurnover/p->loci,
+          p->me0_me1,
+          p->me1_me2,
+          p->me2_me3,
+          p->me2factor,
+          p->me3factor,
+          p->firingRateMax,
+          p->firingThreshold,
+          p->transcription_demethylate,
+          p->me2_me3,
+          p->transcription_turnover,
+          c->controlSites,
+          p->alpha,
+          q->alphaMean,
+          q->alphaSD,
+          p->beta,
+          q->gap/p->loci,
+          q->Mavg/p->loci,
+          q->lifetime,
+          q->initM,
+          q->fpM,
+          q->tM,
+          q->initU,
+          q->fpU,
+          q->tU,
+          q->tTot/p->loci,
+          q->probM/p->loci,
+          q->probU/p->loci,
+          q->bistability,
+          q->me3_end/p->loci,
+          q->totalHistoneTurnover/p->loci,
           (long double)q->firingEvents/(double)p->loci);
   return;
 }
 
-/* Replace a character of a string */
+/* Replace a character of a string 
+   Courtesy of jmucchiello 
+   http://stackoverflow.com/questions/779875/what-is-the-function-to-replace-string-in-c */
 char *str_replace(char *orig, char *rep, char *with) {
   char *result; // the return string
   char *ins;    // the next insert point
@@ -274,7 +332,6 @@ char *str_replace(char *orig, char *rep, char *with) {
 
 /* Print simulation time at sample points. Length depends directly on
    r.tMax, which is determined by p.cellCycles. */
-
 void fprint_t_out_nCycles(char *fname, record *r) {
   FILE *fptr;
   long unsigned i;
@@ -288,10 +345,9 @@ void fprint_t_out_nCycles(char *fname, record *r) {
   return;
 }
 
-/* Average results over time and print a time-dependent results 
+/* Average results over locus and print a time-dependent results 
    vector. Length depends directly on r.tMax, which is 
    determined by p.cellCycles. */
-
 void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r) {
   FILE *fptr;
   long unsigned count, i, j;
@@ -330,10 +386,11 @@ void fprint_variant_t_nCycles(char *fname, record *r, int variant_target) {
   return;
 }
 
-/* Average results over time and print a time-dependent results 
+/* Average results over locus and print a time-dependent results 
    vector. Length depends directly on r.tMax, which is 
-   determined by p.cellCycles. */
-
+   determined by p.cellCycles. Absolute proportion of each mark with
+   a given 'silac_target' silac label and a given 'target'
+   modification status */
 void fprint_silac_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, int silac_target, record *r) {
   FILE *fptr;
   long unsigned count, i, j;
@@ -352,6 +409,8 @@ void fprint_silac_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, i
   return;
 }
 
+/* As above, but now for each 'target' mark relative to the proportion
+   of histones labelled with a particular 'silac_target'. */
 void fprint_silacRelative_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, int silac_target, record *r) {
   FILE *fptr;
   long unsigned countMod, countAll, i, j;
@@ -381,7 +440,6 @@ void fprint_silacRelative_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *
 /* Print absolute time of each firing event.
    Length depends directly on r.tMax, which is 
    determined by p.cellCycles. */
-
 void fprint_firing_t_nCycles(char *fname, record *r) {
   FILE *fptr;
   long unsigned i;
@@ -390,23 +448,6 @@ void fprint_firing_t_nCycles(char *fname, record *r) {
   for (i=0;i<r->firing->len && r->t->el[i]<r->tMax;i++) {
     if (r->firing->el[i]==TRUE)
       fprintf(fptr,"%0.4f\n",r->t->el[i]);
-  }
-  fclose(fptr);
-  return;
-}
-
-/* Print transcription status for each time point
-   Length depends directly on r.tMax, which is 
-   determined by p.cellCycles */
-
-void fprint_transcribing_t_nCycles(char *fname, record *r) {
-  FILE *fptr;
-  long unsigned i;
-
-  fptr = fopen(fname,"w");
-  fprintf(fptr,"t\ttranscribing\n");
-  for (i=0;i<r->firing->len && r->t->el[i]<r->tMax;i++) {
-    fprintf(fptr,"%0.4f\t%ld\n",r->t->el[i],r->transcribing->el[i]);
   }
   fclose(fptr);
   return;
@@ -915,7 +956,6 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   } else
     fprintf(fptr," FALSE\n");
   fprintf(fptr,"cellCycleDuration: %0.2f hours\n", p->cellCycleDuration);
-  fprintf(fptr,"G2duration: %0.2f hours\n", p->G2duration);
   fprintf(fptr,"cellCycles: %d\n", p->cellCycles);
   fprintf(fptr,"me0_me1: %0.10f\n", p->me0_me1);
   fprintf(fptr,"me1_me2: %0.10f\n", p->me1_me2);

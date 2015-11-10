@@ -39,9 +39,6 @@ void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *
   r->t_out = d_vec_get(p->samples);
   r->K27 = i_mat_get(c->sites,p->samples);
 
-  if (p->resultsTranscribing == TRUE)
-    r->transcribing = i_vec_get(p->maxReact + 1);
-
   return;
 }
 
@@ -73,9 +70,6 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
   i_mat_free(r->K27);
   d_vec_free(r->t);
   d_vec_free(r->t_out);
-
-  if (p->resultsTranscribing == TRUE)
-    i_vec_free(r->transcribing);
 
   if (p->checkHistoneTurnover == TRUE) {
     i_vec_free(c->turnover);  
@@ -350,50 +344,6 @@ void updatePropensitiesTransFactor(parameters *p, gillespie *g) {
   return;
 }
 
-/* Update the propensities based on change in system K27. */
-
-void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillespie *g) {
-  int i;
-  double f_me2_me3, PRC2activity;
-   
-  if (g->update->histone==TRUE) {
-    f_me2_me3 = fracControlRegion_me2me3(c);
-
-    if (p->stochasticAlpha==TRUE)
-      p->alpha = (double)p->transFactorProtein/1000.0;
-    
-    if (c->transcribing == TRUE)
-      PRC2activity = 1.0/p->PRC2inhibition;
-    else
-      PRC2activity = 1.0;
-    
-    for (i=0;i<c->sites;i++) {
-      // fprintf(stderr,"i = %d, neighboursK27factor = %0.2f\n",i,neighboursK27factor(c,p,i));
-      if (c->K27->el[i] == me0) { // methylate
-        g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me0_me1 + p->me0_me1*(neighboursK27factor(c,p,i))*PRC2activity);
-        g->propensity->el[g->demethylate_index->el[i]] = 0.0;
-      } else if (c->K27->el[i] == me1) {
-        g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me1_me2 + p->me1_me2*(neighboursK27factor(c,p,i))*PRC2activity);
-        g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
-      } else if (c->K27->el[i] == me2) {
-        g->propensity->el[g->methylate_index->el[i]] = p->beta*(p->noisy_me2_me3 + p->me2_me3*(neighboursK27factor(c,p,i))*PRC2activity);
-        g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
-      } else {
-        g->propensity->el[g->methylate_index->el[i]] = 0.0;
-        g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
-      }
-    }
-   
-    // transcribeDNA
-    g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * p->alpha * firingRate(p,f_me2_me3);
-    if (g->propensity->el[g->transcribeDNA_index->el[0]] > p->firingCap)
-      g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingCap;
-
-    g->update->histone = FALSE; // reset the flag
-     
-  }
-  return;
-}
 
 /* calculate the gillespie time step (and propensity sum in argument p_s) */
 double gillespieTimeStep(parameters *p, gillespie *g, double *p_s) {
@@ -445,13 +395,10 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   delta_t = gillespieTimeStep(p,g,&p_s);
   next_t = delta_t + r->t->el[step-1];
 
-  // fprintf(stderr,"next_t = %0.2f, g->t_nextRep = %0.2f , g->t_nextEndG2 = %0.2f\n",next_t,g->t_nextRep,g->t_nextEndG2); 
-
-  /* Determine if the new time is after DNA replication or release of
-     G2 inhibition. If so, interrupt Gillespie algorithm to replicate
-     DNA or release G2 transcription inhibition (at a precise time).
-     If not, proceed with Gillespie reaction selection. */
-
+  /* Determine if the new time is after DNA replication. If so,
+     interrupt Gillespie algorithm to replicate DNA (at a precise
+     time). If not, proceed with Gillespie reaction selection. */
+  
   if (next_t > g->t_nextRep) {
 
     // DNA replication.
@@ -469,10 +416,9 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
         p->silacLabel = UNLABELLED;
     }
     
-    // replicate DNA and instigate G2 transcriptional inhibition
+    // replicate DNA
     if (p->DNAreplication == TRUE)  {
       replicateDNA(c,p,g->update);
-      if (p->G2duration > 0.0) p->firingFactor = 0.5;
     }
     
     // schedule next DNA replication
@@ -480,26 +426,7 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
     
     // fprintf(stderr,"replicate: t = %0.2f hours\n",r->t->el[step]/3600.0);
     
-  } else if (next_t > g->t_nextEndG2 && p->G2duration > 0.0) {
-
-    // Release G2 firing inhibition.
-    // ------------------------------
-    
-    // update firing factor
-    p->firingFactor = 1.0;
-
-    // force propensity recalculation next step
-    g->update->histone = TRUE;
-
-    // increment system time
-    r->t->el[step] = g->t_nextEndG2;
-
-    // schedule next G2 inhibition end
-    g->t_nextEndG2 += p->cellCycleDuration*3600;
-
-    // fprintf(stderr,"release G2: t = %0.2f hours\n",r->t->el[step]/3600.0);
-    
-  } else {
+  }  else {
     
     // Gillespie reaction selection.
     // ------------------------------
@@ -537,105 +464,3 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   return;
 }
 
-/* Gillespie algorithm with delays for each transcription event 
-   Add variables:
-   logical c.transcribing 
-   double p.transcriptionDelay (duration of transcription event)
-   double g.t_nextEndTranscription
-*/
-
-void gillespieStepTranscriptionDelays(chromatin *c, parameters *p, gillespie *g, record *r) {
-  double delta_t, sum, p_s, r2=0.0, scaled_r2=0.0, next_t;
-  long m, step;
-  logical chooseGillespieReaction = TRUE;
-
-  step = p->reactCount;
-  
-  // update propensities
-  updatePropensitiesTranscriptionInhibit(c,p,g);
-  
-  // calculate time step
-  // (p_s also returns propensity sum for use in Gillespie reaction selection).
-  delta_t = gillespieTimeStep(p,g,&p_s);
-  next_t = delta_t + r->t->el[step-1];
-
-  /* Check delayed reactions.
-     (priority in r->t update given to DNA replication if two delayed
-     reactions occur simultaneously) */
-  /* ---------------------------------------- */
-
-  /* Terminate transcription */
-  if (next_t > g->t_nextEndTranscription && c->transcribing == TRUE) {
-    c->transcribing = FALSE; // update transcription status
-    g->update->histone = TRUE; // force propensity recalculation
-    r->t->el[step] = g->t_nextEndTranscription; // update system time
-    chooseGillespieReaction = FALSE; // discard gillespie reaction
-    //fprintf(stderr,"terminate: t = %0.2f sec\n",r->t->el[step]);
-  }
-  
-  /*  Release G2 firing inhibition. */
-  if (next_t > g->t_nextEndG2 && p->G2duration > 0.0) {
-    p->firingFactor = 1.0; // update firing factor
-    g->update->histone = TRUE; // force propensity recalculation
-    r->t->el[step] = g->t_nextEndG2; // update system time
-    g->t_nextEndG2 += p->cellCycleDuration*3600; // schedule next 
-    chooseGillespieReaction = FALSE; // discard gillespie reaction
-    // fprintf(stderr,"release G2: t = %0.2f hours\n",r->t->el[step]/3600.0);
-  }
-
-  /* DNA replication */
-  if (next_t > g->t_nextRep) {
-    p->cellCycleCount++; // increment counters 
-    r->t->el[step] = g->t_nextRep; // update system time
-    if (p->DNAreplication == TRUE)  {
-      replicateDNA(c,p,g->update); // replicate DNA
-      if (p->G2duration > 0.0) p->firingFactor = 0.5; // inhibit transcription
-    }
-    g->t_nextRep += p->cellCycleDuration*3600; // schedule next
-    chooseGillespieReaction = FALSE; // discard gillespie reaction
-    // fprintf(stderr,"replicate: t = %0.2f hours\n",r->t->el[step]/3600.0);
-  }
-  
-  /* End delayed reactions */
-  /* ---------------------------------------- */
-  
-  if (chooseGillespieReaction == TRUE) {
-
-    // store new (stochastically chosen) time
-    r->t->el[step] = next_t;
-    
-    // choose reaction m from propensities based on scaled_r2
-    r2 = runif(p->gsl_r);
-    scaled_r2 = p_s*r2;
-
-    sum = 0;
-    m = 0;
-
-    if (scaled_r2 > g->propensity->el[0]) { // protect against r2==0.0
-      while (scaled_r2 > sum) {
-        sum += g->propensity->el[m];
-        m++;
-      }
-      m--;
-    } else {
-      m=0;
-    }
-    g->doReaction[m](c,p,g->update,g->doReactionParam->el[m]);
-
-    // record each firing event
-    if (g->update->transcribed == TRUE) {
-      r->firing->el[step] = TRUE;
-      // fprintf(stderr,"fire: t = %0.2f sec\n",r->t->el[step]);
-      c->transcribing = TRUE;
-      g->t_nextEndTranscription = r->t->el[step] + p->transcriptionDelay;
-      g->update->transcribed = FALSE;
-    } else {
-      r->firing->el[step] = FALSE;
-    }
-    if (p->resultsTranscribing == TRUE) {
-      r->transcribing->el[step] = c->transcribing; // update record
-    }
-  }
-  
-  return;
-}

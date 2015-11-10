@@ -33,7 +33,6 @@ int main(int argc, char *argv[]) {
 
   p.cellCycles = 6;
   p.cellCycleDuration = 16.0; // (hours)
-  p.G2duration = 4.0; // (hours)
   p.alpha = 0.0; // can be replaced via command line
   p.beta = 1.0; // can be replaced via command line
   
@@ -263,7 +262,6 @@ rate. Setting k_min = k_max\n");
   
   // Schedule first instance of the fixed time reactions
   g.t_nextRep = p.cellCycleDuration*3600;
-  g.t_nextEndG2 = (p.cellCycleDuration + p.G2duration)*3600;
   p.firingFactor = 1.0;
   
   /* Reaction loop */

@@ -17,7 +17,6 @@ void usage(void)
   printf(" -g <G2 duration>\n");
   printf(" -t <firing threshold>\n");
   printf(" -i <identifier>\n");
-  printf(" -p <PRC2 inhibition>\n");
   printf(" -s (seed based on identifier)\n");
   printf(" -r (DNA replication ON)\n");
   printf(" -m (start in K27me3 state)\n");
@@ -33,11 +32,9 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
 
   /* set defaults */
   c->controlSites = c->sites;
-  p->G2duration = 0.0; 
   p->alpha = 1.0;
   p->beta = 1.0; 
   p->firingThreshold = 1.0; 
-  p->PRC2inhibition = 1.0;
   p->startM = FALSE;
   p->startU = FALSE;
   p->randomSeed = TRUE;
@@ -49,7 +46,7 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
   
   /* parse command line args */
   opterr = 0;
-  while ((j = getopt (argc, argv, "c:a:b:i:smurg:p:t:n:h:")) != -1)
+  while ((j = getopt (argc, argv, "c:a:b:i:smurt:n:h:")) != -1)
     switch (j)
       {
       case 'c':
@@ -87,16 +84,6 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
 
       case 'r':
         p->DNAreplication = TRUE;
-        break;
-
-      case 'g':
-        sprintf(buffer,"%s",optarg);
-        p->G2duration = atof(buffer);
-        break;
-
-      case 'p':
-        sprintf(buffer,"%s",optarg);
-        p->PRC2inhibition = atof(buffer);
         break;
         
       case 't':

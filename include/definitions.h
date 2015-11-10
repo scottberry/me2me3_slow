@@ -1,5 +1,5 @@
 /* 
-   Definitions file for gillespie algorithm simulations of models
+   Definitions file for Gillespie algorithm simulations of models
    in chromatin-based epigenetics. 
    ============================================================
    Author: Scott Berry
@@ -45,7 +45,6 @@ typedef struct {
   long controlSites;
   I_VEC *K27;
   I_VEC *silac;
-  logical transcribing;
   I_VEC *turnover;
   I_VEC *variant;
 } chromatin;
@@ -67,11 +66,10 @@ typedef struct {
   double firingRateMax, firingRateMin, transcription_demethylate, transcription_turnover;
   double firingThreshold, firingCap;
   double alpha, beta;
-  double transcriptionDelay, PRC2inhibition;
   
   // cell cycle parameters
   double firingFactor;
-  double cellCycleDuration, G2duration;
+  double cellCycleDuration;
   int cellCycles, cellCycleCount;
   int initialCellCycles;
   
@@ -81,7 +79,7 @@ typedef struct {
   unsigned long loci, reactCount, maxReact;
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
-  logical DNAreplication, resultsLastHourOnly, resultsFinalLocus, resultsTranscribing;
+  logical DNAreplication, resultsLastHourOnly, resultsFinalLocus;
   logical checkHistoneTurnover, countFiringEvents;
   char id[128];
   char executable[128];
@@ -114,7 +112,7 @@ typedef struct {
   I_VEC *demethylate_index;
   I_VEC *transcribeDNA_index;
   func_ptr_t *doReaction;
-  double t_nextRep, t_nextEndG2, t_nextEndTranscription;
+  double t_nextRep;
   flags *update;
 
   // transFactor parameters
@@ -134,7 +132,6 @@ typedef struct {
   I_MAT *silac;
   I_MAT *variant;
   I_VEC *firing;
-  I_VEC *transcribing;
   D_MAT *turnover;
   D_VEC *t, *t_out;
   double tMax;
@@ -173,14 +170,16 @@ void setseed(parameters *p, long seed);
 void rfree(parameters *p);
 
 // modifications.c
-void methylate(chromatin *c, parameters *p, flags *update, int pos);
-void demethylate(chromatin *c, parameters *p, flags *update, int pos);
 void transcribeDNA(chromatin *c, parameters *p, flags *update, int pos);
 void replicateDNA(chromatin *c, parameters *p, flags *update);
 void decreaseRNA(chromatin *c, parameters *p, flags *update, int pos);
 void increaseRNA(chromatin *c, parameters *p, flags *update, int pos);
 void decreaseProtein(chromatin *c, parameters *p, flags *update, int pos);
 void increaseProtein(chromatin *c, parameters *p, flags *update, int pos);
+
+// nonprocessive.c or processivedemethylation.c or processivemethylation.c
+void methylate(chromatin *c, parameters *p, flags *update, int pos);
+void demethylate(chromatin *c, parameters *p, flags *update, int pos);
 
 // gillespie.c
 void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r);
@@ -201,10 +200,8 @@ double neighboursK27factor(chromatin *c, parameters *p, int pos);
 double firingRate(parameters *p, double f_me2_me3);
 void updatePropensities(chromatin *c, parameters *p, gillespie *g);
 void updatePropensitiesTransFactor(parameters *p, gillespie *g);
-void updatePropensitiesTranscriptionInhibit(chromatin *c, parameters *p, gillespie *g);
 double gillespieTimeStep(parameters *p, gillespie *g, double *p_s);
 void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r);
-void gillespieStepTranscriptionDelays(chromatin *c, parameters *p, gillespie *g, record *r);
 
 // results.c
 void allocateSilacRecordMemory(chromatin *c, parameters *p, record *r);
@@ -223,7 +220,6 @@ void fprint_variant_t_nCycles(char *fname, record *r, int variant_target);
 void fprint_silac_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, int silac_target, record *r);
 void fprint_silacRelative_t_nCycles(char *fname, I_MAT *mat, int target, I_MAT *silac, int silac_target, record *r);
 void fprint_firing_t_nCycles(char *fname, record *r);
-void fprint_transcribing_t_nCycles(char *fname, record *r);
 double tAverageGap_nCycles(chromatin *c, parameters *p, record *r);
 double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r);
 double tAverageVariant_lastHour_nCycles(chromatin *c, parameters *p, record *r, int variant_target);

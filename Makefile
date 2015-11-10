@@ -13,13 +13,16 @@ STATLIB = $(LDIR)/libscottsmatrices.a
 _DEPS = definitions.h scottsmatrices.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = random.o modifications.o gillespie.o results.o parse.o
+_OBJ = random.o modifications.o nonprocessive.o gillespie.o results.o parse.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-_OBJPROCESSIVE = random.o modificationsProcK27me2.o gillespie.o results.o parse.o
-OBJPROCESSIVE = $(patsubst %,$(ODIR)/%,$(_OBJPROCESSIVE))
+_OBJPROCMETH = random.o modifications.o processive_methylation.o gillespie.o results.o parse.o
+OBJPROCMETH = $(patsubst %,$(ODIR)/%,$(_OBJPROCMETH))
 
-all: $(STATLIB) $(OBJ) me2me3 Dynamic HistoneTurnover TranscriptionInhibit ProcK27me2 Silac Tests ConstTimeInterpolate
+_OBJPROCDEMETH = random.o modifications.o processive_demethylation.o gillespie.o results.o parse.o
+OBJPROCDEMETH = $(patsubst %,$(ODIR)/%,$(_OBJPROCDEMETH))
+
+all: $(STATLIB) $(OBJ) me2me3 Dynamic HistoneTurnover ProcMeth ProcDemeth Silac Tests ConstTimeInterpolate
 
 # make libscottsmatrices object file
 $(LDIR)/scottsmatrices.o: $(LDIR)/scottsmatrices.c $(DEPS)
@@ -33,6 +36,7 @@ $(STATLIB): $(LDIR)/scottsmatrices.o
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS) $(IFLAGS)
 
+# make executables
 me2me3: $(ODIR)/Main.o $(STATLIB) $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
@@ -42,10 +46,10 @@ Dynamic: $(ODIR)/Dynamic.o $(STATLIB) $(OBJ)
 HistoneTurnover: $(ODIR)/HistoneTurnover.o $(STATLIB) $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
-TranscriptionInhibit: $(ODIR)/TranscriptionInhibit.o $(STATLIB) $(OBJ)
+ProcMeth: $(ODIR)/Main.o $(STATLIB) $(OBJPROCMETH)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
-ProcK27me2: $(ODIR)/Main.o $(STATLIB) $(OBJPROCESSIVE)
+ProcDemeth: $(ODIR)/Main.o $(STATLIB) $(OBJPROCDEMETH)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 Silac: $(ODIR)/Silac.o $(STATLIB) $(OBJ)
@@ -63,7 +67,7 @@ clean:
 	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ 
 
 empty:
-	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcK27me2 TranscriptionInhibit HistoneTurnover Dynamic
+	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcMeth ProcDemeth HistoneTurnover Dynamic
 
 nores:
 	rm -f *.txt *.out

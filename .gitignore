@@ -4,8 +4,8 @@ obj/*.o
 me2me3
 Dynamic
 HistoneTurnover
-TranscriptionInhibit
-ProcK27me2
+ProcMeth
+ProcDemeth
 Tests
 ConstTimeInterpolate
 Silac
