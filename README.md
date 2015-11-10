@@ -1,10 +1,10 @@
 # PRC2-based epigenetic silencing directly antagonised by transcription
 
-## Simulations to generate figures in manuscript
+## Lack of bistability in two-state model (Figure S1)
+==
 
-### Lack of bistability in two-state model (Figure S1)
-
-### Bistability in non-processive model (Figures 2A, 2B, S2)
+## Bistability in non-processive model (Figures 2A, 2B, S2)
+==
 
 To run simulations, use the parameter values listed below:
 Submit independent simulations with values of histone turnover [0.00025, 0.008]
@@ -38,14 +38,14 @@ Simulation time: 24783.230469 seconds
 **Plots:** PlotParameterSpaceTurnover.R
 
 
-### Histone exchange validation (Figure 3)
+## Histone exchange validation (Figure 3)
 
-### The effect of processivity in methylation or demethylation (Figure S3)
+## The effect of processivity in methylation or demethylation (Figure S3)
 
-### Fitting SILAC data (Figures 4, S4)
+## Fitting SILAC data (Figures 4, S4)
 
-### Noisy inputs (Figures 5, S6, S7)
+## Noisy inputs (Figures 5, S6, S7)
 
-### Dynamic modulation (Figure 6)
+## Dynamic modulation (Figure 6)
 
-### Cis memory window (Figure 7) 
+## Cis memory window (Figure 7) 
