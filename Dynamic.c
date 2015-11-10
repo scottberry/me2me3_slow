@@ -156,6 +156,9 @@ int main(int argc, char *argv[]) {
         p.me2factor = 0.1; 
         p.me3factor = 1.0;
 
+        /* noisy demethylation independent of transcription */
+        p.noisy_demethylate = P_DEMETHYLATE*p.firingRateMin;
+                
         // Reset results to zero for each parameter set
         resetQuantification(&q);
 

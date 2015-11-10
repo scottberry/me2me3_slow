@@ -47,7 +47,7 @@ Simulation time: 24783.230469 seconds
 
 **Submission commands:**
 
-`./HistoneTurnover -h0.001 -r -t1.0 -m -im`
+`./HistoneTurnover -h0.001 -r -t1.0 -m -im`  
 `./HistoneTurnover -h0.001 -r -t1.0 -u -iu`
 
 **Compile-time options flags:**
@@ -94,7 +94,7 @@ Processivity in methylation and demethylation is incorporated through variant fu
 
 **Submission commands:**
 
-`./ProcMeth -h{exchange} -r -t1.0 -i Proc_Meth`
+`./ProcMeth -h{exchange} -r -t1.0 -i Proc_Meth`  
 `./ProcDemeth -h{exchange} -r -t1.0 -i Proc_Demeth`
 
 **Plots:**
@@ -164,9 +164,116 @@ transcription_turnover: 0.001
 **Plots:**
 SILAC_Individuals.R
 
-
 ## Noisy inputs (Figures 5, S6, S7)
+
+The main executable Main.c (compiled as me2me3) is used for simulations with different noisy input signals. The noise level is controlled by the command line inputs -n (integer > 1, representing the number of proteins produced by a single RNA molecule).
+
+### Variable noise parameter search
+
+**Submission script:** noisy.sh
+contains the command
+`./me2me3 -t0.333 -r -h0.001 -n $noisy -i $noisy > noisy$noisy.txt 2>&1 &`
+
+**Compile-time options flags:**
+p.resultsLastHourOnly = TRUE;
+p.resultsFinalLocus = FALSE;
+p.checkHistoneTurnover = FALSE;
+p.stochasticAlpha = TRUE;
+
+**Other parameters:**
+loci: 200
+maxReact: 1000000
+samples: 1000000
+optimSteps: 20
+cellCycles: 20
+me2_me3: [0.003,0.000004]
+firingThreshold: 0.333
+stochasticTranslationEfficiency: [1,2000]
+transcription_demethylate: [0.25,0.0003]
+transcription_turnover: 0.001
+
+**Plots**
+NoisyParameterSpaceCV.R
+
+### Individual examples
+
+Recompile for fast and slow time-scales according to the parameters shown below.
+
+**Submission commands:**
+`./me2me3 -t0.333 -r -h0.001 -n1 -i slow_n1_m -m > out.txt 2>&1 &`  
+`./me2me3 -t0.333 -r -h0.001 -n1 -i slow_n1_u -u > out.txt 2>&1 &`  
+`./me2me3 -t0.333 -r -h0.001 -n1000 -i slow_n1000_m -m > out.txt 2>&1 &`  
+`./me2me3 -t0.333 -r -h0.001 -n1000 -i slow_n1000_u -u > out.txt 2>&1 &`
+
+**Compile-time options flags:**
+p.resultsLastHourOnly = TRUE;
+p.resultsFinalLocus = TRUE;
+p.checkHistoneTurnover = FALSE;
+p.stochasticAlpha = TRUE;
+
+**Other parameters:**
+loci: 1
+maxReact: 1000000
+samples: 1000000
+optimSteps: 1
+cellCycles: 20
+firingRateMax: 0.004
+firingRateMin: 0.0001
+firingThreshold: 0.333
+transcription_turnover: 0.001
+
+'Fast'
+me2_me3: 0.0000447
+transcription_demethylate: 0.178
+
+'Slow'
+me2_me3: 0.000008
+transcription_demethylate: 0.004
+
+**Plots**
+NoisyExamples.R
 
 ## Dynamic modulation (Figure 6)
 
+The executable Dynamic.c takes alpha and beta as inputs and equilibrated for 5 cell cycles at alpha = beta = 1, before changing alpha and beta to the values specified as command line options.
+
+There are 4 options that need to be simulated:
+- StartM_decreaseBeta
+- StartU_increaseBeta
+- StartM_increaseAlpha
+- StartU_decreaseAlpha
+
+Plots are created by simulating 20 loci for each parameter set as individuals. 20 of these are over-plotted. For certain values, average plots over 100 loci need to be performed (alpha or beta = 1/8 or 8).
+
+**Submission script:** individualsDynamic.sh
+contains commands such as
+`./Dynamic -c 60 -u -t 0.4 -b 1.0 -a $act -i $i -s > out$act$i.out 2>&1 &`
+
+**Compile-time options flags:**
+p.resultsLastHourOnly = TRUE;
+p.resultsFinalLocus = TRUE;
+p.checkHistoneTurnover = FALSE;
+p.stochasticAlpha = FALSE;
+p.countFiringEvents = TRUE;
+
+**Other parameters:**
+maxReact: 200000
+samples: 200000
+optimSteps: 1
+cellCycles: 16
+initialCellCycles = 5;
+me2_me3: 0.0000080000
+firingRateMax: 0.0040000000
+firingRateMin: 0.0001000000
+firingThreshold: 0.3330000000
+transcription_demethylate: 0.0080000000
+transcription_turnover: 0.0010000000
+
+**Plots:**
+IndividualsSummary_DecreaseBeta.R
+IndividualsSummary_IncreaseBeta.R
+IndividualsSummary_IncreaseAlpha.R
+IndividualsSummary_DecreaseAlpha.R
+
 ## Cis memory window (Figure 7) 
+
