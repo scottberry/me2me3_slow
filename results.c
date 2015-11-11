@@ -195,16 +195,16 @@ char *parameterDependentBasename(chromatin *c, parameters *p) {
 
 /* Print header for the results files */
 void fprintParameterSpaceHeader(FILE *parFile) {
-  fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
+  fprintf(parFile,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING                  \
 \tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tP_TURNOVER\
 \tcontrolSites\talpha\talphaMean\
-\talphaSD\tbeta\ttau\tgap\tMavg\
+\talphaSD\tbeta\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\tfiringEvents\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
 \tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tP_TURNOVER\
 \tcontrolSites\talpha\talphaMean\
-\talphaSD\tbeta\ttau\tgap\tMavg\
+\talphaSD\tbeta\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
 \tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\tfiringEvents\n");
   return;
