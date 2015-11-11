@@ -39,7 +39,7 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
   p->randomSeed = TRUE;
   p->seed = 0;
   p->stochasticTranslationEfficiency = 1;
-  p->transcription_turnover = 0.004;
+  p->transcription_turnover = 0.001;
   strcpy(p->id,"\0");
   sprintf(p->executable,"%s",argv[0]);
   

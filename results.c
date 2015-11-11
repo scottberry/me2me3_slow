@@ -247,7 +247,7 @@ void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, qua
           q->totalHistoneTurnover/p->loci,
           (long double)q->firingEvents/(double)p->loci);
   fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
-%0.10f %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
+%0.10f  %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
 %0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.10f  %0.10Lf\n",
           p->me0_me1,
           p->me1_me2,
@@ -1275,7 +1275,7 @@ double tAverageAlpha(record *r) {
   long t;
 
   for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) { 
-    mean += r->alpha->el[t+1]*(double)(r->t_out->el[t]-r->t_out->el[t]);
+    mean += r->alpha->el[t+1]*(double)(r->t_out->el[t+1]-r->t_out->el[t]);
     tLast = r->t_out->el[t];
   }
   

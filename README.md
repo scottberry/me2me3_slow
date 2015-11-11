@@ -188,7 +188,6 @@ firingThreshold: 1.0
 transcription_demethylate: 0.02  
 transcription_turnover: 0.001  
 ```
-
 'Slow'  
 ```
 loci: 1  
@@ -244,6 +243,21 @@ NoisyParameterSpaceCV.R
 
 #### Figure 5A, 5B
 Choose several methylation rates logarithmically spaced over range of bistable models (with P_T=0.333) i.e. 4 above 8 x 10^-6 and three below 8 x 10^-6. Then select demethylation rate based on maximum FP. Simulate a large number of loci at high resolution for many different noise strengths.
+
+(methylation, demethylation)
+
+Faster
+(0.000128,0.3)  
+(0.000064,0.1)  
+(0.000032,0.07)  
+(0.000016,0.03)  
+
+Fitted
+(0.000008,0.004)  
+
+Slower
+(0.0000056,0.001)  
+(0.000004,0.001)  
 
 ### Individual examples
 

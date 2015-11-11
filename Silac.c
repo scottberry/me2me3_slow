@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 30;
+  p.optimSteps = 15;
 
   /* SILAC specific parameters */
   p.silacExperiment = TRUE;
@@ -112,8 +112,8 @@ int main(int argc, char *argv[]) {
 	  
         // setseed(&p,p.seed);
                       
-         P_DEMETHYLATE = pow(10,-0.1*(p2+5));
-         P_METHYLATE = pow(10,-0.1*(p3+25));
+         P_DEMETHYLATE = pow(10,-0.2*(p2+3));
+         P_METHYLATE = pow(10,-0.2*(p3+13));
 
          FIRING = 0.0001*40;
          //P_DEMETHYLATE = 0.02;
