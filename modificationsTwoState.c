@@ -33,4 +33,17 @@ void demethylate(chromatin *c, parameters *p, flags *update, int pos) {
   return;
 }
 
+void replicateDNA(chromatin *c, parameters *p, flags *update) {
+  unsigned long pos;
+  for (pos=0;pos<c->sites;pos+=2) {
+    // note +=2 in loop implies only check once per nucleosome
+    if(runif(p->gsl_r)<=0.5) {
+      // replace with unmodified nucleosome
+      c->K27->el[pos] = me0;
+      c->K27->el[pos+1] = me0;
+    }
+  }
+  update->histone = TRUE;
+  return;
+}
 

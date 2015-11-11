@@ -749,7 +749,6 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"firingRateMin: %0.10f\n", p->firingRateMin);
   fprintf(fptr,"firingThreshold: %0.10f\n", p->firingThreshold);
   fprintf(fptr,"transcription_demethylate: %0.10f\n", p->transcription_demethylate);
-  fprintf(fptr,"noisy_demethylate: %0.10f\n", p->noisy_demethylate);
   
   return(1);
 }

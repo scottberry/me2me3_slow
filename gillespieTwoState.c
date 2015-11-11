@@ -237,37 +237,72 @@ void gillespieStep(chromatin *c, parameters *p, gillespie *g, record *r) {
   // reaction selection).
   delta_t = gillespieTimeStep(p,g,&p_s);
   next_t = delta_t + r->t->el[step-1];
+
   
-  // Gillespie reaction selection.
-  // ------------------------------
+  /* Determine if the new time is after DNA replication. If so,
+     interrupt Gillespie algorithm to replicate DNA (at a precise
+     time). If not, proceed with Gillespie reaction selection. */
   
-  // store new (stochastically chosen) time
-  r->t->el[step] = next_t;
-  
-  // choose reaction m from propensities based on scaled_r2
-  r2 = runif(p->gsl_r);
-  scaled_r2 = p_s*r2;
-  
-  sum = 0;
-  m = 0;
-  
-  if (scaled_r2 > g->propensity->el[0]) { // protect against r2==0.0
-    while (scaled_r2 > sum) {
-      sum += g->propensity->el[m];
-      m++;
+  if (next_t > g->t_nextRep) {
+
+    // DNA replication.
+    // ------------------------------
+
+    // increment counters and record new system time
+    p->cellCycleCount++;
+    r->t->el[step] = g->t_nextRep;
+
+    // Update Silac Label
+    if (p->silacExperiment == TRUE) {
+      if (p->cellCycleCount > p->silacLightCycles)
+        p->silacLabel = HEAVY;
+      if (p->cellCycleCount > p->silacLightCycles + p->silacHeavyCycles)
+        p->silacLabel = UNLABELLED;
     }
-    m--;
+    
+    // replicate DNA
+    if (p->DNAreplication == TRUE)  {
+      replicateDNA(c,p,g->update);
+    }
+    
+    // schedule next DNA replication
+    g->t_nextRep += p->cellCycleDuration*3600;
+    
+    // fprintf(stderr,"replicate: t = %0.2f hours\n",r->t->el[step]/3600.0);
+    
   } else {
-    m=0;
-  }
-  g->doReaction[m](c,p,g->update,g->doReactionParam->el[m]);
-  
-  // record time of each firing event
-  if (g->update->transcribed == TRUE) {
-    r->firing->el[p->reactCount] = TRUE;
-    g->update->transcribed = FALSE;
-  } else {
-    r->firing->el[p->reactCount] = FALSE;
+    
+    // Gillespie reaction selection.
+    // ------------------------------
+    
+    // store new (stochastically chosen) time
+    r->t->el[step] = next_t;
+    
+    // choose reaction m from propensities based on scaled_r2
+    r2 = runif(p->gsl_r);
+    scaled_r2 = p_s*r2;
+
+    sum = 0;
+    m = 0;
+
+    if (scaled_r2 > g->propensity->el[0]) { // protect against r2==0.0
+      while (scaled_r2 > sum) {
+        sum += g->propensity->el[m];
+        m++;
+      }
+      m--;
+    } else {
+      m=0;
+    }
+    g->doReaction[m](c,p,g->update,g->doReactionParam->el[m]);
+
+    // record time of each firing event
+    if (g->update->transcribed == TRUE) {
+      r->firing->el[p->reactCount] = TRUE;
+      g->update->transcribed = FALSE;
+    } else {
+      r->firing->el[p->reactCount] = FALSE;
+    }
   }
   
   return;
