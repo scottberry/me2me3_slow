@@ -99,6 +99,36 @@ Processivity in methylation and demethylation is incorporated through variant fu
 `./ProcMeth -h{exchange} -r -t1.0 -i Proc_Meth`  
 `./ProcDemeth -h{exchange} -r -t1.0 -i Proc_Demeth`
 
+Note: need to recompile for ProcMeth as methylation rate range is divided by 10 to account for faster methylation of me0 substrates than me3 substrates.
+
+**Other parameters:**
+```
+Program name: ./HistoneTurnover  
+Operating system: Mac OS  
+sites: 60  
+controlSites: 60  
+loci: 200  
+maxReact: 200000  
+samples: 200000  
+optimSteps: 60  
+DNAreplication: TRUE  
+resultsLastHour: TRUE  
+SILAC: FALSE  
+cellCycleDuration: 22.00 hours  
+cellCycles: 50  
+me2_me3: 10^-0.05*([50,109]);
+firingRateMax: 0.0001*pow(2,[1,6]);  
+firingRateMin: 0.0001000000  
+firingThreshold: 1.0 
+stochasticAlpha: FALSE  
+alpha: 1.0000  
+beta: 1.0000  
+transcription_demethylate: 10^-0.05*([8,67]);  
+transcription_turnover: 0.001  
+noisy_demethylate: 0.000002  
+Simulation time: 0.137020 seconds  
+```
+
 **Plots:**
 PlotParameterSpaceProcessive.R
 
@@ -181,6 +211,9 @@ The main executable Main.c (compiled as me2me3) is used for simulations with dif
 
 ### Variable noise parameter search
 
+#### Figure S6
+Parameter search over several values of methylation and demethylation rates to simulate a few noise levels 
+
 **Submission script:** noisy.sh
 contains the command
 `./me2me3 -t0.333 -r -h0.001 -n $noisy -i $noisy > noisy$noisy.txt 2>&1 &`
@@ -197,16 +230,20 @@ loci: 200
 maxReact: 1000000  
 samples: 1000000  
 optimSteps: 20  
-cellCycles: 20  
-me2_me3: [0.003,0.000004]  
+cellCycles: 25  
+me2_me3: [0.003,0.000004]
+firingRateMax: 0.004  
+firingRateMin: 0.0001  
 firingThreshold: 0.333  
 stochasticTranslationEfficiency: [1,2000]  
 transcription_demethylate: [0.25,0.0003]  
-transcription_turnover: 0.001  
+transcription_turnover: 0.001   
 ```
-
 **Plots**
 NoisyParameterSpaceCV.R
+
+#### Figure 5A, 5B
+Choose several methylation rates logarithmically spaced over range of bistable models (with P_T=0.333) i.e. 4 above 8 x 10^-6 and three below 8 x 10^-6. Then select demethylation rate based on maximum FP. Simulate a large number of loci at high resolution for many different noise strengths.
 
 ### Individual examples
 
