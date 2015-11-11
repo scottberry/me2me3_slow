@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
 
   c.sites = 60;
   p.loci = 1;
-  p.maxReact = 40000;
-  p.samples = 40000; 
+  p.maxReact = 200000;
+  p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
