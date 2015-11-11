@@ -769,7 +769,7 @@ double tAverage_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
 
   cycle = 1;
   t_end = (double)cycle * p->cellCycleDuration * 3600;
-  while (t_end < r->t_outLastSample-1) { // check t_end in range
+  while (t_end < r->tMax) { // check t_end in range
     // find last sample in each cell cycle
     sample = lastSample = 0;
     while (r->t_out->el[sample] < t_end) {
@@ -783,13 +783,13 @@ double tAverage_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r) {
         sumM++;
     }
     Mavg += (double)sumM/c->sites;
-
+    
     // increment cycle and t_end
     cycle++;
     t_end = (double)cycle * p->cellCycleDuration * 3600;
   }
   
-  return(Mavg/(cycle-1));
+  return(Mavg/(double)(cycle-1));
 }
 
 /* Calculate the number of times the K27 switches from high me0/me1
