@@ -117,24 +117,9 @@ int main(int argc, char *argv[]) {
         // Methylation/demethylation
         // -------------------------
         /* 5% noise. Represents basal activity of unstimulated PRC2 */
-        p.noisy_me0_me1 = 0.0;
-        p.noisy_me1_me2 = 0.0;
         p.noisy_me2_me3 = P_METHYLATE/20.0;
-        
-        /* ratio of 9:6:1 in "specificity constant" k_cat/K_M
-           \cite{McCabe:2012kk} \cite{Sneeringer:2010dj} */
-        p.me0_me1 = 0.0; 
-        p.me1_me2 = 0.0;
         p.me2_me3 = P_METHYLATE;
         
-        /* 2 - 2.5 fold lower Kd for K27me3 than K27me2, together with
-           4 - 5 fold allosteric activation give a me2/me3 "factor"
-           of 10. That is, me3 is 10-times more likely to stimulate a
-           methyl addition on a nearby nucleosome.
-           \cite{Margueron:2009el} */
-        p.me2factor = 0.0; 
-        p.me3factor = 0.0;
-
         // Reset results to zero for each parameter set
         resetQuantification(&q);
 
