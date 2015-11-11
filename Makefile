@@ -16,13 +16,16 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ = random.o modifications.o nonprocessive.o gillespie.o results.o parse.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
+_OBJTWOSTATE = random.o modificationsTwoState.o gillespieTwoState.o resultsTwoState.o parse.o
+OBJTWOSTATE = $(patsubst %,$(ODIR)/%,$(_OBJTWOSTATE))
+
 _OBJPROCMETH = random.o modifications.o processive_methylation.o gillespie.o results.o parse.o
 OBJPROCMETH = $(patsubst %,$(ODIR)/%,$(_OBJPROCMETH))
 
 _OBJPROCDEMETH = random.o modifications.o processive_demethylation.o gillespie.o results.o parse.o
 OBJPROCDEMETH = $(patsubst %,$(ODIR)/%,$(_OBJPROCDEMETH))
 
-all: $(STATLIB) $(OBJ) me2me3 Dynamic HistoneTurnover ProcMeth ProcDemeth Silac Tests ConstTimeInterpolate
+all: $(STATLIB) $(OBJ) me2me3 TwoState Dynamic HistoneTurnover ProcMeth ProcDemeth Silac Tests ConstTimeInterpolate
 
 # make libscottsmatrices object file
 $(LDIR)/scottsmatrices.o: $(LDIR)/scottsmatrices.c $(DEPS)
@@ -38,6 +41,9 @@ $(ODIR)/%.o: %.c $(DEPS)
 
 # make executables
 me2me3: $(ODIR)/Main.o $(STATLIB) $(OBJ)
+	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
+
+TwoState: $(ODIR)/TwoState.o $(STATLIB) $(OBJTWOSTATE)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 Dynamic: $(ODIR)/Dynamic.o $(STATLIB) $(OBJ)
@@ -67,7 +73,7 @@ clean:
 	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ 
 
 empty:
-	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 Tests ConstTimeInterpolate Silac ProcMeth ProcDemeth HistoneTurnover Dynamic
+	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 TwoState Tests ConstTimeInterpolate Silac ProcMeth ProcDemeth HistoneTurnover Dynamic
 
 nores:
 	rm -f *.txt *.out

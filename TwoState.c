@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
   record r;
   quantification q;
   long i, j, locus;
-  double FIRING, P_DEMETHYLATE, P_METHYLATE, BURST, MEAN;
+  double FIRING, P_DEMETHYLATE, P_METHYLATE;
   int p1, p2, p3;
 
   /* Code timing */
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 200;
+  p.loci = 20;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -46,17 +46,12 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 60; 
-
-  /* SILAC specific parameters */
-  p.silacExperiment = FALSE;
-  p.silacLightCycles = 0;
-  p.silacHeavyCycles = 0;
+  p.optimSteps = 30; 
   
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = FALSE;
+  p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.stochasticAlpha = FALSE;
   g.test = FALSE;
@@ -84,8 +79,6 @@ int main(int argc, char *argv[]) {
   /* allocate memory and initialise gillespie algorithm */
   allocateGillespieMemory(&c,&p,&g,&r);
   initialiseGillespieFunctions(&c,&g);
-  if (p.stochasticAlpha == TRUE)
-    initialiseGillespieFunctionsTransFactor(&c,&g);
 
   /* -------------------------- */
   /* Start loop over parameters */
@@ -97,15 +90,13 @@ int main(int argc, char *argv[]) {
         //setseed(&p,p.seed);
         
         FIRING = 0.0001*pow(2,p1);
-        P_DEMETHYLATE = pow(10,-0.05*(p2+8));
-        P_METHYLATE = pow(10,-0.05*(p3+50));
+        P_DEMETHYLATE = pow(10,-0.2*(p2+2));
+        P_METHYLATE = pow(10,-0.2*(p3+12));
              
         // FIRING = 0.0001*20.0;
         // P_DEMETHYLATE = 0.008; // 0.005 or 0.05
         // P_METHYLATE = 0.000008; // 0.000008 or 0.00002
 
-        // p.alpha = 100.0*pow(10,-0.05*p2);
-        
         // Transcription
         // -------------
         /* Leave the repressed firing rate fixed at ~ every 60 min. */
@@ -126,14 +117,14 @@ int main(int argc, char *argv[]) {
         // Methylation/demethylation
         // -------------------------
         /* 5% noise. Represents basal activity of unstimulated PRC2 */
-        p.noisy_me0_me1 = 9.0*P_METHYLATE/20.0;
-        p.noisy_me1_me2 = 6.0*P_METHYLATE/20.0;
+        p.noisy_me0_me1 = 0.0;
+        p.noisy_me1_me2 = 0.0;
         p.noisy_me2_me3 = P_METHYLATE/20.0;
         
         /* ratio of 9:6:1 in "specificity constant" k_cat/K_M
            \cite{McCabe:2012kk} \cite{Sneeringer:2010dj} */
-        p.me0_me1 = 9.0*P_METHYLATE; 
-        p.me1_me2 = 6.0*P_METHYLATE; 
+        p.me0_me1 = 0.0; 
+        p.me1_me2 = 0.0;
         p.me2_me3 = P_METHYLATE;
         
         /* 2 - 2.5 fold lower Kd for K27me3 than K27me2, together with
@@ -141,28 +132,8 @@ int main(int argc, char *argv[]) {
            of 10. That is, me3 is 10-times more likely to stimulate a
            methyl addition on a nearby nucleosome.
            \cite{Margueron:2009el} */
-        p.me2factor = 0.1; 
-        p.me3factor = 1.0;
-
-        // Stochastic alpha
-        // ----------------
-        if (p.stochasticAlpha == TRUE) {
-          BURST = p.stochasticTranslationEfficiency;
-          MEAN = 1000.0;
-
-          /* <p> = k_r * burst / gamma_p,
-             where burst = k_p/gamma_r */
-          p.gamma_r = 1.0/(2.0*3600.0);
-          p.gamma_p = 1.0/(12.0*3600.0);
-          p.k_r = p.gamma_p * MEAN / BURST;
-          p.k_p = p.gamma_r * BURST;
-
-          p.transFactorRNA = floor(p.k_r/p.gamma_r);
-          p.transFactorProtein = floor(MEAN);
-        }
-
-        /* noisy demethylation independent of transcription */
-        p.noisy_demethylate = P_DEMETHYLATE*p.firingRateMin;
+        p.me2factor = 0.0; 
+        p.me3factor = 0.0;
 
         // Reset results to zero for each parameter set
         resetQuantification(&q);
@@ -200,11 +171,6 @@ int main(int argc, char *argv[]) {
               r.t_outLastSample = p.sampleCount;
               for (j=0;j<(c.sites);j++)
                 r.K27->el[j][p.sampleCount] = c.K27->el[j];
-              if (p.stochasticAlpha == TRUE) {
-                r.transFactorProtein->el[p.sampleCount] = p.transFactorProtein;
-                r.transFactorRNA->el[p.sampleCount] = p.transFactorRNA;
-                r.alpha->el[p.sampleCount] = p.alpha;
-              }
               p.sampleCount++;
             }
             r.tMax = r.t->el[p.reactCount];
@@ -226,13 +192,6 @@ int main(int argc, char *argv[]) {
   /* print final results */
   if (p.resultsFinalLocus == TRUE) {
     fprintResultsFinalLocus(avgfile,&r);
-
-    if (p.stochasticAlpha == TRUE) {
-      strcpy(fname,"alpha_\0"); strcat(fname,avgfile);
-      fprint_transFactorProtein_nCycles(fname,&r);
-      strcpy(fname,"alphaOnly_\0"); strcat(fname,avgfile);
-      fprint_alphaOnly_nCycles(fname,&r);
-    }
   }
   /* write log file */
   strcpy(fname,"Log_\0"); strcat(fname,avgfile);
