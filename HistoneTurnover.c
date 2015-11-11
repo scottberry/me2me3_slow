@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 20;
+  p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
   p.optimSteps = 60; 
 
