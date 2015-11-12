@@ -59,6 +59,8 @@ int main(int argc, char *argv[]) {
   p.resultsLastHourOnly = TRUE;
   p.resultsFinalLocus = FALSE;
   p.checkHistoneTurnover = FALSE;
+  p.stochasticAlpha = FALSE;
+  p.countFiringEvents = FALSE;
   g.test = FALSE;
   
   /* Parse command line */
