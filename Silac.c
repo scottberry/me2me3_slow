@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
   p.resultsFinalLocus = FALSE;
+  p.resultsSilacEachLocus = FALSE;
   p.checkHistoneTurnover = FALSE;
   p.stochasticAlpha = FALSE;
   p.countFiringEvents = FALSE;
