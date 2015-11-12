@@ -10,7 +10,7 @@ setwd("~/local/Modelling/me2me3_slow/")
 
 s <- 60
 ctrl <- 60
-cc <- 20
+cc <- 10
 a <- 1.0
 b <- 1.0
 turn <- 0.001

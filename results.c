@@ -103,8 +103,8 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
   q->tTot += r->t->el[p->reactCount];
 
   if (p->stochasticAlpha == TRUE) {
-    q->alphaMean += tAverageAlpha(r)/p->loci;
-    q->alphaSD += tAverageAlphaSD(r,q->alphaMean)/p->loci;
+    q->alphaMean += tAverageAlpha(r);
+    q->alphaSD += tAverageAlphaSD(r);
   }
 
   if (p->checkHistoneTurnover == TRUE) {
@@ -227,8 +227,8 @@ void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, qua
           p->transcription_turnover,
           c->controlSites,
           p->alpha,
-          q->alphaMean,
-          q->alphaSD,
+          q->alphaMean/p->loci,
+          q->alphaSD/p->loci,
           p->beta,
           q->gap/p->loci,
           q->Mavg/p->loci,
@@ -261,8 +261,8 @@ void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, qua
           p->transcription_turnover,
           c->controlSites,
           p->alpha,
-          q->alphaMean,
-          q->alphaSD,
+          q->alphaMean/p->loci,
+          q->alphaSD/p->loci,
           p->beta,
           q->gap/p->loci,
           q->Mavg/p->loci,
@@ -1283,10 +1283,12 @@ double tAverageAlpha(record *r) {
 }
 
 /* Calculate standard deviation of alpha values over time */
-double tAverageAlphaSD(record *r, double mean) {
-  double var = 0.0, samplePoint = 0.0, sampleFreq;
+double tAverageAlphaSD(record *r) {
+  double mean, var = 0.0, samplePoint = 0.0, sampleFreq;
   long reaction = 0, nSamples;
 
+  mean = tAverageAlpha(r);
+  
   // sample the distribution at points evenly spaced in time
   nSamples = 100000;
   sampleFreq = r->tMax/(double)nSamples;

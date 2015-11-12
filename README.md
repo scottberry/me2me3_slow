@@ -144,15 +144,24 @@ p.resultsLastHourOnly = TRUE;
 p.resultsFinalLocus = FALSE;  
 p.checkHistoneTurnover = FALSE;  
 
-**Submission script:** bash script silac.sh peforms simulations initialised in the repressed state to calculate the fit to the Silac data for threshold [0.2,1.0]. The script then also submits simulations initialised in either the active or repressed state randomly (labelled _bal.txt for 'balanced').
+**Submission script:** bash script silac.sh peforms simulations initialised in the repressed state to calculate the fit to the Silac data for threshold [0.2,1.0]. The script then also submits simulations with equal number of loci initialised in either the active or repressed state (labelled _bal.txt for 'balanced').
 
 **Other parameters:**
 ```
 loci: 100  
 maxReact: 30000  
 samples: 30000  
-optimSteps: 30  
+optimSteps: 60  
 cellCycles: 20  
+```
+
+```c
+for (p2=14;p2<p.optimSteps;p2++) {
+	for (p3=24;p3<p.optimSteps;p3++) {
+		P_DEMETHYLATE = pow(10,-0.05*(p2+8));
+		P_METHYLATE = pow(10,-0.05*(p3+50));
+	}
+}
 ```
 
 **Plots:**
@@ -162,7 +171,7 @@ cellCycles: 20
 
 ### Silac example loci
 
-All 1000 loci are individually simulated and processed using an R script. The first 20 are over-plotted and then all 1000 are averaged and plotted together with the experimental data
+All 1000 loci are individually simulated and processed using an R script. The first 20 are over-plotted to show stochastic variation and then all 1000 are averaged and plotted together with the experimental data.
 
 **Submission script:** individualsSilac.sh
 contains the command `./Silac -r -m -s -i $i -t1 -h0.001 > $i.out 2>&1 &`
@@ -258,6 +267,18 @@ Fitted
 Slower
 (0.0000056,0.001)  
 (0.000004,0.001)  
+
+Noise levels:
+n = 1, SD = 0.04
+n = 10, SD = 0.09
+n = 100, SD = 0.28
+n= 200, SD = 0.4
+n = 500, SD = 0.6
+n = 1000, SD = 0.9
+
+R script to interpolate these values (CorrelateNoiseWithSD.R) gives rise to the ~ squared relationship between SD and n. Use the following noise values to yield  evenly spaced points on SD-axis.
+
+1    2    9   23   43   71  106  149  200  259  327  404  489  583  687  799, 922 1053 1195 1346 1507
 
 ### Individual examples
 

@@ -249,6 +249,6 @@ void fprintSilacResultsRelativeFinalLocus(char *avgfile, record *r);
 void fprint_transFactorProtein_nCycles(char *fname, record *r);
 void fprint_alphaOnly_nCycles(char *fname, record *r);
 double tAverageAlpha(record *r);
-double tAverageAlphaSD(record *r, double mean);
+double tAverageAlphaSD(record *r);
 long countFiringEventsLastCellCycle(parameters *p, record *r);
 void resetFiringRecord(record *r);
