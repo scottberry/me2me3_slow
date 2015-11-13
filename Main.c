@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 1000;
+  p.loci = 1;
   p.maxReact = 1000000;
   p.samples = 1000000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = FALSE;
+  p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.stochasticAlpha = TRUE;
   g.test = FALSE;
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
   demeth->el[4] = 0.001;
   demeth->el[5] = 0.001;
   
-  for (p1=0;p1<6;p1++) { // 7
+  for (p1=0;p1<1;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
@@ -120,8 +120,10 @@ int main(int argc, char *argv[]) {
         // P_METHYLATE = pow(10,-0.15*(p3+19));
              
         FIRING = 0.0001*40.0;
-        P_DEMETHYLATE = demeth->el[p1];
-        P_METHYLATE = meth->el[p1];
+        // P_DEMETHYLATE = demeth->el[p1];
+        // P_METHYLATE = meth->el[p1];
+        P_DEMETHYLATE = 0.004;
+        P_METHYLATE = 0.000008;
         
         // Transcription
         // -------------
