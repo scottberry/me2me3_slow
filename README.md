@@ -247,6 +247,13 @@ stochasticTranslationEfficiency: [1,2000]
 transcription_demethylate: [0.25,0.0003]  
 transcription_turnover: 0.001   
 ```
+
+```c
+optimSteps: 18
+P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+P_METHYLATE = pow(10,-0.15*(p3+19));
+```
+
 **Plots**
 NoisyParameterSpaceCV.R
 
