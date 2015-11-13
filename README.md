@@ -248,6 +248,8 @@ transcription_demethylate: [0.25,0.0003]
 transcription_turnover: 0.001   
 ```
 
+Started 100 loci each on howard16a and howard16c (estimated 3 hours)
+
 ```c
 optimSteps: 18
 P_DEMETHYLATE = pow(10,-0.15*(p2+4));
@@ -285,7 +287,7 @@ n = 1000, SD = 0.9
 
 R script to interpolate these values (CorrelateNoiseWithSD.R) gives rise to the ~ squared relationship between SD and n. Use the following noise values to yield  evenly spaced points on SD-axis.
 
-1    2    9   23   43   71  106  149  200  259  327  404  489  583  687  799, 922 1053 1195 1346 1507
+1    2    9   23   43   71  106  149  200  259  327  404  489  583  687  799 922 1053 1195 1346
 
 ### Individual examples
 

@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 1;
+  p.loci = 500;
   p.maxReact = 1000000;
   p.samples = 1000000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 25;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 18; 
+  p.optimSteps = 1; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -97,14 +97,12 @@ int main(int argc, char *argv[]) {
         //setseed(&p,p.seed);
         
         // FIRING = 0.0001*pow(2,p1);
-        P_DEMETHYLATE = pow(10,-0.15*(p2+4));
-        P_METHYLATE = pow(10,-0.15*(p3+19));
+        // P_DEMETHYLATE = pow(10,-0.15*(p2+4));
+        // P_METHYLATE = pow(10,-0.15*(p3+19));
              
         FIRING = 0.0001*40.0;
-        // P_DEMETHYLATE = 0.005; // 0.005 or 0.05
-        // P_METHYLATE = 0.000008; // 0.000008 or 0.00002
-
-        // p.alpha = 100.0*pow(10,-0.05*p2);
+        P_DEMETHYLATE = 0.3;
+        P_METHYLATE = 0.000128;
         
         // Transcription
         // -------------
