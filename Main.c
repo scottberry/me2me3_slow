@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
   long i, j, locus;
   double FIRING, P_DEMETHYLATE, P_METHYLATE, BURST, MEAN;
   int p1, p2, p3;
+  D_VEC *meth, *demeth;
 
   /* Code timing */
 #ifdef __APPLE__
@@ -38,13 +39,13 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 500;
+  p.loci = 1000;
   p.maxReact = 1000000;
   p.samples = 1000000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 25;
+  p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
   p.optimSteps = 1; 
 
@@ -90,7 +91,25 @@ int main(int argc, char *argv[]) {
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-  for (p1=1;p1<2;p1++) { // 7
+
+  meth = d_vec_get(6);
+  demeth = d_vec_get(6);
+
+  meth->el[0] = 0.000064;
+  meth->el[1] = 0.000032;
+  meth->el[2] = 0.000016;
+  meth->el[3] = 0.000008;
+  meth->el[4] = 0.0000056;
+  meth->el[5] = 0.000004;
+
+  demeth->el[0] = 0.1;
+  demeth->el[1] = 0.07;
+  demeth->el[2] = 0.03;
+  demeth->el[3] = 0.004;
+  demeth->el[4] = 0.001;
+  demeth->el[5] = 0.001;
+  
+  for (p1=0;p1<6;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
@@ -101,8 +120,8 @@ int main(int argc, char *argv[]) {
         // P_METHYLATE = pow(10,-0.15*(p3+19));
              
         FIRING = 0.0001*40.0;
-        P_DEMETHYLATE = 0.3;
-        P_METHYLATE = 0.000128;
+        P_DEMETHYLATE = demeth->el[p1];
+        P_METHYLATE = meth->el[p1];
         
         // Transcription
         // -------------
@@ -221,6 +240,9 @@ int main(int argc, char *argv[]) {
   /* end loop over parameters */
   fclose(parFile);
 
+  d_vec_free(meth);
+  d_vec_free(demeth);
+  
   /* print final results */
   if (p.resultsFinalLocus == TRUE) {
     fprintResultsFinalLocus(avgfile,&r);
