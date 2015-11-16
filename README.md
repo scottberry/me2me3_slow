@@ -42,6 +42,17 @@ transcription_demethylate: [0.25,0.00032]
 
 Simulation time: 24783.230469 seconds
 ```
+
+```c
+for (p2=0;p2<p.optimSteps;p2++) {
+	for (p3=0;p3<p.optimSteps;p3++) {
+		P_DEMETHYLATE = pow(10,-0.05*(p2+8));
+		P_METHYLATE = pow(10,-0.05*(p3+50));
+	}
+}
+```
+
+
 **Plots:** PlotParameterSpaceTurnover.R
 
 ## Histone exchange validation (Figure 3)
