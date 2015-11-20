@@ -39,15 +39,15 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 200;
-  p.maxReact = 200000;
-  p.samples = 200000; 
+  p.loci = 2;
+  p.maxReact = 20000000;
+  p.samples = 20000000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 50;
+  p.cellCycles = 2000;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 60; 
+  p.optimSteps = 81; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -109,21 +109,23 @@ int main(int argc, char *argv[]) {
   demeth->el[4] = 0.001;
   demeth->el[5] = 0.001;
   
-  for (p1=1;p1<7;p1++) { // 7
+  for (p1=0;p1<1;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=0;p3<p.optimSteps;p3++) {
+      for (p3=0;p3<1;p3++) {
 	  
         //setseed(&p,p.seed);
         
-        FIRING = 0.0001*pow(2,p1);
-        P_DEMETHYLATE = pow(10,-0.05*(p2+8));
-        P_METHYLATE = pow(10,-0.05*(p3+50));
+        // FIRING = 0.0001*pow(2,p1);
+        // P_DEMETHYLATE = pow(10,-0.05*(p2+8));
+        // P_METHYLATE = pow(10,-0.05*(p3+50));
              
-        // FIRING = 0.0001*40.0;
+        FIRING = 0.0001*40.0;
         // P_DEMETHYLATE = demeth->el[p1];
         // P_METHYLATE = meth->el[p1];
-        // P_DEMETHYLATE = 0.004;
-        // P_METHYLATE = 0.000008;
+        P_DEMETHYLATE = 0.004;
+        P_METHYLATE = 0.000008;
+
+        p.alpha = 100.0*pow(10,-0.05*p2);
         
         // Transcription
         // -------------
