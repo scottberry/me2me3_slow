@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
   p.checkHistoneTurnover = FALSE;
   p.stochasticAlpha = FALSE;
   p.countFiringEvents = TRUE;
@@ -114,8 +114,8 @@ int main(int argc, char *argv[]) {
         // ALPHA = 0.2*(p2+1);
         // BETA = 1.0 + 0.05*(p3-5); 
         
-        FIRING = 0.0001*20;
-        P_DEMETHYLATE = 0.008;
+        FIRING = 0.0001*40;
+        P_DEMETHYLATE = 0.004;
         P_METHYLATE = 0.000008;
 
         // Transcription
