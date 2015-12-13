@@ -39,15 +39,15 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 2;
-  p.maxReact = 20000000;
-  p.samples = 20000000; 
+  p.loci = 1;
+  p.maxReact = 200000;
+  p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 2000;
+  p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 81; 
+  p.optimSteps = 1; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -57,13 +57,15 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = FALSE;
+  p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.stochasticAlpha = FALSE;
   g.test = FALSE;
   
   /* Parse command line */
   parseCommandLine(argc,argv,&c,&p);
+
+  p.spatialResults = TRUE;
   
   /* Seed RNG */
   if (p.randomSeed == TRUE)
@@ -125,7 +127,7 @@ int main(int argc, char *argv[]) {
         P_DEMETHYLATE = 0.004;
         P_METHYLATE = 0.000008;
 
-        p.alpha = 100.0*pow(10,-0.05*p2);
+        //  p.alpha = 100.0*pow(10,-0.05*p2);
         
         // Transcription
         // -------------
@@ -243,7 +245,7 @@ int main(int argc, char *argv[]) {
   }
   /* end loop over parameters */
   fclose(parFile);
-
+  
   d_vec_free(meth);
   d_vec_free(demeth);
   
@@ -251,6 +253,13 @@ int main(int argc, char *argv[]) {
   if (p.resultsFinalLocus == TRUE) {
     fprintResultsFinalLocus(avgfile,&r);
 
+    if (p.spatialResults == TRUE) {
+      strcpy(fname,"spatial_\0"); strcat(fname,avgfile);
+      fptr = fopen(fname,"w");
+      fprintSpatialResults(fptr,&r);
+      fclose(fptr);
+    }
+    
     if (p.stochasticAlpha == TRUE) {
       strcpy(fname,"alpha_\0"); strcat(fname,avgfile);
       fprint_transFactorProtein_nCycles(fname,&r);

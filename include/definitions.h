@@ -79,7 +79,7 @@ typedef struct {
   unsigned long loci, reactCount, maxReact;
   unsigned long samples, sampleFreq, sampleCount;
   unsigned long optimSteps;
-  logical DNAreplication, resultsLastHourOnly, resultsFinalLocus;
+  logical DNAreplication, resultsLastHourOnly, resultsFinalLocus, spatialResults;
   logical checkHistoneTurnover, countFiringEvents;
   char id[128];
   char executable[128];
@@ -252,3 +252,4 @@ double tAverageAlpha(record *r);
 double tAverageAlphaSD(record *r);
 long countFiringEventsLastCellCycle(parameters *p, record *r);
 void resetFiringRecord(record *r);
+void fprintSpatialResults(FILE *fptr, record *r);

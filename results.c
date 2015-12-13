@@ -1327,3 +1327,16 @@ void resetFiringRecord(record *r) {
     r->firing->el[i]=FALSE;
   return;
 }
+
+/* Print a spatially-resolved time-course for a single locus */
+void fprintSpatialResults(FILE *fptr, record *r) {
+  long t, pos;
+  fprintf(fptr,"i, pos, t, K27\n");
+  for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
+    for (pos=0;pos<r->K27->rows;pos++) {
+      fprintf(fptr,"%ld, %ld, %0.4f, %ld\n",t,pos,r->t_out->el[t],r->K27->el[pos][t]);
+    }
+  }
+  return;
+}
+

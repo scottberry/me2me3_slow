@@ -29,6 +29,8 @@ void parseCommandLine(int argc, char *const *argv, chromatin *c, parameters *p) 
   int j;
   char buffer[256]="";
 
+  p->spatialResults = FALSE;
+  
   /* set defaults */
   c->controlSites = c->sites;
   p->alpha = 1.0;
