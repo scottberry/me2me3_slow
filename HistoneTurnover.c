@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 10;
+  p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
   p.optimSteps = 1; 
 
@@ -99,11 +99,9 @@ int main(int argc, char *argv[]) {
         // P_DEMETHYLATE = pow(10,-0.05*(p2+8));
         // P_METHYLATE = pow(10,-0.05*(p3+50));
 
-        FIRING = 0.0001*64.0;
-        P_DEMETHYLATE = 0.1;
-        P_METHYLATE = 0.0001;
-        
-        // Transcription
+        FIRING = 0.0001*40.0;
+        P_DEMETHYLATE = 0.02;
+        P_METHYLATE = 0.00003;
         // -------------
         /* Leave the repressed firing rate fixed at ~ every 2.8 hours */
         p.firingRateMin = 0.0001; 
