@@ -153,7 +153,7 @@ typedef struct {
   double probM, probU, bistability;
   double totalHistoneTurnover;
   double alphaSD, alphaMean;
-  double fracH3_1, fracH3_3;
+  double fracH3_3_M, fracH3_3_U, avgH3_3_M, avgH3_3_U;
   long long firingEvents;
 } quantification;
 
@@ -223,6 +223,7 @@ void fprint_firing_t_nCycles(char *fname, record *r);
 double tAverageGap_nCycles(chromatin *c, parameters *p, record *r);
 double tAverageGap_lastHour_nCycles(chromatin *c, parameters *p, record *r);
 double tAverageVariant_lastHour_nCycles(chromatin *c, parameters *p, record *r, int variant_target);
+double tAverageVariant_nCycles(chromatin *c, parameters *p, record *r, int variant_target);
 double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r);
 double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r);
 double prob_me2_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r);

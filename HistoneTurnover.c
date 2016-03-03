@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 1;
+  p.loci = 2;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 1; 
+  p.optimSteps = 60; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
   p.checkHistoneTurnover = TRUE;
   p.stochasticAlpha = FALSE;
   p.countFiringEvents = FALSE;
@@ -89,19 +89,19 @@ int main(int argc, char *argv[]) {
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-  for (p1=1;p1<2;p1++) { // 7
+  for (p1=1;p1<7;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         //setseed(&p,p.seed);
 
-        // FIRING = 0.0001*pow(2,p1);
-        // P_DEMETHYLATE = pow(10,-0.05*(p2+8));
-        // P_METHYLATE = pow(10,-0.05*(p3+50));
+        FIRING = 0.0001*pow(2,p1);
+        P_DEMETHYLATE = pow(10,-0.05*(p2+8));
+        P_METHYLATE = pow(10,-0.05*(p3+50));
 
-        FIRING = 0.0001*40.0;
-        P_DEMETHYLATE = 0.02;
-        P_METHYLATE = 0.00003;
+        // FIRING = 0.0001*40.0;
+        // P_DEMETHYLATE = 0.02;
+        // P_METHYLATE = 0.00003;
         // -------------
         /* Leave the repressed firing rate fixed at ~ every 2.8 hours */
         p.firingRateMin = 0.0001; 
@@ -230,11 +230,6 @@ int main(int argc, char *argv[]) {
     turnPtr = fopen(fname,"w");
     fprintHistoneTurnover(turnPtr,&p,&r);
     fclose(turnPtr);
-    strcpy(fname,"variant_\0"); strcat(fname,avgfile);
-    turnPtr = fopen(fname,"w");
-    fprintf(turnPtr,"H3_1\tH3_3\n");
-    fprintf(turnPtr,"%0.4f\t%0.4f\n",q.fracH3_1/p.loci,q.fracH3_3/p.loci);
-    fclose(turnPtr);    
   }
 
   /* write log file */

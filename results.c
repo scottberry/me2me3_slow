@@ -73,8 +73,10 @@ void resetQuantification(quantification *q) {
   q->initM = q->initU = 0;
   q->firstPassageM = q->firstPassageU = 0.0;
   q->totalHistoneTurnover = 0.0;
-  q->fracH3_1 = 0.0;
-  q->fracH3_3 = 0.0;
+  //  q->variantM = 0.0;
+  //  q->variantU = 0.0;
+  q->fracH3_3_M = 0.0;
+  q->fracH3_3_U = 0.0;
   q->alphaSD = 0.0;
   q->alphaMean = 0.0;
   q->firingEvents = 0;
@@ -107,11 +109,6 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
     q->alphaSD += tAverageAlphaSD(r);
   }
 
-  if (p->checkHistoneTurnover == TRUE) {
-    q->fracH3_1 += tAverageVariant_lastHour_nCycles(c,p,r,H3_1);
-    q->fracH3_3 += tAverageVariant_lastHour_nCycles(c,p,r,H3_3);
-  }
-
   if (p->countFiringEvents==TRUE)
     q->firingEvents += countFiringEventsLastCellCycle(p,r);
   
@@ -132,6 +129,14 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
     q->initU++;
     q->tTotU += r->t->el[p->reactCount];
   }
+
+  if (p->checkHistoneTurnover == TRUE) {
+    if (q->initial==-1) {
+      q->fracH3_3_M += tAverageVariant_nCycles(c,p,r,H3_3);
+    } else {
+      q->fracH3_3_U += tAverageVariant_nCycles(c,p,r,H3_3);
+    }
+  }
   
   return;
 }
@@ -146,19 +151,27 @@ void averageQuantification(chromatin *c, parameters *p, record *r, quantificatio
   if (q->initM != 0) {
     q->fpM = q->firstPassageM/q->initM;
     q->tM = q->tTotM/q->initM;
+    if (p->checkHistoneTurnover == TRUE) {
+      q->avgH3_3_M = q->fracH3_3_M/q->initM;
+    }
   } else {
     q->fpM = -1.0;
     q->tM = -1.0;
+    q->avgH3_3_M = -1.0;
   }
 
   if (q->initU != 0) {
     q->fpU= q->firstPassageU/q->initU;
     q->tU = q->tTotU/q->initU;
+    if (p->checkHistoneTurnover == TRUE) {
+      q->avgH3_3_U = q->fracH3_3_U/q->initU;
+    }
   } else {
     q->fpU = -1.0;
     q->tU = -1.0;
+    q->avgH3_3_U = -1.0;
   }
-
+  
   return;
 }
 
@@ -200,13 +213,15 @@ void fprintParameterSpaceHeader(FILE *parFile) {
 \tcontrolSites\talpha\talphaMean\
 \talphaSD\tbeta\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\tfiringEvents\n");
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\
+\tfiringEvents\tavgH3_3_M\tavgH3_3_U\n");
   fprintf(stderr,"me0_me1\tme1_me2\tme2_me3\tme2factor\tme3factor\tFIRING\
 \tFIRING_THRESHOLD\tP_DEMETHYLATE\tP_METHYLATE\tP_TURNOVER\
 \tcontrolSites\talpha\talphaMean\
 \talphaSD\tbeta\tgap\tMavg\
 \tlifetime\tinitM\tfirstPassageM\tavgInitM\tinitU\tfirstPassageU\
-\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\tfiringEvents\n");
+\tavgInitU\ttTot\tprobM\tprobU\tbistability\tme3_end\ttotTurnover\
+\tfiringEvents\tavgH3_3_M\tavgH3_3_U\n");
   return;
 }
 
@@ -214,7 +229,7 @@ void fprintParameterSpaceHeader(FILE *parFile) {
 void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, quantification *q) {        
   fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%0.10f\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
-\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\t%0.10f\t%0.10Lf\n",
+\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\t%0.10f\t%0.10Lf\t%0.6f\t%0.6f\n",
           p->me0_me1,
           p->me1_me2,
           p->me2_me3,
@@ -245,10 +260,12 @@ void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, qua
           q->bistability,
           q->me3_end/p->loci,
           q->totalHistoneTurnover/p->loci,
-          (long double)q->firingEvents/(double)p->loci);
+          (long double)q->firingEvents/(double)p->loci,
+          q->avgH3_3_M,
+          q->avgH3_3_U);
   fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
-%0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.10f  %0.10Lf\n",
+%0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.10f  %0.10Lf  %0.6f  %0.6f\n",
           p->me0_me1,
           p->me1_me2,
           p->me2_me3,
@@ -279,7 +296,9 @@ void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, qua
           q->bistability,
           q->me3_end/p->loci,
           q->totalHistoneTurnover/p->loci,
-          (long double)q->firingEvents/(double)p->loci);
+          (long double)q->firingEvents/(double)p->loci,
+          q->avgH3_3_M,
+          q->avgH3_3_U);
   return;
 }
 
@@ -518,6 +537,27 @@ double tAverageVariant_lastHour_nCycles(chromatin *c, parameters *p, record *r, 
   if (time_total == 0.0)
     fprintf(stderr,"Error: tAverageVariant_lastHour_nCycles. No samples for last hour of cell cycle.\n");
 
+  return(frac/time_total);
+}
+
+double tAverageVariant_nCycles(chromatin *c, parameters *p, record *r, int variant_target) {
+  long sum = 0, t, pos;
+  double frac = 0.0, time_total = 0.0;
+
+  for (t=0;t<r->variant->cols-1 && t<r->t_outLastSample-1;t++) {
+    sum = 0;
+    for (pos=0;pos<r->variant->rows;pos++) {
+      if (r->variant->el[pos][t]==variant_target)
+        sum++;
+    }
+    frac += (double)sum*(r->t_out->el[t+1]-r->t_out->el[t])/(double)r->variant->rows;
+    //fprintf(stderr,"t = %0.4f, frac = %0.4f \n",r->t_out->el[t],frac);
+    time_total += r->t_out->el[t+1] - r->t_out->el[t];
+  }
+
+  if (time_total == 0.0)
+    fprintf(stderr,"Error: tAverageVariant_nCycles. No samples.\n");
+  
   return(frac/time_total);
 }
 
