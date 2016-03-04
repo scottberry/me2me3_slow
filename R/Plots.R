@@ -8,7 +8,6 @@ four_color <- c(cbPalette[7],cbPalette[2],cbPalette[4],cbPalette[6])
 # Set the working directory
 setwd("~/local/Modelling/me2me3_slow/")
 
-"Firing_t_s60ctrl60cc20a1_00b1_00thresh0_33turn0_00100000Rep_st1_repressed.txt"
 s <- 60
 ctrl <- 60
 cc <- 20
@@ -18,7 +17,7 @@ f <- 0.333
 turn <- 0.001
 rep <- "Rep"
 st <- 1
-id <- "_active"
+id <- ""
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
@@ -33,8 +32,10 @@ tDep_me3_file <- paste("me3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,re
 #tDep_H3_1_file <- paste("H3_1_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,rep,"_st",st,id,".txt",sep="")
 #tDep_H3_3_file <- paste("H3_3_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,rep,"_st",st,id,".txt",sep="")
 tDep_firing_file <- paste("Firing_t_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,rep,"_st",st,id,".txt",sep="")
+tDep_promoter_file <- paste("promoter_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,rep,"_st",st,id,".txt",sep="")
 
-space_file <- paste("spatial_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,rep,"_st",st,id,".txt",sep="")
+
+#space_file <- paste("spatial_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,rep,"_st",st,id,".txt",sep="")
 
 
 time <- read.table(time_file) ; colnames(time) <- "time"
@@ -45,28 +46,31 @@ me3 <- read.table(tDep_me3_file) ; colnames(me3) <- "level"
 #H3_1 <- read.table(tDep_H3_1_file) ; colnames(H3_1) <- "level"
 #H3_3 <- read.table(tDep_H3_3_file) ; colnames(H3_3) <- "level"
 Firing <- read.table(tDep_firing_file)
-space <- read.csv(space_file,header=TRUE)
+promoter <- read.table(tDep_promoter_file)
+#space <- read.csv(space_file,header=TRUE)
 
 ## Plot alpha
 # 
 # alpha_file <- paste("alpha_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,rep,"_st",st,id,".txt",sep="")
 # stochasticAlpha <- read.table(alpha_file,header=TRUE)
 
-par(mfrow=c(3,1),mar=c(2,4,0,0)+0.5,oma=c(3,3,0,0))
+par(mfrow=c(4,1),mar=c(2,4,0,0)+0.5,oma=c(3,3,0,0))
 plot(time$time/(3600*22),me0$level,type="l",ylim=c(0,1),col="blue3")
 #plot(time$time/(3600*22),me1$level,type="l",ylim=c(0,1),col="blue3")
 #plot(time$time/(3600*22),me2$level,type="l",ylim=c(0,1),col="red3")
 plot(time$time/(3600*22),me3$level,type="l",ylim=c(0,1),col="red3")
 #plot(time$time/(3600*22),H3_1$level,type="l",ylim=c(0,1),col="green3")
 #plot(time$time/(3600*22),H3_3$level,type="l",ylim=c(0,1),col="orange3")
+plot(time$time/(3600*22),promoter$V1,type="l",ylim=c(0,1),col="red3")
 # plot(alpha ~ time, data=stochasticAlpha,ylim=c(0,max(stochasticAlpha$alpha*1.02)),type="l")
 hist(Firing$V1/(3600*22),seq(0,(max(Firing)/(3600*22) + 1/22),by=1/22),ylab="Firing/hour",main="")
 mtext("time (cell cycles)",side=1,line=0,outer=TRUE)
 mtext("modification level",side=2,line=0,outer=TRUE)
 
-ggplot(space,aes(x=i,y=pos)) + 
-  geom_tile(aes(fill=as.factor(K27))) + 
-  scale_fill_manual("H3K27me",values=c(cbPalette[4],cbPalette[5],cbPalette[2],cbPalette[7])) + 
-  scale_x_continuous("time") +
-  scale_y_continuous("position")
-ggsave("ExampleRepressedLocus.pdf",width=10,height=7,units="cm")
+# ggplot(space,aes(x=i,y=pos)) + 
+#   geom_tile(aes(fill=as.factor(K27))) + 
+#   scale_fill_manual("H3K27me",values=c(cbPalette[4],cbPalette[5],cbPalette[2],cbPalette[7])) + 
+#   scale_x_continuous("time") +
+#   scale_y_continuous("position")
+# ggsave("ExampleRepressedLocus.pdf",width=10,height=7,units="cm")
+

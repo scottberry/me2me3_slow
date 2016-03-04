@@ -149,3 +149,15 @@ void increaseProtein(chromatin *c, parameters *p, flags *update, int pos) {
   update->histone = TRUE;
   return;  
 }
+
+void activatePromoter(chromatin *c, parameters *p, flags *update, int pos) {
+  c->promoterON = TRUE;
+  update->histone = TRUE;
+  return;  
+}
+
+void deactivatePromoter(chromatin *c, parameters *p, flags *update, int pos) {
+  c->promoterON = FALSE;
+  update->histone = TRUE;
+  return;  
+}

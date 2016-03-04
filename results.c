@@ -73,13 +73,16 @@ void resetQuantification(quantification *q) {
   q->initM = q->initU = 0;
   q->firstPassageM = q->firstPassageU = 0.0;
   q->totalHistoneTurnover = 0.0;
-  //  q->variantM = 0.0;
-  //  q->variantU = 0.0;
   q->fracH3_3_M = 0.0;
   q->fracH3_3_U = 0.0;
   q->alphaSD = 0.0;
   q->alphaMean = 0.0;
   q->firingEvents = 0;
+  q->bursts = 0;
+  q->totalFiringEvents = 0;
+  q->burstDuration = 0.0;
+  q->quiescentDuration = 0.0;
+  q->simulationTime = 0.0;
   return;
 }
 
@@ -109,6 +112,14 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
     q->alphaSD += tAverageAlphaSD(r);
   }
 
+  if (p->burstyFiring == TRUE) {
+    q->burstDuration += meanBurstDuration(r);
+    q->quiescentDuration += meanQuiescentDuration(r);
+    q->bursts += countBursts(r);
+    q->totalFiringEvents += countFiringEvents(r);
+    q->simulationTime += r->tMax;
+  }
+  
   if (p->countFiringEvents==TRUE)
     q->firingEvents += countFiringEventsLastCellCycle(p,r);
   
@@ -299,6 +310,28 @@ void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, qua
           (long double)q->firingEvents/(double)p->loci,
           q->avgH3_3_M,
           q->avgH3_3_U);
+  return;
+}
+
+/* Print header for the burstyFiring results files */
+void fprintBurstyResultsHeader(FILE *burstFile) {
+  fprintf(burstFile,"P_DEMETHYLATE\tK_ON_MAX\tK_ON_MIN\tK_OFF\tFIRING\
+\tbursts\ttotalFiring\tsimulationTime\tburstDuration\tquiescentDuration\n");
+  return;
+}
+
+void fprintBurstyResults(FILE *burstFile, parameters *p, chromatin *c, quantification *q) {
+  fprintf(burstFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\n",
+          p->transcription_demethylate,
+          p->k_onMax,
+          p->k_onMin,
+          p->k_off,
+          p->constFiring,
+          (double)q->bursts/p->loci,
+          (double)q->totalFiringEvents/p->loci,
+          q->simulationTime/p->loci,
+          q->burstDuration/p->loci,
+          q->quiescentDuration/p->loci);
   return;
 }
 
@@ -947,6 +980,82 @@ double firstPassageTimeExpression(record *r, parameters *p, signed char *initial
   return(fpt);
 }
 
+double meanBurstDuration(record *r) {
+  long t = 0, bursts = 0;
+  double timeON = 0.0, timeOFF = 0.0;
+  double cumulativeBurstDuration = 0.0, burstDuration;
+    
+  while (t<r->promoterON->len && t<r->t_outLastSample) {
+    if (r->promoterON->el[t] == TRUE) {
+      timeON = r->t_out->el[t];
+      bursts++;
+      while (r->promoterON->el[t]==TRUE && t<r->t_outLastSample)
+        t++;
+      timeOFF = r->t_out->el[t];
+      cumulativeBurstDuration += timeOFF - timeON;
+    }
+    t++;
+  }
+  if (bursts > 1)
+    burstDuration = cumulativeBurstDuration/(double)bursts;
+  else
+    burstDuration = cumulativeBurstDuration;
+  return(burstDuration);
+}
+
+double meanQuiescentDuration(record *r) {
+  long t = 0, breaks = 0;
+  double timeON = 0.0, timeOFF = 0.0;
+  double cumulativeBreakDuration = 0.0, breakDuration;
+    
+  while (t<r->promoterON->len && t<r->t_outLastSample) {
+    if (r->promoterON->el[t] == FALSE) {
+      timeOFF = r->t_out->el[t];
+      breaks++;
+      while (r->promoterON->el[t]==FALSE && t<r->t_outLastSample)
+        t++;
+      timeON = r->t_out->el[t];
+      cumulativeBreakDuration += timeON - timeOFF;
+    }
+    t++;
+  }
+  if (breaks > 1)
+    breakDuration = cumulativeBreakDuration/(double)breaks;
+  else
+    breakDuration = cumulativeBreakDuration;
+  return(breakDuration);
+}
+
+long countBursts(record *r) {
+  long bursts = 0, t = 0;
+  
+  while (t<r->promoterON->len && t<r->t_outLastSample) {
+    if (r->promoterON->el[t] == TRUE) {
+      bursts++;
+      while (r->promoterON->el[t]==TRUE && t<r->t_outLastSample)
+        t++;
+    }
+    t++;
+  }
+  return(bursts);
+}
+
+/* Calculate the number of firing events in the last cell cycle */
+long countFiringEvents(record *r) {
+  long i, count = 0;
+  double start, end;
+
+  start = 0.0;
+  end = r->tMax;
+
+  for(i=0;i<r->t->len;i++) {
+    if(r->t->el[i] > start && r->t->el[i] < end && r->firing->el[i]==TRUE) {
+      count++;
+    }
+  }
+  return(count);
+}
+  
 /* Print log file */
 int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   time_t curtime;
@@ -1292,6 +1401,18 @@ void fprint_transFactorProtein_nCycles(char *fname, record *r) {
     fprintf(fptr,"%ld\t",r->transFactorProtein->el[i]);
     fprintf(fptr,"%ld\t",r->transFactorRNA->el[i]);
     fprintf(fptr,"%0.4f\n",r->alpha->el[i]);
+  }
+  fclose(fptr);
+  return;
+}
+
+/* Print time-dependent trans-factor protein levels */
+void fprint_promoterStatus_nCycles(char *fname, record *r) {
+  FILE *fptr;
+  long unsigned i;
+  fptr = fopen(fname,"w");
+  for (i=0;i<r->t_outLastSample;i++) {
+    fprintf(fptr,"%ld\n",r->promoterON->el[i]);
   }
   fclose(fptr);
   return;

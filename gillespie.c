@@ -38,6 +38,11 @@ void allocateGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *
     r->transFactorProtein = i_vec_get( p->samples );
     r->transFactorRNA = i_vec_get( p->samples );
     r->alpha = d_vec_get( p->samples );
+  } else if (p->burstyFiring == TRUE) {
+    g->propensity = d_vec_get( 2*c->sites + 3 );    
+    g->activatePromoter_index = i_vec_get( 1 );
+    g->deactivatePromoter_index = i_vec_get( 1 );
+    r->promoterON = i_vec_get(p->samples);
   } else {
     g->propensity = d_vec_get( 2*c->sites + 1 );
   }
@@ -85,7 +90,11 @@ void freeGillespieMemory(chromatin *c, parameters *p, gillespie *g, record *r) {
     i_vec_free(r->transFactorProtein);
     i_vec_free(r->transFactorRNA);
     d_vec_free(r->alpha);
-  }  
+  } else if (p->burstyFiring) {
+    i_vec_free(g->activatePromoter_index);
+    i_vec_free(g->deactivatePromoter_index);
+    i_vec_free(r->promoterON);
+  }
 
   d_vec_free(g->propensity);
   free(g->doReaction);
@@ -133,6 +142,11 @@ void initialiseH3_1(chromatin *c) {
   for (i=0;i<c->sites;i++) {
     c->variant->el[i] = H3_1;
   }
+  return;
+}
+
+void initialisePromoterOFF(chromatin *c) {
+  c->promoterON = FALSE;
   return;
 }
 
@@ -233,6 +247,20 @@ void initialiseGillespieFunctionsTransFactor(chromatin *c, gillespie *g) {
   return;
 }
 
+/* Additional function to add promoter status */
+void initialiseGillespieFunctionsBurstyFiring(chromatin *c, gillespie *g) {
+
+  g->doReaction[2*c->sites+1] = activatePromoter;
+  g->doReactionParam->el[2*c->sites+1] = 0;
+  g->activatePromoter_index->el[0] = 2*c->sites+1;
+
+  g->doReaction[2*c->sites+2] = deactivatePromoter;
+  g->doReactionParam->el[2*c->sites+2] = 0;
+  g->deactivatePromoter_index->el[0] = 2*c->sites+2;
+
+  return;
+}
+
 /* Calculate the fraction of 'target' reactants */
 double frac(I_VEC *vec, int target) {
   unsigned long int count = 0;
@@ -314,6 +342,16 @@ double firingRate(parameters *p, double f_me2_me3) {
   return(f);
 }
 
+double k_on(parameters *p, double f_me2_me3) {
+  double f;
+  if (f_me2_me3 < p->firingThreshold) {
+    f = p->k_onMax - (f_me2_me3 * (p->k_onMax - p->k_onMin) / p->firingThreshold);
+  } else {
+    f = p->k_onMin;
+  }
+  return(f);
+}
+
 /* Update the propensities based on change in system */
 void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
   int i;
@@ -324,7 +362,8 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
 
     if (p->stochasticAlpha==TRUE)
       p->alpha = (double)p->transFactorProtein/1000.0;
-    
+
+    // chromatin
     for (i=0;i<c->sites;i++) {
       // fprintf(stderr,"i = %d, neighboursK27factor = %0.2f\n",i,neighboursK27factor(c,p,i));
       if (c->K27->el[i] == me0) { // methylate
@@ -341,14 +380,24 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
         g->propensity->el[g->demethylate_index->el[i]] = p->noisy_demethylate;
       }
     }
-   
-    // transcribeDNA
-    g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * p->alpha * firingRate(p,f_me2_me3);
 
-    // cap the firing rate 
-    if (g->propensity->el[g->transcribeDNA_index->el[0]] > p->firingCap)
-      g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingCap;
-
+    // transcription
+    if (p->burstyFiring == FALSE ) { // if not bursty
+      g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * p->alpha * firingRate(p,f_me2_me3);
+      
+      // cap the firing rate 
+      if (g->propensity->el[g->transcribeDNA_index->el[0]] > p->firingCap)
+        g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingCap;
+      
+    } else { // if bursty
+      if (c->promoterON == TRUE) {
+        g->propensity->el[g->deactivatePromoter_index->el[0]] = p->k_off;
+        g->propensity->el[g->transcribeDNA_index->el[0]] = p->constFiring;
+      } else {
+        g->propensity->el[g->activatePromoter_index->el[0]] = k_on(p,f_me2_me3);
+        g->propensity->el[g->transcribeDNA_index->el[0]] = 0.0;
+      }
+    }   
     g->update->histone = FALSE; // reset the flag
   }
   return;

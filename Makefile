@@ -25,7 +25,7 @@ OBJPROCMETH = $(patsubst %,$(ODIR)/%,$(_OBJPROCMETH))
 _OBJPROCDEMETH = random.o modifications.o processive_demethylation.o gillespie.o results.o parse.o
 OBJPROCDEMETH = $(patsubst %,$(ODIR)/%,$(_OBJPROCDEMETH))
 
-all: $(STATLIB) $(OBJ) me2me3 TwoState Dynamic HistoneTurnover ProcMeth ProcDemeth Silac Tests ConstTimeInterpolate
+all: $(STATLIB) $(OBJ) me2me3 TwoState Dynamic HistoneTurnover BurstyFiring ProcMeth ProcDemeth Silac Tests ConstTimeInterpolate
 
 # make libscottsmatrices object file
 $(LDIR)/scottsmatrices.o: $(LDIR)/scottsmatrices.c $(DEPS)
@@ -50,6 +50,9 @@ Dynamic: $(ODIR)/Dynamic.o $(STATLIB) $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 HistoneTurnover: $(ODIR)/HistoneTurnover.o $(STATLIB) $(OBJ)
+	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
+
+BurstyFiring: $(ODIR)/BurstyFiring.o $(STATLIB) $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS) $(LFLAGS) $(IFLAGS)
 
 ProcMeth: $(ODIR)/Main.o $(STATLIB) $(OBJPROCMETH)

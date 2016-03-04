@@ -1,17 +1,17 @@
 #include "definitions.h"
 
 int main(int argc, char *argv[]) {
-  FILE *fptr, *parFile;
-  char *avgfile, fname[256]="", parameterSpace[256]="";
+  FILE *fptr, *parFile, *burstFile;
+  char *avgfile, fname[256]="", parameterSpace[256]="", burstyRes[256]="";
   chromatin c;
   parameters p;
   gillespie g;
   record r;
   quantification q;
   long i, j, locus;
-  double FIRING, P_DEMETHYLATE, P_METHYLATE, BURST, MEAN;
+  double FIRING, P_DEMETHYLATE, P_METHYLATE;
+  double K_ON_MIN, K_ON_MAX, K_OFF;
   int p1, p2, p3;
-  D_VEC *meth, *demeth;
 
   /* Code timing */
 #ifdef __APPLE__
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 1;
+  p.loci = 10;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 1; 
+  p.optimSteps = 2; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -60,12 +60,18 @@ int main(int argc, char *argv[]) {
   p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = FALSE;
   p.stochasticAlpha = FALSE;
+  p.burstyFiring = TRUE; 
   g.test = FALSE;
   
   /* Parse command line */
   parseCommandLine(argc,argv,&c,&p);
 
-  p.spatialResults = TRUE;
+  p.spatialResults = FALSE;
+
+  if (p.stochasticAlpha == TRUE && p.burstyFiring == TRUE) {
+    fprintf(stderr,"Error: burstyFiring and stochasticAlpha options are not compatible");
+    exit(-1);
+  }
   
   /* Seed RNG */
   if (p.randomSeed == TRUE)
@@ -81,70 +87,48 @@ int main(int argc, char *argv[]) {
   parFile = fopen(parameterSpace,"w");
   fprintParameterSpaceHeader(parFile);
 
+  if (p.burstyFiring==TRUE) {
+    /* open bursty results file and write header */
+    strcpy(burstyRes,"BurstyOptimRes_\0"); strcat(burstyRes,avgfile); 
+    burstFile = fopen(burstyRes,"w");
+    fprintBurstyResultsHeader(burstFile);
+  }
+  
   if (g.test==TRUE)
     g.test_fptr = fopen("TestGillespieFromMain.txt","w");
 
   /* allocate memory and initialise gillespie algorithm */
   allocateGillespieMemory(&c,&p,&g,&r);
   initialiseGillespieFunctions(&c,&g);
-  if (p.stochasticAlpha == TRUE)
-    initialiseGillespieFunctionsTransFactor(&c,&g);
+  if (p.burstyFiring == TRUE)
+    initialiseGillespieFunctionsBurstyFiring(&c,&g);
 
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-
-  meth = d_vec_get(6);
-  demeth = d_vec_get(6);
-
-  meth->el[0] = 0.000064;
-  meth->el[1] = 0.000032;
-  meth->el[2] = 0.000016;
-  meth->el[3] = 0.000008;
-  meth->el[4] = 0.0000056;
-  meth->el[5] = 0.000004;
-
-  demeth->el[0] = 0.1;
-  demeth->el[1] = 0.07;
-  demeth->el[2] = 0.03;
-  demeth->el[3] = 0.004;
-  demeth->el[4] = 0.001;
-  demeth->el[5] = 0.001;
   
-  for (p1=0;p1<1;p1++) { // 7
+  for (p1=0;p1<p.optimSteps;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=0;p3<1;p3++) {
+      for (p3=0;p3<30;p3++) {
 	  
-        //setseed(&p,p.seed);
-        
-        // FIRING = 0.0001*pow(2,p1);
-        // P_DEMETHYLATE = pow(10,-0.05*(p2+8));
-        // P_METHYLATE = pow(10,-0.05*(p3+50));
+        K_ON_MAX = pow(10,-0.1*(p1+30));
+        K_OFF = pow(10,-0.1*(p2+20));
+        P_DEMETHYLATE = pow(10,-0.1*(p3+4));
              
-        FIRING = 0.0001*40.0;
-        // P_DEMETHYLATE = demeth->el[p1];
-        // P_METHYLATE = meth->el[p1];
-        P_DEMETHYLATE = 0.004;
+        // P_DEMETHYLATE = 0.004;
+        // K_ON_MAX = 0.001;
+        // K_OFF = 0.01;
+        
         P_METHYLATE = 0.000008;
+        K_ON_MIN = K_ON_MAX/40.0;
+        // re-scale minimum firing rate to ensure same average levels
+        // of transcription in the repressed state
+        FIRING = 0.0001 * K_OFF / K_ON_MIN;
 
-        //  p.alpha = 100.0*pow(10,-0.05*p2);
         
         // Transcription
-        // -------------
-        /* Leave the repressed firing rate fixed at ~ every 60 min. */
-        p.firingRateMin = 0.0001; 
-        p.firingRateMax = FIRING; // Optimise
-
-        /* Cap firing rate at ~ every minute. */
-        p.firingCap = 0.0166667;
+        // -------------------------
         p.transcription_demethylate = P_DEMETHYLATE; 
-        // p.transcription_turnover = P_TURNOVER/2.0; (defined in parse.c)
-
-        if (p.firingRateMax < p.firingRateMin) {
-          fprintf(stderr,"Error: Max firing rate less than min firing rate.");
-          fprintf(stderr," Setting k_min = k_max\n");
-          p.firingRateMin = p.firingRateMax;
-        }
         
         // Methylation/demethylation
         // -------------------------
@@ -167,23 +151,18 @@ int main(int argc, char *argv[]) {
         p.me2factor = 0.1; 
         p.me3factor = 1.0;
 
-        // Stochastic alpha
-        // ----------------
-        if (p.stochasticAlpha == TRUE) {
-          BURST = p.stochasticTranslationEfficiency;
-          MEAN = 1000.0;
-
-          /* <p> = k_r * burst / gamma_p,
-             where burst = k_p/gamma_r */
-          p.gamma_r = 1.0/(2.0*3600.0);
-          p.gamma_p = 1.0/(12.0*3600.0);
-          p.k_r = p.gamma_p * MEAN / BURST;
-          p.k_p = p.gamma_r * BURST;
-        }
-
         /* noisy demethylation independent of transcription */
-        p.noisy_demethylate = P_DEMETHYLATE*p.firingRateMin;
-
+        p.noisy_demethylate = P_DEMETHYLATE * FIRING * K_ON_MIN / K_OFF;
+        
+        // Bursty transcription
+        // -------------------
+        if (p.burstyFiring == TRUE) {
+          p.k_onMin = K_ON_MIN;
+          p.k_onMax = K_ON_MAX;
+          p.k_off = K_OFF;
+          p.constFiring = FIRING;
+        }
+            
         // Reset results to zero for each parameter set
         resetQuantification(&q);
 
@@ -204,11 +183,9 @@ int main(int argc, char *argv[]) {
               initialiseActive(&c);
           }
 
-          if (p.stochasticAlpha == TRUE) {
-            p.transFactorRNA = floor(p.k_r/p.gamma_r);
-            p.transFactorProtein = floor(MEAN);
-          }
-            
+          if (p.burstyFiring == TRUE)
+            initialisePromoterOFF(&c);
+          
           /* reset counters */
           p.reactCount = 0;
           p.sampleCount = 0;
@@ -225,10 +202,8 @@ int main(int argc, char *argv[]) {
               r.t_outLastSample = p.sampleCount;
               for (j=0;j<(c.sites);j++)
                 r.K27->el[j][p.sampleCount] = c.K27->el[j];
-              if (p.stochasticAlpha == TRUE) {
-                r.transFactorProtein->el[p.sampleCount] = p.transFactorProtein;
-                r.transFactorRNA->el[p.sampleCount] = p.transFactorRNA;
-                r.alpha->el[p.sampleCount] = p.alpha;
+              if (p.burstyFiring) {
+                r.promoterON->el[p.sampleCount] = c.promoterON;
               }
               p.sampleCount++;
             }
@@ -236,37 +211,35 @@ int main(int argc, char *argv[]) {
             p.reactCount++;
             gillespieStep(&c,&p,&g,&r);
           }
-
           accumulateQuantification(&c,&p,&r,&q);
         } /* end loop over loci */
 
         averageQuantification(&c,&p,&r,&q);
         fprintParameterSpaceResults(parFile,&p,&c,&q);
+
+        if (p.burstyFiring == TRUE)
+          fprintBurstyResults(burstFile,&p,&c,&q);
       }
     }
   }
   /* end loop over parameters */
   fclose(parFile);
-  
-  d_vec_free(meth);
-  d_vec_free(demeth);
+  fclose(burstFile);
   
   /* print final results */
   if (p.resultsFinalLocus == TRUE) {
     fprintResultsFinalLocus(avgfile,&r);
+    
+    if (p.burstyFiring == TRUE ) {
+      strcpy(fname,"promoter_\0"); strcat(fname,avgfile);
+      fprint_promoterStatus_nCycles(fname,&r);
+    }
 
     if (p.spatialResults == TRUE) {
       strcpy(fname,"spatial_\0"); strcat(fname,avgfile);
       fptr = fopen(fname,"w");
       fprintSpatialResults(fptr,&r);
       fclose(fptr);
-    }
-    
-    if (p.stochasticAlpha == TRUE) {
-      strcpy(fname,"alpha_\0"); strcat(fname,avgfile);
-      fprint_transFactorProtein_nCycles(fname,&r);
-      strcpy(fname,"alphaOnly_\0"); strcat(fname,avgfile);
-      fprint_alphaOnly_nCycles(fname,&r);
     }
   }
   /* write log file */

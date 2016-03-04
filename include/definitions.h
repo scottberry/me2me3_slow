@@ -47,6 +47,7 @@ typedef struct {
   I_VEC *silac;
   I_VEC *turnover;
   I_VEC *variant;
+  logical promoterON;
 } chromatin;
 
 typedef struct {
@@ -66,7 +67,7 @@ typedef struct {
   double firingRateMax, firingRateMin, transcription_demethylate, transcription_turnover;
   double firingThreshold, firingCap;
   double alpha, beta;
-  
+
   // cell cycle parameters
   double firingFactor;
   double cellCycleDuration;
@@ -99,6 +100,11 @@ typedef struct {
   long transFactorRNA;
   long transFactorProtein;
   double k_r, k_p, gamma_r, gamma_p;
+
+  // bursty parameters
+  logical burstyFiring;
+  double k_onMax, k_onMin, k_off;
+  double constFiring;
   
 } parameters;
  
@@ -115,11 +121,15 @@ typedef struct {
   double t_nextRep;
   flags *update;
 
-  // transFactor parameters
+  // transFactor indices
   I_VEC *decreaseProtein_index;
   I_VEC *increaseProtein_index;
   I_VEC *decreaseRNA_index;
   I_VEC *increaseRNA_index;
+
+  // burstyFiring indices
+  I_VEC *activatePromoter_index;
+  I_VEC *deactivatePromoter_index;
   
   // test parameters
   FILE *test_fptr;
@@ -132,6 +142,7 @@ typedef struct {
   I_MAT *silac;
   I_MAT *variant;
   I_VEC *firing;
+  I_VEC *promoterON;
   D_MAT *turnover;
   D_VEC *t, *t_out;
   double tMax;
@@ -154,7 +165,9 @@ typedef struct {
   double totalHistoneTurnover;
   double alphaSD, alphaMean;
   double fracH3_3_M, fracH3_3_U, avgH3_3_M, avgH3_3_U;
-  long long firingEvents;
+  double burstFrequency, burstDuration, quiescentDuration;
+  double simulationTime;
+  long long bursts, firingEvents, totalFiringEvents;
 } quantification;
 
 /* Function prototypes */
@@ -176,6 +189,8 @@ void decreaseRNA(chromatin *c, parameters *p, flags *update, int pos);
 void increaseRNA(chromatin *c, parameters *p, flags *update, int pos);
 void decreaseProtein(chromatin *c, parameters *p, flags *update, int pos);
 void increaseProtein(chromatin *c, parameters *p, flags *update, int pos);
+void activatePromoter(chromatin *c, parameters *p, flags *update, int pos);
+void deactivatePromoter(chromatin *c, parameters *p, flags *update, int pos);
 
 // nonprocessive.c or processivedemethylation.c or processivemethylation.c
 void methylate(chromatin *c, parameters *p, flags *update, int pos);
@@ -190,9 +205,11 @@ void initialiseSilacLight(chromatin *c);
 void initialiseH3_1(chromatin *c);
 void initialiseRandom(chromatin *c, parameters *p);
 void initialiseMixed(chromatin *c, parameters *p);
+void initialisePromoterOFF(chromatin *c);
 double d_vec_sum(D_VEC *d);
 void initialiseGillespieFunctions(chromatin *c, gillespie *g);
 void initialiseGillespieFunctionsTransFactor(chromatin *c, gillespie *g);
+void initialiseGillespieFunctionsBurstyFiring(chromatin *c, gillespie *g);
 double frac(I_VEC *vec, int target);
 double fracControlRegion_me2me3(chromatin *c);
 double enzymaticFactor(chromatin *c, parameters *p, int pos);
@@ -213,6 +230,8 @@ void averageQuantification(chromatin *c, parameters *p, record *r, quantificatio
 char *parameterDependentBasename(chromatin *c, parameters *p);
 void fprintParameterSpaceHeader(FILE *parFile);
 void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, quantification *q);
+void fprintBurstyResultsHeader(FILE *parFile);
+void fprintBurstyResults(FILE *parFile, parameters *p, chromatin *c, quantification *q);
 char *str_replace(char *orig, char *rep, char *with);
 void fprint_t_out_nCycles(char *fname, record *r);
 void fprint_t_nCycles(char *fname, I_MAT *mat, int target, record *r);
@@ -238,6 +257,11 @@ double tAverage_me3_lastHour_nCycles(chromatin *c, parameters *p, record *r);
 unsigned long numberHistoneStateFlips(record *r);
 double firstPassageTime(record *r, signed char *initial);
 double firstPassageTimeExpression(record *r, parameters *p, signed char *initial);
+double meanBurstDuration(record *r);
+double meanQuiescentDuration(record *r);
+double meanBurstFrequency(record *r);
+long countBursts(record *r);
+long countFiringEvents(record *r);  
 int writelog(FILE *fptr, chromatin *c, parameters *p, record *r);
 void fprintTripleSILAC_eachLocus(FILE *fptrAbs, FILE *fptrRel, long locus, parameters *p, record *r);
 void storeTripleSILAC_me3(long locus, parameters *p, record *r);
@@ -248,6 +272,7 @@ void fprintVariantResultsFinalLocus(char *avgfile, record *r);
 void fprintSilacResultsFinalLocus(char *avgfile, record *r);
 void fprintSilacResultsRelativeFinalLocus(char *avgfile, record *r);
 void fprint_transFactorProtein_nCycles(char *fname, record *r);
+void fprint_promoterStatus_nCycles(char *fname, record *r);
 void fprint_alphaOnly_nCycles(char *fname, record *r);
 double tAverageAlpha(record *r);
 double tAverageAlphaSD(record *r);
