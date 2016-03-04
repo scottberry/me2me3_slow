@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 2; 
+  p.optimSteps = 1; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -111,13 +111,13 @@ int main(int argc, char *argv[]) {
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<30;p3++) {
 	  
-        K_ON_MAX = pow(10,-0.1*(p1+30));
-        K_OFF = pow(10,-0.1*(p2+20));
-        P_DEMETHYLATE = pow(10,-0.1*(p3+4));
+        // K_ON_MAX = pow(10,-0.1*(p1+30));
+        // K_OFF = pow(10,-0.1*(p2+20));
+        P_DEMETHYLATE = pow(10,-0.1*(p3+6));
              
         // P_DEMETHYLATE = 0.004;
-        // K_ON_MAX = 0.001;
-        // K_OFF = 0.01;
+        K_ON_MAX = 0.01;
+        K_OFF = 0.01;
         
         P_METHYLATE = 0.000008;
         K_ON_MIN = K_ON_MAX/40.0;

@@ -618,8 +618,13 @@ double prob_me2_me3_nCycles(chromatin *c, parameters *p, record *r) {
 double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0, f_me2_me3, lower_quartile;
-
-  lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
+  double f;
+  
+  if (p->burstyFiring == FALSE) {
+    lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
+  } else {
+    lower_quartile = p->k_onMin + (p->k_onMax - p->k_onMin)/4.0;
+  }
   
   for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     sumM = 0;
@@ -628,7 +633,12 @@ double prob_lowExpression_nCycles(chromatin *c, parameters *p, record *r) {
         sumM++;
     }
     f_me2_me3 = (double)sumM/(double)c->sites;
-    if (firingRate(p,f_me2_me3) <= lower_quartile)
+    if (p->burstyFiring == FALSE) {
+      f = firingRate(p,f_me2_me3);
+    } else {
+      f = k_on(p,f_me2_me3);
+    }
+    if (f <= lower_quartile)
       time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
   }
 
@@ -671,9 +681,14 @@ double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *
   double time_in_M = 0.0;
   double time_total = 0.0;
   double f_me2_me3, lower_quartile;
+  double f;
 
-  lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
-    
+  if (p->burstyFiring == FALSE) {
+    lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
+  } else {
+    lower_quartile = p->k_onMin + (p->k_onMax - p->k_onMin)/4.0;
+  }
+  
   for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
       sumM = 0;
@@ -682,7 +697,12 @@ double prob_lowExpression_lastHour_nCycles(chromatin *c, parameters *p, record *
           sumM++;
       }
       f_me2_me3 = (double)sumM/(double)c->sites;
-      if (firingRate(p,f_me2_me3) <= lower_quartile) {
+      if (p->burstyFiring == FALSE) {
+        f = firingRate(p,f_me2_me3);
+      } else {
+        f = k_on(p,f_me2_me3);
+      }
+      if (f <= lower_quartile) {
         time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
       }
       time_total += r->t_out->el[t+1] - r->t_out->el[t];
@@ -719,8 +739,13 @@ double prob_me0_me1_nCycles(chromatin *c, parameters *p, record *r) {
 double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
   long sumM, t, pos;
   double time_in_M = 0, f_me2_me3, upper_quartile;
+  double f;
 
-  upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
+  if (p->burstyFiring == FALSE) {
+    upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
+  } else {
+    upper_quartile = p->k_onMin + (p->k_onMax - p->k_onMin)*3.0/4.0;
+  }
   
   for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     sumM = 0;
@@ -729,7 +754,12 @@ double prob_highExpression_nCycles(chromatin *c, parameters *p, record *r) {
         sumM++;
     }
     f_me2_me3 = (double)sumM/(double)c->sites;
-    if (firingRate(p,f_me2_me3) > upper_quartile)
+    if (p->burstyFiring == FALSE) {
+      f = firingRate(p,f_me2_me3);
+    } else {
+      f = k_on(p,f_me2_me3);
+    }
+    if (f > upper_quartile)
       time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
   }
 
@@ -771,8 +801,13 @@ double prob_highExpression_lastHour_nCycles(chromatin *c, parameters *p, record 
   double time_in_M = 0.0;
   double time_total = 0.0;
   double f_me2_me3, upper_quartile;
-
-  upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
+  double f;
+  
+  if (p->burstyFiring == FALSE) {
+    upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
+  } else {
+    upper_quartile = p->k_onMin + (p->k_onMax - p->k_onMin)*3.0/4.0;
+  }
   
   for (t=0;t<r->K27->cols-1 && t<r->t_outLastSample-1;t++) {
     if (fmod(r->t_out->el[t],3600*p->cellCycleDuration) >= 3600*(p->cellCycleDuration - 1)) { // if within last hour
@@ -782,7 +817,12 @@ double prob_highExpression_lastHour_nCycles(chromatin *c, parameters *p, record 
           sumM++;
       }
       f_me2_me3 = (double)sumM/(double)c->sites;
-      if (firingRate(p,f_me2_me3) >= upper_quartile) {
+      if (p->burstyFiring == FALSE) {
+        f = firingRate(p,f_me2_me3);
+      } else {
+        f = k_on(p,f_me2_me3);
+      }
+      if (f >= upper_quartile) {
         time_in_M += r->t_out->el[t+1] - r->t_out->el[t];
       }
       time_total += r->t_out->el[t+1] - r->t_out->el[t];
@@ -944,20 +984,27 @@ double firstPassageTimeExpression(record *r, parameters *p, signed char *initial
   double lower_quartile, median, upper_quartile, f;
   double fpt = 0.0;
 
-  lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
-  median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
-  upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
-
-  // fprintf(stderr,"upr = %0.8f,med = %0.8f,lwr = %0.8f,",upper_quartile,median,lower_quartile);
+  if (p->burstyFiring == FALSE) {
+    lower_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/4.0;
+    median = p->firingRateMin + (p->firingRateMax - p->firingRateMin)/2.0;
+    upper_quartile = p->firingRateMin + (p->firingRateMax - p->firingRateMin)*3.0/4.0;
+  } else {
+    lower_quartile = p->k_onMin + (p->k_onMax - p->k_onMin)/4.0;
+    median = p->k_onMin + (p->k_onMax - p->k_onMin)/2.0;
+    upper_quartile = p->k_onMin + (p->k_onMax - p->k_onMin)*3.0/4.0;
+  }
   
   /* find initial state */
   for (pos=0;pos<r->K27->rows;pos++) {
     if (r->K27->el[pos][0]==me2 || r->K27->el[pos][0]==me3) m++;
   }
 
-  f = firingRate(p,(double)m/r->K27->rows);
-  //   fprintf(stderr,"m = %ld,f = %0.8f\n",m,f);
-  
+  if (p->burstyFiring == FALSE) {
+    f = firingRate(p,(double)m/r->K27->rows);
+  } else {
+    f = k_on(p,(double)m/r->K27->rows);
+  }
+
   /* find initial state */
   if (f < median)
     *initial = -1;
@@ -970,7 +1017,11 @@ double firstPassageTimeExpression(record *r, parameters *p, signed char *initial
     for (pos=0;pos<r->K27->rows;pos++) {
       if (r->K27->el[pos][t]==me2 || r->K27->el[pos][t]==me3) m++;
     }
-    f = firingRate(p,(double)m/r->K27->rows);
+    if (p->burstyFiring == FALSE) {
+      f = firingRate(p,(double)m/r->K27->rows);
+    } else {
+      f = k_on(p,(double)m/r->K27->rows);
+    }
     t++;
   }
   if (t==r->t_outLastSample)
