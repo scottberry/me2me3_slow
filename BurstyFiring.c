@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
         p.me3factor = 1.0;
 
         /* noisy demethylation independent of transcription */
-        p.noisy_demethylate = P_DEMETHYLATE * FIRING * K_ON_MIN / K_OFF;
+        p.noisy_demethylate = P_DEMETHYLATE * 0.0001;
         
         // Bursty transcription
         // -------------------
