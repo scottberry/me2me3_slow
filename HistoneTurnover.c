@@ -44,9 +44,9 @@ int main(int argc, char *argv[]) {
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 50;
+  p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 60; 
+  p.optimSteps = 1; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = FALSE;
+  p.resultsFinalLocus = TRUE;
   p.checkHistoneTurnover = TRUE;
   p.stochasticAlpha = FALSE;
   p.countFiringEvents = FALSE;
@@ -89,19 +89,19 @@ int main(int argc, char *argv[]) {
   /* -------------------------- */
   /* Start loop over parameters */
   /* -------------------------- */
-  for (p1=1;p1<7;p1++) { // 7
+  for (p1=1;p1<2;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
 	  
         //setseed(&p,p.seed);
 
-        FIRING = 0.0001*pow(2,p1);
-        P_DEMETHYLATE = pow(10,-0.05*(p2+8));
-        P_METHYLATE = pow(10,-0.05*(p3+50));
+        // FIRING = 0.0001*pow(2,p1);
+        // P_DEMETHYLATE = pow(10,-0.05*(p2+8));
+        // P_METHYLATE = pow(10,-0.05*(p3+50));
 
-        // FIRING = 0.0001*40.0;
-        // P_DEMETHYLATE = 0.02;
-        // P_METHYLATE = 0.00003;
+        FIRING = 0.0001*40.0;
+        P_DEMETHYLATE = 0.01;
+        P_METHYLATE = 0.0001;
         // -------------
         /* Leave the repressed firing rate fixed at ~ every 2.8 hours */
         p.firingRateMin = 0.0001; 

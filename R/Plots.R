@@ -17,7 +17,7 @@ f <- 0.333
 turn <- 0.001
 rep <- "Rep"
 st <- 1
-id <- ""
+id <- "_1"
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
