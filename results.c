@@ -240,7 +240,7 @@ void fprintParameterSpaceHeader(FILE *parFile) {
 void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, quantification *q) {        
   fprintf(parFile,"%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\t%0.10f\
 \t%0.10f\t%0.10f\t%ld\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f\t%ld\t%0.4f\t%0.4f \
-\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\t%0.10f\t%0.10Lf\t%0.6f\t%0.6f\n",
+\t%0.4f\t%0.4f\t%0.4f\t%0.4f\t%0.6f\t%0.14f\t%0.10Lf\t%0.6f\t%0.6f\n",
           p->me0_me1,
           p->me1_me2,
           p->me2_me3,
@@ -276,7 +276,7 @@ void fprintParameterSpaceResults(FILE *parFile, parameters *p, chromatin *c, qua
           q->avgH3_3_U);
   fprintf(stderr,"%0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  %0.10f  \
 %0.10f  %0.10f  %ld  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %0.4f  %ld  %0.4f  %0.4f  %ld  %0.4f  %0.4f \
-%0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.10f  %0.10Lf  %0.6f  %0.6f\n",
+%0.4f  %0.4f  %0.4f  %0.4f  %0.6f  %0.14f  %0.10Lf  %0.6f  %0.6f\n",
           p->me0_me1,
           p->me1_me2,
           p->me2_me3,
