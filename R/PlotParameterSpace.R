@@ -6,25 +6,22 @@ source("~/local/Thesis/R/ThesisTheme.R")
 # Set the working directory
 setwd("~/local/Modelling/me2me3_slow/")
 
-
 s <- 60
 ctrl <- 60
-cc <- 50
+cc <- 10
 a <- 1.0
 b <- 1.0
-f <- 0.4
-tau <- 4.0
-prc2 <- 1.0
+f <- 1.0
 rep <- "Rep"
-st <- 5
+st <- 60
+turn <- 0.001
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")
 fstr <- paste('thresh',gsub("\\.", "_",sprintf("%0.2f",f)),sep="")
-taustr <- paste('tau',gsub("\\.", "_",sprintf("%0.2f",tau)),sep="")
-pstr <- paste('p',gsub("\\.", "_",sprintf("%0.2f",prc2)),sep="")
+turnstr <- paste('turn',gsub("\\.", "_",sprintf("%0.8f",turn)),sep="")
 
-parameterSpace_file <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,taustr,pstr,rep,"_st",st,".txt",sep="")
+parameterSpace_file <- paste("ParamOptimRes_s",s,"ctrl",ctrl,"cc",cc,astr,bstr,fstr,turnstr,rep,"_st",st,".txt",sep="")
 parameterSpace <- read.table(parameterSpace_file,header=TRUE)
 min_sim_time <- min(parameterSpace$avgInitM,parameterSpace$avgInitU)/3600
 
@@ -37,7 +34,7 @@ labeller_FIRING <- function(variable,value) {
 scientific_10 <- function(x) {
   parse(text=gsub("e", " %*% 10^", scientific_format()(x)))
 }
-para
+
 ## Bistability
 p1 <- ggplot(subset(parameterSpace,FIRING < 0.02),aes(x=P_DEMETHYLATE,y=P_METHYLATE))
 p1 <- p1 + geom_tile(aes(fill=bistability)) + 
