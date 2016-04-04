@@ -193,6 +193,7 @@ char *parameterDependentBasename(chromatin *c, parameters *p) {
   char ptmp[256]="", tmp[256]="";
 
   avgfile = malloc(256);
+  avgfile[0] = '\0';
   sprintf(tmp,"s%ld",c->sites); strcat(avgfile,tmp); 
   sprintf(tmp,"ctrl%ld",c->controlSites); strcat(avgfile,tmp);
   sprintf(tmp,"cc%d",p->cellCycles); strcat(avgfile,tmp);

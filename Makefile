@@ -3,7 +3,7 @@ IDIR = ./include
 ODIR = ./obj
 LDIR = ./lib
 
-CFLAGS = -O2 -Wall
+CFLAGS = -O0 -g -Wall
 IFLAGS = -I$(IDIR) -I/usr/local/include
 
 LIBS = -lm -lgsl -lgslcblas -lscottsmatrices	
