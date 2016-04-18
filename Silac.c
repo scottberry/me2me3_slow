@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 2;
+  p.loci = 200;
   p.maxReact = 30000;
   p.samples = 30000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 60;
+  p.optimSteps = 30;
 
   /* SILAC specific parameters */
   p.silacExperiment = TRUE;
@@ -111,13 +111,13 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------------------------------------------------------------- */
   for (p1=0;p1<1;p1++) { // 7
-    for (p2=14;p2<p.optimSteps;p2++) { // min 7
-      for (p3=24;p3<p.optimSteps;p3++) { // min 12
+    for (p2=7;p2<p.optimSteps;p2++) { // min 7
+      for (p3=12;p3<p.optimSteps;p3++) { // min 12
 	  
         // setseed(&p,p.seed);
                       
-         P_DEMETHYLATE = pow(10,-0.05*(p2+8));
-         P_METHYLATE = pow(10,-0.05*(p3+50));
+         P_DEMETHYLATE = pow(10,-0.1*(p2+5));
+         P_METHYLATE = pow(10,-0.1*(p3+25));
 
          FIRING = 0.0001*40;
          //P_DEMETHYLATE = 0.02;
