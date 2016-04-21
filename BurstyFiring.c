@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 1;
+  p.loci = 100;
   p.maxReact = 200000;
   p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 1; 
+  p.optimSteps = 10; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -109,22 +109,22 @@ int main(int argc, char *argv[]) {
   
   for (p1=0;p1<p.optimSteps;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
-      for (p3=0;p3<p.optimSteps;p3++) {
+      for (p3=p.optimSteps-1;p3<p.optimSteps;p3++) {
 	  
-        // K_ON_MAX = pow(10,-0.1*(p1+30));
+        // K_ON_MAX = pow(10,-0.1*(p1+20));
         // K_OFF = pow(10,-0.1*(p2+20));
         // P_DEMETHYLATE = pow(10,-0.1*(p3+6));
              
-        P_DEMETHYLATE = 0.0063;
-        K_ON_MAX = 0.00001;
-        K_OFF = 0.0001;
+        P_DEMETHYLATE = 0.004;
+        K_ON_MAX = 0.0001;
+        K_OFF = 0.001;
         
         P_METHYLATE = 0.000008;
         K_ON_MIN = K_ON_MAX/40.0;
 
         /* To ensure that the average repressed transcription rate is
            similar to previous, we need that FIRING * "probability of
-           being in the on-state" = 0.001. This probability is given
+           being in the on-state" = 0.0001. This probability is given
            by P_ON = K_ON_MIN/(K_ON_MIN + K_OFF), therefore re-scale
            the firing rate by the inverse of this probability */
         FIRING = 0.0001 * (K_OFF + K_ON_MIN) / K_ON_MIN;

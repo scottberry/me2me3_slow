@@ -116,7 +116,9 @@ void accumulateQuantification(chromatin *c, parameters *p, record *r, quantifica
     q->burstDuration += meanBurstDuration(r);
     q->quiescentDuration += meanQuiescentDuration(r);
     q->bursts += countBursts(r);
+    //fprintf(stderr,"bursts = %ld , cumulative = %lld \n",countBursts(r),q->bursts);
     q->totalFiringEvents += countFiringEvents(r);
+    // fprintf(stderr,"totalFiring = %ld, cumulative = %lld\n",countFiringEvents(r),q->totalFiringEvents);
     q->simulationTime += r->tMax;
   }
   
@@ -1092,7 +1094,7 @@ long countBursts(record *r) {
   return(bursts);
 }
 
-/* Calculate the number of firing events in the last cell cycle */
+/* Calculate the number of firing events */
 long countFiringEvents(record *r) {
   long i, count = 0;
   double start, end;
