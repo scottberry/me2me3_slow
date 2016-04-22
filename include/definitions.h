@@ -82,6 +82,7 @@ typedef struct {
   unsigned long optimSteps;
   logical DNAreplication, resultsLastHourOnly, resultsFinalLocus, spatialResults;
   logical checkHistoneTurnover, countFiringEvents;
+  logical capFiring;
   char id[128];
   char executable[128];
 

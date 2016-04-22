@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
   p.checkHistoneTurnover = FALSE;
   p.stochasticAlpha = FALSE;
   p.burstyFiring = FALSE;
+  p.capFiring = TRUE;
   p.countFiringEvents = FALSE;
   g.test = FALSE;
   
