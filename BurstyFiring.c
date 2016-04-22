@@ -39,15 +39,15 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 200;
-  p.maxReact = 200000;
-  p.samples = 200000; 
+  p.loci = 2;
+  p.maxReact = 10000000;
+  p.samples = 10000000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 50;
+  p.cellCycles = 1500;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 41; 
+  p.optimSteps = 1; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -61,6 +61,8 @@ int main(int argc, char *argv[]) {
   p.checkHistoneTurnover = FALSE;
   p.stochasticAlpha = FALSE;
   p.burstyFiring = TRUE; 
+  p.capFiring = TRUE;
+  p.countFiringEvents = TRUE;
   g.test = FALSE;
   
   /* Parse command line */
@@ -107,17 +109,19 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------- */
   
-  for (p1=0;p1<p.optimSteps;p1++) { // 7
+  for (p1=p.optimSteps-1;p1<p.optimSteps;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=p.optimSteps-1;p3<p.optimSteps;p3++) {
 	  
-        K_ON_MAX = pow(10,-0.1*(p1+20));
-        K_OFF = pow(10,-0.1*(p2+20));
+        // K_ON_MAX = pow(10,-0.05*(p1+40));
+        // K_OFF = pow(10,-0.05*(p2+40));
         // P_DEMETHYLATE = pow(10,-0.1*(p3+6));
-             
+
+        p.alpha = 100.0*pow(10,-0.05*p2);
+        
         P_DEMETHYLATE = 0.004;
-        // K_ON_MAX = 0.0001;
-        // K_OFF = 0.001;
+        K_ON_MAX = 0.0005;
+        K_OFF = 0.005;
         
         P_METHYLATE = 0.000008;
         K_ON_MIN = K_ON_MAX/40.0;
