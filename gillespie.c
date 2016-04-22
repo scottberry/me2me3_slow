@@ -394,7 +394,7 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
         g->propensity->el[g->deactivatePromoter_index->el[0]] = p->k_off;
         g->propensity->el[g->transcribeDNA_index->el[0]] = p->constFiring;
       } else {
-        g->propensity->el[g->activatePromoter_index->el[0]] = k_on(p,f_me2_me3);
+        g->propensity->el[g->activatePromoter_index->el[0]] = p->alpha * k_on(p,f_me2_me3);
         g->propensity->el[g->transcribeDNA_index->el[0]] = 0.0;
       }
     }   
