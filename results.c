@@ -1156,9 +1156,26 @@ int writelog(FILE *fptr, chromatin *c, parameters *p, record *r) {
   fprintf(fptr,"me2_me3: %0.10f\n", p->me2_me3);
   fprintf(fptr,"me2factor: %0.4f\n", p->me2factor);
   fprintf(fptr,"me3factor: %0.4f\n", p->me3factor);
-  fprintf(fptr,"firingRateMax: %0.10f\n", p->firingRateMax);
-  fprintf(fptr,"firingRateMin: %0.10f\n", p->firingRateMin);
+  fprintf(fptr,"burstyFiring:");
+  if (p->burstyFiring == TRUE) {
+    fprintf(fptr," TRUE\n");
+    fprintf(fptr,"k_onMin: %0.10f\n",p->k_onMin);
+    fprintf(fptr,"k_onMax: %0.10f\n",p->k_onMax);
+    fprintf(fptr,"k_off: %0.10f\n",p->k_off);
+    fprintf(fptr,"constFiring: %0.10f\n",p->constFiring);    
+  } else {
+    fprintf(fptr," FALSE\n");
+    fprintf(fptr,"firingRateMax: %0.10f\n", p->firingRateMax);
+    fprintf(fptr,"firingRateMin: %0.10f\n", p->firingRateMin);
+  }
   fprintf(fptr,"firingThreshold: %0.10f\n", p->firingThreshold);
+  fprintf(fptr,"firingCap:");
+  if (p->capFiring == TRUE) {
+    fprintf(fptr," TRUE ");
+    fprintf(fptr,"(%0.10f)\n",p->firingCap);
+  } else {
+    fprintf(fptr," FALSE\n");
+  }
   fprintf(fptr,"stochasticAlpha:");
   if (p->stochasticAlpha == TRUE) {
     fprintf(fptr," TRUE\n");
