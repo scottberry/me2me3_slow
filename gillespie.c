@@ -391,6 +391,7 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
         g->propensity->el[g->transcribeDNA_index->el[0]] = p->constFiring;
       } else {
         g->propensity->el[g->activatePromoter_index->el[0]] = p->alpha * k_on(p,f_me2_me3);
+        // fprintf(stderr,"alpha = %0.3f, propensity to activate = %0.5f\n",p->alpha,g->propensity->el[g->activatePromoter_index->el[0]]);
         g->propensity->el[g->transcribeDNA_index->el[0]] = 0.0;
       }
     }
@@ -399,6 +400,7 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
       if (g->propensity->el[g->transcribeDNA_index->el[0]] > p->firingCap)
         g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingCap;
     }
+    // fprintf(stderr,"propensity to transcribe = %0.5f\n",g->propensity->el[g->transcribeDNA_index->el[0]]);
     g->update->histone = FALSE; // reset the flag
   }
   return;

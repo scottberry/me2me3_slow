@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
   /* Set program run parameters */
   p.cellCycles = 1500;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 1; 
+  p.optimSteps = 81; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -118,6 +118,8 @@ int main(int argc, char *argv[]) {
         // P_DEMETHYLATE = pow(10,-0.1*(p3+6));
 
         p.alpha = 100.0*pow(10,-0.05*p2);
+
+        // p.alpha = 1.0;
         
         P_DEMETHYLATE = 0.004;
         K_ON_MAX = 0.0005;
@@ -132,6 +134,10 @@ int main(int argc, char *argv[]) {
            by P_ON = K_ON_MIN/(K_ON_MIN + K_OFF), therefore re-scale
            the firing rate by the inverse of this probability */
         FIRING = 0.0001 * (K_OFF + K_ON_MIN) / K_ON_MIN;
+
+        /* Cap firing rate at once per 6 seconds during a burst. */
+        if (p.capFiring == TRUE)
+          p.firingCap = 0.166667;
         
         // Transcription
         // -------------------------
