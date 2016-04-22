@@ -384,11 +384,7 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
     // transcription
     if (p->burstyFiring == FALSE ) { // if not bursty
       g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingFactor * p->alpha * firingRate(p,f_me2_me3);
-      
-      // cap the firing rate 
-      if (g->propensity->el[g->transcribeDNA_index->el[0]] > p->firingCap)
-        g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingCap;
-      
+            
     } else { // if bursty
       if (c->promoterON == TRUE) {
         g->propensity->el[g->deactivatePromoter_index->el[0]] = p->k_off;
@@ -397,7 +393,12 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
         g->propensity->el[g->activatePromoter_index->el[0]] = p->alpha * k_on(p,f_me2_me3);
         g->propensity->el[g->transcribeDNA_index->el[0]] = 0.0;
       }
-    }   
+    }
+    if (p->capFiring == TRUE) {
+      // cap the firing rate 
+      if (g->propensity->el[g->transcribeDNA_index->el[0]] > p->firingCap)
+        g->propensity->el[g->transcribeDNA_index->el[0]] = p->firingCap;
+    }
     g->update->histone = FALSE; // reset the flag
   }
   return;
