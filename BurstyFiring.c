@@ -39,15 +39,15 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 2;
-  p.maxReact = 10000000;
-  p.samples = 10000000; 
+  p.loci = 1;
+  p.maxReact = 200000;
+  p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 1500;
+  p.cellCycles = 20;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 81; 
+  p.optimSteps = 1; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
         // K_OFF = pow(10,-0.05*(p2+40));
         // P_DEMETHYLATE = pow(10,-0.1*(p3+6));
 
-        p.alpha = 100.0*pow(10,-0.05*p2);
+        // p.alpha = 100.0*pow(10,-0.05*p2);
 
         // p.alpha = 1.0;
         
@@ -185,50 +185,50 @@ int main(int argc, char *argv[]) {
 
         if (!(p.burstyFiring == TRUE && K_ON_MAX > K_OFF)) {
         
-        for (locus=0;locus<p.loci;locus++) {
-          // fprintf(stderr,"locus %ld\n",locus);
-          if (p.startM == TRUE) {
-            initialiseRepressed(&c);
-          } else if (p.startU == TRUE) {
-            initialiseActive(&c);
-          } else { 
-            if (locus < floor(p.loci/2))
+          for (locus=0;locus<p.loci;locus++) {
+            // fprintf(stderr,"locus %ld\n",locus);
+            if (p.startM == TRUE) {
               initialiseRepressed(&c);
-            else
+            } else if (p.startU == TRUE) {
               initialiseActive(&c);
-          }
-
-          if (p.burstyFiring == TRUE)
-            initialisePromoterOFF(&c);
-          
-          /* reset counters */
-          p.reactCount = 0;
-          p.sampleCount = 0;
-          p.cellCycleCount = 0;
-          
-          /* Schedule first instance of the fixed time reactions */
-          g.t_nextRep = p.cellCycleDuration*3600;
-          p.firingFactor = 1.0;
-          
-          /* Reaction loop */
-          for (i=0;i<p.maxReact && p.cellCycleCount <= p.cellCycles;i++) {
-            if (p.reactCount % p.sampleFreq == 0) {
-              r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
-              r.t_outLastSample = p.sampleCount;
-              for (j=0;j<(c.sites);j++)
-                r.K27->el[j][p.sampleCount] = c.K27->el[j];
-              if (p.burstyFiring) {
-                r.promoterON->el[p.sampleCount] = c.promoterON;
-              }
-              p.sampleCount++;
+            } else { 
+              if (locus < floor(p.loci/2))
+                initialiseRepressed(&c);
+              else
+                initialiseActive(&c);
             }
-            r.tMax = r.t->el[p.reactCount];
-            p.reactCount++;
-            gillespieStep(&c,&p,&g,&r);
-          }
-          accumulateQuantification(&c,&p,&r,&q);
-        } /* end loop over loci */
 
+            if (p.burstyFiring == TRUE)
+              initialisePromoterOFF(&c);
+          
+            /* reset counters */
+            p.reactCount = 0;
+            p.sampleCount = 0;
+            p.cellCycleCount = 0;
+            resetFiringRecord(&r);
+          
+            /* Schedule first instance of the fixed time reactions */
+            g.t_nextRep = p.cellCycleDuration*3600;
+            p.firingFactor = 1.0;
+          
+            /* Reaction loop */
+            for (i=0;i<p.maxReact && p.cellCycleCount <= p.cellCycles;i++) {
+              if (p.reactCount % p.sampleFreq == 0) {
+                r.t_out->el[p.sampleCount] = r.t->el[p.reactCount];
+                r.t_outLastSample = p.sampleCount;
+                for (j=0;j<(c.sites);j++)
+                  r.K27->el[j][p.sampleCount] = c.K27->el[j];
+                if (p.burstyFiring) {
+                  r.promoterON->el[p.sampleCount] = c.promoterON;
+                }
+                p.sampleCount++;
+              }
+              r.tMax = r.t->el[p.reactCount];
+              p.reactCount++;
+              gillespieStep(&c,&p,&g,&r);
+            }
+            accumulateQuantification(&c,&p,&r,&q);
+          } /* end loop over loci */
         }
         averageQuantification(&c,&p,&r,&q);
         fprintParameterSpaceResults(parFile,&p,&c,&q);

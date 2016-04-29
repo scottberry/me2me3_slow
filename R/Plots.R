@@ -10,14 +10,14 @@ setwd("~/local/Modelling/me2me3_slow/")
 
 s <- 60
 ctrl <- 60
-cc <- 20
-a <- 1.0
+cc <- 25
+a <- 0.1
 b <- 1.0
 f <- 0.333
 turn <- 0.001
 rep <- "Rep"
 st <- 1
-id <- "_1"
+id <- "_startU"
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
 bstr <- paste('b',gsub("\\.", "_",sprintf("%0.2f",b)),sep="")

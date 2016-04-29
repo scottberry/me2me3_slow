@@ -4,16 +4,17 @@ rm(list=ls())
 source("~/local/Thesis/R/ThesisTheme.R")
 
 # Set the working directory
-setwd("~/local/Modelling/me2me3_slow/")
+#setwd("~/local/Modelling/me2me3_slow/")
+setwd("~/local/Manuscripts/TranscriptionOpposing2015/Figures/Processivity/st30/ProcMeth_st30_28042016/")
 
 s <- 60
 ctrl <- 60
-cc <- 10
+cc <- 50
 a <- 1.0
 b <- 1.0
-f <- 1.0
+f <- 0.333
 rep <- "Rep"
-st <- 60
+st <- 30
 turn <- 0.001
 
 astr <- paste('a',gsub("\\.", "_",sprintf("%0.2f",a)),sep="")
@@ -42,7 +43,7 @@ p1 <- p1 + geom_tile(aes(fill=bistability)) +
                 labels = trans_format("log10", math_format(10^.x))) +
   scale_x_log10("Demethylation probability",
                 labels = trans_format("log10", math_format(10^.x))) +
-  coord_fixed(ratio=0.2/0.15) +
+  coord_fixed(ratio=1) +
   scale_fill_gradientn(name="Bistability",colours=rev(rainbow(3)),limits=c(0,1),breaks=seq(0,1,by=0.5)) + 
   facet_grid(. ~ FIRING) + 
   theme_bw(7) + theme_thesis_multiplanel +
