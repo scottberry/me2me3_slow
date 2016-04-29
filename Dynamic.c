@@ -140,11 +140,11 @@ int main(int argc, char *argv[]) {
              by P_ON = K_ON_MIN/(K_ON_MIN + K_OFF), therefore re-scale
              the firing rate by the inverse of this probability */
 
-          FIRING = 0.0001 * (K_OFF + K_ON_MIN) / K_ON_MIN;
           K_ON_MAX = 0.0005;
           K_OFF = 0.005;
           K_ON_MIN = K_ON_MAX/40.0;
-
+          FIRING = 0.0001 * (K_OFF + K_ON_MIN) / K_ON_MIN;
+          
           /* Cap firing rate at once per 6 seconds during a burst. */
           if (p.capFiring == TRUE)
             p.firingCap = 0.166667;
