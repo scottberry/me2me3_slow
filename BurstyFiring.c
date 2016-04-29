@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
   p.stochasticAlpha = FALSE;
   p.burstyFiring = TRUE; 
   p.capFiring = TRUE;
+  p.capk_on = TRUE;
   p.countFiringEvents = TRUE;
   g.test = FALSE;
   
@@ -138,6 +139,14 @@ int main(int argc, char *argv[]) {
         /* Cap firing rate at once per 6 seconds during a burst. */
         if (p.capFiring == TRUE)
           p.firingCap = 0.166667;
+
+        /* if firing rate in the ON state is > 1/60 sec, cap the
+           on-rate to ensure average transcription rates are less than
+           once per minute */
+        if (p.capk_on == TRUE && FIRING > 0.0166667)
+          p.k_onCap = 0.0166667 * K_OFF / (FIRING - 0.0166667);
+        else
+          p.k_onCap = 1.0;
         
         // Transcription
         // -------------------------

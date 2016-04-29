@@ -82,7 +82,7 @@ typedef struct {
   unsigned long optimSteps;
   logical DNAreplication, resultsLastHourOnly, resultsFinalLocus, spatialResults;
   logical checkHistoneTurnover, countFiringEvents;
-  logical capFiring;
+  logical capFiring, capk_on;
   char id[128];
   char executable[128];
 
@@ -104,7 +104,7 @@ typedef struct {
 
   // bursty parameters
   logical burstyFiring;
-  double k_onMax, k_onMin, k_off;
+  double k_onMax, k_onMin, k_off, k_onCap;
   double constFiring;
   
 } parameters;

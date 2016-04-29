@@ -392,6 +392,12 @@ void updatePropensities(chromatin *c, parameters *p, gillespie *g) {
       } else {
         g->propensity->el[g->activatePromoter_index->el[0]] = p->alpha * k_on(p,f_me2_me3);
         // fprintf(stderr,"alpha = %0.3f, propensity to activate = %0.5f\n",p->alpha,g->propensity->el[g->activatePromoter_index->el[0]]);
+
+        // cap the on-rate
+        if (p->capk_on == TRUE) {
+          if (g->propensity->el[g->activatePromoter_index->el[0]] > p->k_onCap)
+            g->propensity->el[g->activatePromoter_index->el[0]] = p->k_onCap;
+        }
         g->propensity->el[g->transcribeDNA_index->el[0]] = 0.0;
       }
     }
