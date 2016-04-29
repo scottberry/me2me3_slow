@@ -240,7 +240,8 @@ int main(int argc, char *argv[]) {
   }
   /* end loop over parameters */
   fclose(parFile);
-  fclose(burstFile);
+  if (p.burstyFiring == TRUE)
+    fclose(burstFile);
   
   /* print final results */
   if (p.resultsFinalLocus == TRUE) {
