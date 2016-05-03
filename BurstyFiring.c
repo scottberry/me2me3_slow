@@ -39,15 +39,15 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 1;
-  p.maxReact = 200000;
-  p.samples = 200000; 
+  p.loci = 2;
+  p.maxReact = 100000000;
+  p.samples = 100000000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 20;
+  p.cellCycles = 1500;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 1; 
+  p.optimSteps = 81; 
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
   p.burstyFiring = TRUE; 
   p.capFiring = TRUE;
   p.capk_on = TRUE;
-  p.countFiringEvents = TRUE;
+  p.countFiringEvents = FALSE;
   g.test = FALSE;
   
   /* Parse command line */
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
         // K_OFF = pow(10,-0.05*(p2+40));
         // P_DEMETHYLATE = pow(10,-0.1*(p3+6));
 
-        // p.alpha = 100.0*pow(10,-0.05*p2);
+        p.alpha = 100.0*pow(10,-0.05*p2);
 
         // p.alpha = 1.0;
         
