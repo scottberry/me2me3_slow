@@ -39,13 +39,13 @@ int main(int argc, char *argv[]) {
      choice for a large parameter search. */
 
   c.sites = 60;
-  p.loci = 2;
-  p.maxReact = 100000000;
-  p.samples = 100000000; 
+  p.loci = 200;
+  p.maxReact = 200000;
+  p.samples = 200000; 
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
-  p.cellCycles = 1500;
+  p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
   p.optimSteps = 81; 
 
@@ -57,11 +57,11 @@ int main(int argc, char *argv[]) {
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
-  p.resultsFinalLocus = TRUE;
+  p.resultsFinalLocus = FALSE;
   p.checkHistoneTurnover = FALSE;
   p.stochasticAlpha = FALSE;
   p.burstyFiring = TRUE; 
-  p.capFiring = TRUE;
+  p.capFiring = FALSE;
   p.capk_on = TRUE;
   p.countFiringEvents = FALSE;
   g.test = FALSE;
@@ -110,21 +110,21 @@ int main(int argc, char *argv[]) {
   /* Start loop over parameters */
   /* -------------------------- */
   
-  for (p1=p.optimSteps-1;p1<p.optimSteps;p1++) { // 7
+  for (p1=0;p1<p.optimSteps;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=p.optimSteps-1;p3<p.optimSteps;p3++) {
 	  
-        // K_ON_MAX = pow(10,-0.05*(p1+40));
-        // K_OFF = pow(10,-0.05*(p2+40));
+        K_ON_MAX = pow(10,-0.05*(p1+40));
+        K_OFF = pow(10,-0.05*(p2+40));
         // P_DEMETHYLATE = pow(10,-0.1*(p3+6));
 
-        p.alpha = 100.0*pow(10,-0.05*p2);
+        // p.alpha = 100.0*pow(10,-0.05*p2);
 
         // p.alpha = 1.0;
         
         P_DEMETHYLATE = 0.004;
-        K_ON_MAX = 0.0005;
-        K_OFF = 0.005;
+        // K_ON_MAX = 0.0005;
+        // K_OFF = 0.005;
         
         P_METHYLATE = 0.000008;
         // K_ON_MIN = K_ON_MAX/40.0;
