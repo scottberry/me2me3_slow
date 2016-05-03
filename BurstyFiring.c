@@ -127,7 +127,8 @@ int main(int argc, char *argv[]) {
         K_OFF = 0.005;
         
         P_METHYLATE = 0.000008;
-        K_ON_MIN = K_ON_MAX/40.0;
+        // K_ON_MIN = K_ON_MAX/40.0;
+        K_ON_MIN = K_ON_MAX*K_OFF/(39*K_ON_MAX + 40*K_OFF);
 
         /* To ensure that the average repressed transcription rate is
            similar to previous, we need that FIRING * "probability of

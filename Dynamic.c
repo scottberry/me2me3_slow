@@ -143,7 +143,8 @@ int main(int argc, char *argv[]) {
 
           K_ON_MAX = 0.0005;
           K_OFF = 0.005;
-          K_ON_MIN = K_ON_MAX/40.0;
+          K_ON_MIN = K_ON_MAX*K_OFF/(39*K_ON_MAX + 40*K_OFF);
+          // K_ON_MIN = K_ON_MAX/40.0;
           FIRING = 0.0001 * (K_OFF + K_ON_MIN) / K_ON_MIN;
           
           /* Cap firing rate at once per 6 seconds during a burst. */
