@@ -6,7 +6,7 @@ LDIR = ./lib
 CFLAGS = -O2 -Wall
 IFLAGS = -I$(IDIR) -I/usr/local/include
 
-LIBS = -lm -lgsl -lgslcblas -lscottsmatrices	
+LIBS = -lm -lgsl -lgslcblas -lscottsmatrices
 LFLAGS = -L$(LDIR)
 STATLIB = $(LDIR)/libscottsmatrices.a
 
@@ -73,7 +73,7 @@ ConstTimeInterpolate: $(ODIR)/ConstTimeInterpolate.o
 .PHONY: clean empty nores
 
 clean:
-	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ 
+	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~
 
 empty:
 	rm -f $(LDIR)/*.o $(ODIR)/*.o *~ $(IDIR)/*~ $(STATLIB) *.pdf *.rds me2me3 TwoState Tests ConstTimeInterpolate Silac ProcMeth ProcDemeth HistoneTurnover Dynamic

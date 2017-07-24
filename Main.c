@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
   /* ----------------- */
   /* Simulation setup  */
   /* ----------------- */
-    
+
   /* Note: if sampling frequency is too low, data will not be
      collected in the last hour of each cell cycle, when parameter
      values are small. This will lead to program aborting due to
@@ -41,19 +41,19 @@ int main(int argc, char *argv[]) {
   c.sites = 60;
   p.loci = 1;
   p.maxReact = 200000;
-  p.samples = 200000; 
+  p.samples = 200000;
   p.sampleFreq = p.maxReact/p.samples;
 
   /* Set program run parameters */
   p.cellCycles = 50;
   p.cellCycleDuration = 22.0; // (hours)
-  p.optimSteps = 60; 
+  p.optimSteps = 60;
 
   /* SILAC specific parameters */
   p.silacExperiment = FALSE;
   p.silacLightCycles = 0;
   p.silacHeavyCycles = 0;
-  
+
   /* Set program run type flags */
   p.DNAreplication = FALSE;
   p.resultsLastHourOnly = TRUE;
@@ -64,23 +64,23 @@ int main(int argc, char *argv[]) {
   p.capFiring = TRUE;
   p.countFiringEvents = FALSE;
   g.test = FALSE;
-  
+
   /* Parse command line */
   parseCommandLine(argc,argv,&c,&p);
 
   p.spatialResults = TRUE;
-  
+
   /* Seed RNG */
   if (p.randomSeed == TRUE)
     rseed(&p);
   else
-    setseed(&p,time(0) + p.seed); 
+    setseed(&p,time(0) + p.seed);
 
   /* create base filename from specified run parameters */
   avgfile = parameterDependentBasename(&c,&p);
 
   /* open results file and write header */
-  strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile); 
+  strcpy(parameterSpace,"ParamOptimRes_\0"); strcat(parameterSpace,avgfile);
   parFile = fopen(parameterSpace,"w");
   fprintParameterSpaceHeader(parFile);
 
@@ -100,6 +100,7 @@ int main(int argc, char *argv[]) {
   meth = d_vec_get(6);
   demeth = d_vec_get(6);
 
+  // Use the following lists to test a few specific methylation rates
   meth->el[0] = 0.000064;
   meth->el[1] = 0.000032;
   meth->el[2] = 0.000016;
@@ -113,17 +114,18 @@ int main(int argc, char *argv[]) {
   demeth->el[3] = 0.004;
   demeth->el[4] = 0.001;
   demeth->el[5] = 0.001;
-  
-  for (p1=1;p1<7;p1++) { // 7
+
+  for (p1=0;p1<7;p1++) { // 7
     for (p2=0;p2<p.optimSteps;p2++) {
       for (p3=0;p3<p.optimSteps;p3++) {
-	  
+
         //setseed(&p,p.seed);
-        
+
+        // Otherwise, generate a range of parameter values
         FIRING = 0.0001*pow(2,p1);
         P_DEMETHYLATE = pow(10,-0.05*(p2+8));
         P_METHYLATE = 0.1*pow(10,-0.05*(p3+50));
-             
+
         // FIRING = 0.0001*40.0;
         // P_DEMETHYLATE = demeth->el[p1];
         // P_METHYLATE = meth->el[p1];
@@ -131,16 +133,16 @@ int main(int argc, char *argv[]) {
         // P_METHYLATE = 0.000008;
 
         //  p.alpha = 100.0*pow(10,-0.05*p2);
-        
+
         // Transcription
         // -------------
         /* Leave the repressed firing rate fixed at ~ every 60 min. */
-        p.firingRateMin = 0.0001; 
+        p.firingRateMin = 0.0001;
         p.firingRateMax = FIRING; // Optimise
 
         /* Cap firing rate at ~ every minute. */
         p.firingCap = 0.0166667;
-        p.transcription_demethylate = P_DEMETHYLATE; 
+        p.transcription_demethylate = P_DEMETHYLATE;
         // p.transcription_turnover = P_TURNOVER/2.0; (defined in parse.c)
 
         if (p.firingRateMax < p.firingRateMin) {
@@ -148,26 +150,26 @@ int main(int argc, char *argv[]) {
           fprintf(stderr," Setting k_min = k_max\n");
           p.firingRateMin = p.firingRateMax;
         }
-        
+
         // Methylation/demethylation
         // -------------------------
         /* 5% noise. Represents basal activity of unstimulated PRC2 */
         p.noisy_me0_me1 = 9.0*P_METHYLATE/20.0;
         p.noisy_me1_me2 = 6.0*P_METHYLATE/20.0;
         p.noisy_me2_me3 = P_METHYLATE/20.0;
-        
+
         /* ratio of 9:6:1 in "specificity constant" k_cat/K_M
            \cite{McCabe:2012kk} \cite{Sneeringer:2010dj} */
-        p.me0_me1 = 9.0*P_METHYLATE; 
-        p.me1_me2 = 6.0*P_METHYLATE; 
+        p.me0_me1 = 9.0*P_METHYLATE;
+        p.me1_me2 = 6.0*P_METHYLATE;
         p.me2_me3 = P_METHYLATE;
-        
+
         /* 2 - 2.5 fold lower Kd for K27me3 than K27me2, together with
            4 - 5 fold allosteric activation give a me2/me3 "factor"
            of 10. That is, me3 is 10-times more likely to stimulate a
            methyl addition on a nearby nucleosome.
            \cite{Margueron:2009el} */
-        p.me2factor = 0.1; 
+        p.me2factor = 0.1;
         p.me3factor = 1.0;
 
         // Stochastic alpha
@@ -193,14 +195,14 @@ int main(int argc, char *argv[]) {
         /* -------------- */
         /* loop over loci */
         /* -------------- */
-        
+
         for (locus=0;locus<p.loci;locus++) {
           // fprintf(stderr,"locus %ld\n",locus);
           if (p.startM == TRUE) {
             initialiseRepressed(&c);
           } else if (p.startU == TRUE) {
             initialiseActive(&c);
-          } else { 
+          } else {
             if (locus < floor(p.loci/2))
               initialiseRepressed(&c);
             else
@@ -211,16 +213,16 @@ int main(int argc, char *argv[]) {
             p.transFactorRNA = floor(p.k_r/p.gamma_r);
             p.transFactorProtein = floor(MEAN);
           }
-            
+
           /* reset counters */
           p.reactCount = 0;
           p.sampleCount = 0;
           p.cellCycleCount = 0;
-          
+
           /* Schedule first instance of the fixed time reactions */
           g.t_nextRep = p.cellCycleDuration*3600;
           p.firingFactor = 1.0;
-          
+
           /* Reaction loop */
           for (i=0;i<p.maxReact && p.cellCycleCount <= p.cellCycles;i++) {
             if (p.reactCount % p.sampleFreq == 0) {
@@ -250,10 +252,10 @@ int main(int argc, char *argv[]) {
   }
   /* end loop over parameters */
   fclose(parFile);
-  
+
   d_vec_free(meth);
   d_vec_free(demeth);
-  
+
   /* print final results */
   if (p.resultsFinalLocus == TRUE) {
     fprintResultsFinalLocus(avgfile,&r);
@@ -264,7 +266,7 @@ int main(int argc, char *argv[]) {
       fprintSpatialResults(fptr,&r);
       fclose(fptr);
     }
-    
+
     if (p.stochasticAlpha == TRUE) {
       strcpy(fname,"alpha_\0"); strcat(fname,avgfile);
       fprint_transFactorProtein_nCycles(fname,&r);
@@ -279,7 +281,7 @@ int main(int argc, char *argv[]) {
 
   /* free memory */
   freeGillespieMemory(&c,&p,&g,&r);
-  
+
 #ifdef __APPLE__
   timeElapsed = mach_absolute_time() - start;
   timeElapsed *= info.numer;
@@ -292,7 +294,7 @@ int main(int argc, char *argv[]) {
   fprintf(fptr,"Simulation time: %f seconds\n", (float)(timeElapsed));
   fprintf(stdout,"Simulation time: %f seconds\n", (float)(timeElapsed));
 #endif
-  
+
   fclose(fptr);
   if (g.test==TRUE)
     fclose(g.test_fptr);
