@@ -16,7 +16,7 @@ Program structure
 
 Functions with captial letters (including ``Main.c``) are executables (compiled using ``make``) used for various different simulations. These all have common command line options as defined in parse.c:
 
-.. code-block::
+.. code::
     $ ./me2me3
     Usage:
      -c <control region>
