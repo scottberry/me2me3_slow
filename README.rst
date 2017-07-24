@@ -16,7 +16,7 @@ Program structure
 
 Functions with captial letters (including ``Main.c``) are executables (compiled using ``make``) used for various different simulations. These all have common command line options as defined in parse.c:
 
-::
+.. code-block:: c
     $ ./me2me3
     Usage:
      -c <control region>
@@ -30,14 +30,14 @@ Functions with captial letters (including ``Main.c``) are executables (compiled 
      -u (start in unmodified state)
      -n <translation efficiency (noise)>
      -h <histone turnover rate (per histone per transcription)>
-::
+..
 
 In general, other parameter values such as methylation/demethylation rates will need to be set at compile-time. ``Main.c`` can also be setup to scan a range of such parameter values.
 
 Submission scripts
 ==================
 
-Example bash scripts for submitting these compiled functions, and looping over various command-line parameter inputs are provided in the ```scripts``` directory.
+Example bash scripts for submitting these compiled functions, and looping over various command-line parameter inputs are provided in the ``scripts`` directory.
 
 Library functions
 =================
