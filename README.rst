@@ -16,21 +16,21 @@ Program structure
 
 Functions with captial letters (including ``Main.c``) are executables (compiled using ``make``) used for various different simulations. These all have common command line options as defined in parse.c:
 
-.. code::
+.. code:: none
+
     $ ./me2me3
     Usage:
-     -c <control region>
-     -a <alpha>
-     -b <beta>
-     -t <firing threshold>
-     -i <identifier>
-     -s (seed based on identifier)
-     -r (DNA replication ON)
-     -m (start in K27me3 state)
-     -u (start in unmodified state)
-     -n <translation efficiency (noise)>
-     -h <histone turnover rate (per histone per transcription)>
-
+    -c <control region>
+    -a <alpha>
+    -b <beta>
+    -t <firing threshold>
+    -i <identifier>
+    -s (seed based on identifier)
+    -r (DNA replication ON)
+    -m (start in K27me3 state)
+    -u (start in unmodified state)
+    -n <translation efficiency (noise)>
+    -h <histone turnover rate (per histone per transcription)>
 
 In general, other parameter values such as methylation/demethylation rates will need to be set at compile-time. ``Main.c`` can also be setup to scan a range of such parameter values.
 
