@@ -37,7 +37,7 @@ In general, other parameter values such as methylation/demethylation rates will 
 Submission scripts
 =========
 
-Example bash scripts for submitting these compiled functions, looping over various parameter inputs are provided in the ```scripts``` directory.
+Example bash scripts for submitting these compiled functions, and looping over various command-line parameter inputs are provided in the ```scripts``` directory.
 
 Library functions
 =========
